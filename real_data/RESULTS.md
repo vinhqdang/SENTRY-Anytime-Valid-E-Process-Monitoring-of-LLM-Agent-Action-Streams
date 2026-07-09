@@ -11,7 +11,14 @@ free-model router (a rotating pool of ~24 free-tier models) as the agent
 | Source | Suites | Nominal | Attack (complete) | Successful attack | Resisted attack |
 |---|---|---|---|---|---|
 | AgentDojo | banking, workspace | 18 | 13 | 7 | 6 |
-| tau-bench | retail | ~9 (collection ongoing) | n/a (no attack suite) | n/a | n/a |
+| tau-bench | retail | 14/15 (1 hit an OpenRouter free-tier rate limit mid-task) | n/a (no attack suite) | n/a | n/a |
+
+Both collections are complete for this session's budget (24 nominal + 13
+attack trajectories total). tau-bench's one failed task hit OpenRouter's
+`free-models-per-min` limit (16/min shared across the whole free-model
+pool) and was recorded as a zero-action failure by tau-bench itself, then
+dropped by the `>=2 actions` filter in `real_data/evaluate.py` — expected
+behavior on a free-tier budget, not a bug.
 
 AgentDojo attacks use the `important_instructions` prompt-injection attack
 (AgentDojo's strongest baseline attack). "Successful" = AgentDojo's own
@@ -28,32 +35,38 @@ a fix (see git history) because AgentDojo's environments re-serialize the
 injected string (e.g. YAML-dumping it as a field value), which re-wraps its
 newlines and defeats an exact match.
 
-## Numbers (from `real_data/results.json`, one run; see caveats below)
+## Numbers (from `real_data/results.json`, final run on the complete collected dataset)
 
-- Nominal trajectories: 21 (18 AgentDojo + tau-bench so far)
-- Split: train=7, cal=5, thresh=4, test_nominal=5 (successful attacks held
-  out separately, n=4 usable after the `>=2 actions` filter)
-- **PAC threshold saturated**: with only 4 D_thresh streams, the order-statistic
+- Nominal trajectories: 24 (18 AgentDojo + 6 tau-bench passing the `>=2
+  actions` filter)
+- Split: train=8, cal=6, thresh=5, test_nominal=5 (successful attacks held
+  out separately, n=4 usable after the same filter)
+- **PAC threshold saturated**: with only 5 D_thresh streams, the order-statistic
   bound (algorithm.md §4 Phase 2) can't certify anything better than "use the
   single largest observed nominal statistic as the threshold" at
-  (alpha=0.2, delta=0.2). `c_alpha` is therefore just `max` over 4 numbers,
+  (alpha=0.2, delta=0.2). `c_alpha` is therefore just `max` over 5 numbers,
   not a real PAC guarantee — this is flagged explicitly in the script's
   output (`order_statistic_saturated: true`) and results.json.
-- Empirical FAR on held-out nominal: 0/30 steps = 0.0 — **not meaningful**,
+- Empirical FAR on held-out nominal: 0/31 steps = 0.0 — **not meaningful**,
   it's a trivial consequence of the threshold above being the max of a
   tiny sample, not evidence of good FAR control.
 - Detection: 0/4 successful attacks crossed that (very conservative)
-  threshold in this run; a similar run one data-point earlier detected
-  1/4 with delay=3 steps. Surprise-score AUROC (held-out nominal vs.
-  successful attacks) was 0.60 in that run and 0.45 in this one.
-- **This instability between two runs on almost the same data is itself the
-  headline finding**: at n≈5-20 per split, results swing by ±0.15 AUROC and
-  the detection count changes just from one more nominal trajectory landing
-  in the pool. These are not statistically meaningful FAR/ARL/AUROC numbers
-  yet — they demonstrate the pipeline runs correctly end-to-end on real,
-  heterogeneous (two different domains, two different tool sets) agent
-  trajectories, not that SENTRY has been validated at this feature/model
-  configuration.
+  threshold. Surprise-score AUROC (held-out nominal vs. successful
+  attacks) was **0.35** on this final run — across three consecutive
+  re-runs as more data landed (n_nominal=20/21/24), AUROC read 0.60, 0.45,
+  then 0.35, and detection count read 1/4, 0/4, 0/4.
+- **That AUROC trending *down* as more real nominal data arrives, while
+  swinging by ±0.25 between runs, is itself the headline finding.** At
+  n≈5-24 per split the estimate has not stabilized and there's no basis to
+  claim any particular number is representative — these are not
+  statistically meaningful FAR/ARL/AUROC results yet. What they do show is
+  that the pipeline runs correctly end-to-end on real, heterogeneous (two
+  different domains, two different tool sets) agent trajectories, and that
+  the current hashed-argument surprise score's separation between nominal
+  and attack trajectories is weak and possibly non-existent net of noise
+  (an AUROC of 0.35 is *below* chance, i.e. consistent with no real signal
+  once sampling variance is accounted for) — not that SENTRY has been
+  validated at this feature/model configuration.
 
 See `real_data/plots/real_data_traces.png` for a real nominal vs. real
 successful-attack trace: qualitatively, the e-detector statistic does rise
@@ -100,8 +113,9 @@ method (Ville/e-detector guarantees) and benchmark family. Specific points:
   apples-to-apples gap to close before a real comparison is possible.
 - **Cheap Reward Hacking Detection** (arXiv 2606.08893): reports AUROC
   0.9467 (linear probe on model internals) vs. an LLM-judge baseline of
-  0.9510, no formal guarantee. SENTRY's 0.45-0.60 AUROC here is far below
-  that, but the comparison isn't fair yet: that paper's detector is trained
+  0.9510, no formal guarantee. SENTRY's 0.35-0.60 AUROC here is far below
+  that (and, at the low end, below the 0.5 chance line), but the
+  comparison isn't fair yet: that paper's detector is trained
   on presumably hundreds+ labeled examples, uses model-internal features
   (not just hashed tool arguments), and targets a different failure mode
   (reward hacking in coding trajectories vs. prompt injection in tool-use
@@ -129,4 +143,4 @@ method (Ville/e-detector guarantees) and benchmark family. Specific points:
    discriminative power, independent of the sample-size fix above.
 3. Rerun `select_order_statistic`/`pac_threshold` (`sentry/calibration.py`)
    at a larger D_thresh to get a real, non-saturated PAC bound instead of
-   the vacuous max-of-4 threshold used here.
+   the vacuous max-of-5 threshold used here.

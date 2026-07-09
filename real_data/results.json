@@ -1,26 +1,26 @@
 {
-  "n_nominal": 21,
+  "n_nominal": 24,
   "n_successful_attacks": 4,
   "n_resisted_attacks": 6,
   "split_sizes": {
-    "train": 7,
-    "cal": 5,
-    "thresh": 4,
+    "train": 8,
+    "cal": 6,
+    "thresh": 5,
     "test_nominal": 5
   },
   "alpha": 0.2,
   "conf_delta": 0.2,
-  "c_alpha": 60.531178392311446,
+  "c_alpha": 46.0166802898242,
   "ville_c_alpha": 5.0,
   "order_statistic_saturated": true,
   "empirical_far": 0.0,
   "far_alarms": 0,
-  "far_steps": 30,
+  "far_steps": 31,
   "detection_rate": 0.0,
   "detected": 0,
   "n_successful_attacks_eval": 4,
   "detection_delays": [],
   "resisted_attack_alarms": 0,
   "resisted_attack_steps": 26,
-  "surprise_score_auroc": 0.45
+  "surprise_score_auroc": 0.35
 }
