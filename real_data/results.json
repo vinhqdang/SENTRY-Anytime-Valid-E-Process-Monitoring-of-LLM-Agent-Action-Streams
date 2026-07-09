@@ -10,7 +10,7 @@
   },
   "alpha": 0.2,
   "conf_delta": 0.2,
-  "c_alpha": 46.0166802898242,
+  "c_alpha": 39.27708871076304,
   "ville_c_alpha": 5.0,
   "order_statistic_saturated": true,
   "empirical_far": 0.0,
@@ -22,5 +22,5 @@
   "detection_delays": [],
   "resisted_attack_alarms": 0,
   "resisted_attack_steps": 26,
-  "surprise_score_auroc": 0.35
+  "surprise_score_auroc": 0.3
 }
