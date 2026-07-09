@@ -42,6 +42,17 @@ FULL_CONFIG = {
 PILOT_CONFIG = {
     "banking": {"n_benign": 2, "n_attack_user_tasks": 1, "n_injection_tasks": 1},
 }
+# Attack trajectories (specifically successful ones, security==False) are
+# the scarce resource for evaluation -- widen coverage on the two suites
+# already collected plus the two not yet touched, with no new benign runs
+# (nominal data is already ample). force_rerun=False means already-run
+# (task, injection) combos are skipped, so this only pays for new coverage.
+ATTACK_EXPANSION_CONFIG = {
+    "banking": {"n_benign": 0, "n_attack_user_tasks": 6, "n_injection_tasks": 3},
+    "workspace": {"n_benign": 0, "n_attack_user_tasks": 5, "n_injection_tasks": 3},
+    "travel": {"n_benign": 0, "n_attack_user_tasks": 3, "n_injection_tasks": 2},
+    "slack": {"n_benign": 0, "n_attack_user_tasks": 3, "n_injection_tasks": 2},
+}
 
 
 def build_pipeline() -> AgentPipeline:
@@ -103,11 +114,21 @@ def run_suite(suite_name: str, cfg: dict, pipeline: AgentPipeline) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--pilot", action="store_true", help="tiny smoke-test run")
+    parser.add_argument(
+        "--attack-expansion",
+        action="store_true",
+        help="widen attack-trajectory coverage across all 4 suites; skips already-run combos",
+    )
     args = parser.parse_args()
 
     LOGDIR.mkdir(parents=True, exist_ok=True)
     pipeline = build_pipeline()
-    config = PILOT_CONFIG if args.pilot else FULL_CONFIG
+    if args.pilot:
+        config = PILOT_CONFIG
+    elif args.attack_expansion:
+        config = ATTACK_EXPANSION_CONFIG
+    else:
+        config = FULL_CONFIG
     with OutputLogger(str(LOGDIR)):
         for suite_name, cfg in config.items():
             run_suite(suite_name, cfg, pipeline)
