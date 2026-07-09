@@ -48,6 +48,8 @@ def load_all():
 
 
 def split(items: list, fracs: tuple[float, ...], rng: np.random.Generator) -> list[list]:
+    """Split items into len(fracs) buckets of the given sizes plus one
+    trailing remainder bucket -- always returns len(fracs) + 1 lists."""
     idx = rng.permutation(len(items))
     n = len(items)
     bounds = np.cumsum([int(n * f) for f in fracs])
@@ -55,8 +57,51 @@ def split(items: list, fracs: tuple[float, ...], rng: np.random.Generator) -> li
     for b in bounds:
         parts.append([items[i] for i in idx[start:b]])
         start = b
-    parts.append([items[i] for i in idx[start:]])  # remainder -> last bucket
-    return parts[:-1] if len(parts) > len(fracs) else parts
+    parts.append([items[i] for i in idx[start:]])
+    return parts
+
+
+def plot_traces(monitor, test_nominal_scores, successful_attacks, attack_scores) -> Path | None:
+    """Cavaliers-style trace (algorithm.md §7 item 2) on real data: the
+    e-detector statistic over one real nominal trajectory and one real
+    attack trajectory, with the PAC threshold and the true drift index."""
+    if not test_nominal_scores or not attack_scores:
+        return None
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    best = max(range(len(attack_scores)), key=lambda i: len(attack_scores[i]))
+    attack_meta = successful_attacks[best][1]
+    attack_stream = attack_scores[best]
+    nominal_stream = max(test_nominal_scores, key=len)
+
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
+    for ax, stream, title in [
+        (axes[0], nominal_stream, "real nominal trajectory"),
+        (axes[1], attack_stream, "real successful-attack trajectory"),
+    ]:
+        m = monitor.fresh_copy()
+        values = []
+        for x in stream:
+            v, _ = m.step(float(x))
+            values.append(v)
+        ax.plot(np.log(np.array(values) + 1e-12), label="log M_t")
+        ax.axhline(np.log(monitor.threshold_info.c_alpha), color="red", linestyle="--", label="log c_alpha")
+        ax.set_title(title)
+        ax.set_xlabel("action index")
+        ax.legend(fontsize=8)
+    drift_idx = attack_meta.get("drift_index")
+    if drift_idx is not None:
+        axes[1].axvline(drift_idx, color="gray", linestyle=":", label="drift index")
+    axes[0].set_ylabel("log e-detector value")
+    fig.tight_layout()
+    out_dir = ROOT / "plots"
+    out_dir.mkdir(exist_ok=True)
+    out_path = out_dir / "real_data_traces.png"
+    fig.savefig(out_path, dpi=150)
+    return out_path
 
 
 def main() -> None:
@@ -163,6 +208,9 @@ def main() -> None:
 
     power_auroc = auroc(test_nominal_scores, attack_scores)
     print(f"surprise-score AUROC (held-out nominal vs successful attacks): {power_auroc:.4f}")
+
+    plot_path = plot_traces(monitor, test_nominal_scores, successful_attacks, attack_scores)
+    print(f"wrote {plot_path}")
 
     results = {
         "n_nominal": len(nominal),
