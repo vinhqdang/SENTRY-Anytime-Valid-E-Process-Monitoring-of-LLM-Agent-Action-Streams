@@ -47,10 +47,17 @@ def _content_text(content: Any) -> str:
     return str(content)
 
 
+def _normalize_ws(s: str) -> str:
+    return " ".join(s.split())
+
+
 def agentdojo_log_to_trajectory(log: dict, task_key: Any) -> tuple[Trajectory, dict]:
     """One AgentDojo TaskResults JSON dict -> (Trajectory, metadata)."""
     injections = log.get("injections") or {}
-    injected_strings = [v for v in injections.values() if isinstance(v, str) and v.strip()]
+    # Environments re-serialize injected strings (e.g. YAML-dump a dict that
+    # embeds one as a field value), which re-wraps/re-indents its newlines.
+    # Whitespace-normalize both sides so the substring match survives that.
+    injected_strings = [_normalize_ws(v) for v in injections.values() if isinstance(v, str) and v.strip()]
 
     tools_seen: set[str] = set()
     actions: list[tuple[str, Any]] = []
@@ -59,7 +66,7 @@ def agentdojo_log_to_trajectory(log: dict, task_key: Any) -> tuple[Trajectory, d
 
     for m in log["messages"]:
         if m["role"] == "tool":
-            text = _content_text(m.get("content"))
+            text = _normalize_ws(_content_text(m.get("content")))
             if injected_strings and any(s in text for s in injected_strings):
                 injected_content_seen = True
         elif m["role"] == "assistant" and m.get("tool_calls"):
