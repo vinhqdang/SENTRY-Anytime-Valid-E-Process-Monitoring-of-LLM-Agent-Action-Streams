@@ -1,7 +1,7 @@
 {
   "n_nominal": 24,
-  "n_successful_attacks": 4,
-  "n_resisted_attacks": 6,
+  "n_successful_attacks": 16,
+  "n_resisted_attacks": 16,
   "split_sizes": {
     "train": 8,
     "cal": 6,
@@ -10,7 +10,7 @@
   },
   "alpha": 0.2,
   "conf_delta": 0.2,
-  "c_alpha": 39.27708871076304,
+  "c_alpha": 131.73593600463394,
   "ville_c_alpha": 5.0,
   "order_statistic_saturated": true,
   "empirical_far": 0.0,
@@ -18,9 +18,13 @@
   "far_steps": 31,
   "detection_rate": 0.0,
   "detected": 0,
-  "n_successful_attacks_eval": 4,
+  "n_successful_attacks_eval": 16,
   "detection_delays": [],
   "resisted_attack_alarms": 0,
-  "resisted_attack_steps": 26,
-  "surprise_score_auroc": 0.3
+  "resisted_attack_steps": 73,
+  "surprise_score_auroc_max_length_confounded": 0.26875,
+  "surprise_score_auroc_mean_length_normalized": 0.44375,
+  "surprise_score_auroc": 0.44375,
+  "mean_n_actions_nominal": 5.291666666666667,
+  "mean_n_actions_successful_attack": 2.625
 }

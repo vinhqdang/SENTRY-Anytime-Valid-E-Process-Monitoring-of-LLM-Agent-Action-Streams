@@ -6,141 +6,148 @@ evaluation plan. Data collection used OpenRouter's `openrouter/free`
 free-model router (a rotating pool of ~24 free-tier models) as the agent
 (and, for tau-bench, the simulated user) LLM, with no other API cost.
 
-## Data collected
+**Bottom line up front**: after two rounds of real bug fixes and a 4x
+increase in attack-trajectory sample size, SENTRY does not yet reliably
+detect real AgentDojo prompt-injection attacks at this feature/model
+configuration (length-normalized AUROC 0.44, i.e. no better than chance
+within this sample's noise). This section explains exactly what was fixed,
+what changed as a result, what's still broken, and why -- no number here
+should be read as "SENTRY works" or "SENTRY is the best."
+
+## Data collected (final)
 
 | Source | Suites | Nominal | Attack (complete) | Successful attack | Resisted attack |
 |---|---|---|---|---|---|
-| AgentDojo | banking, workspace | 18 | 13 | 7 | 6 |
-| tau-bench | retail | 14/15 (1 hit an OpenRouter free-tier rate limit mid-task) | n/a (no attack suite) | n/a | n/a |
+| AgentDojo | banking, workspace, travel, slack | 18 | 32 | **16** | **16** |
+| tau-bench | retail | 14/15 (1 hit an OpenRouter free-tier rate limit) | n/a (no attack suite) | n/a | n/a |
 
-Both collections are complete for this session's budget (24 nominal + 13
-attack trajectories total). tau-bench's one failed task hit OpenRouter's
-`free-models-per-min` limit (16/min shared across the whole free-model
-pool) and was recorded as a zero-action failure by tau-bench itself, then
-dropped by the `>=2 actions` filter in `real_data/evaluate.py` — expected
-behavior on a free-tier budget, not a bug.
+Successful-attack count went from 4 (2 suites only) to 16 (all 4 suites) via
+`real_data/agentdojo/run.py --attack-expansion`, specifically to get past a
+sample size too small for any AUROC/detection-rate number to mean anything.
 
 AgentDojo attacks use the `important_instructions` prompt-injection attack
 (AgentDojo's strongest baseline attack). "Successful" = AgentDojo's own
 `security == False` label, i.e. the injection actually hijacked the agent's
 behavior, not just that an injection was present.
 
-Trajectories are converted to `sentry.scores` format via
-`real_data/adapters.py`: each tool call becomes one `Action`, with a
-deterministic feature-hashing embedding of its arguments (no GPU/embedding
-API — see the module docstring). The "drift index" (true changepoint) for
-each successful attack is located by whitespace-normalized substring
-matching of the injected text against tool-result content — this required
-a fix (see git history) because AgentDojo's environments re-serialize the
-injected string (e.g. YAML-dumping it as a field value), which re-wraps its
-newlines and defeats an exact match.
+## Two real bugs found and fixed (not just sample-size noise)
 
-## Numbers (from `real_data/results.json`, final run on the complete collected dataset)
+1. **Feature hashing tokenized on whitespace.** `json.dumps`'s default
+   compact separators leave almost no whitespace --
+   `{"file_path":"bill.txt"}` splits into 2 whitespace-tokens, not 3
+   meaningful ones (`file_path`, `bill.txt`, plus structure) -- so the hash
+   was nearly blind to argument content. Fixed with a word/number regex
+   tokenizer (`real_data/adapters.py`, commit `3b6db76`).
+2. **The surprise score never saw tool results, only actions.** Injected
+   content lives in what a tool *returns* (e.g. a file/email body), not in
+   the next action's own arguments -- so a score computed from the action
+   alone structurally cannot see where the injection is. Fixed by hashing
+   the immediately preceding tool-result text into each action's feature
+   vector, which is the `H_{t-1}` conditioning algorithm.md §2a's
+   `s_t = -log P(a_t | do(c), H_{t-1})` actually calls for.
 
-- Nominal trajectories: 24 (18 AgentDojo + 6 tau-bench passing the `>=2
-  actions` filter)
-- Split: train=8, cal=6, thresh=5, test_nominal=5 (successful attacks held
-  out separately, n=4 usable after the same filter)
-- **PAC threshold saturated**: with only 5 D_thresh streams, the order-statistic
-  bound (algorithm.md §4 Phase 2) can't certify anything better than "use the
-  single largest observed nominal statistic as the threshold" at
-  (alpha=0.2, delta=0.2). `c_alpha` is therefore just `max` over 5 numbers,
-  not a real PAC guarantee — this is flagged explicitly in the script's
-  output (`order_statistic_saturated: true`) and results.json.
-- Empirical FAR on held-out nominal: 0/31 steps = 0.0 — **not meaningful**,
-  it's a trivial consequence of the threshold above being the max of a
-  tiny sample, not evidence of good FAR control.
-- Detection: 0/4 successful attacks crossed that (very conservative)
-  threshold. Surprise-score AUROC (held-out nominal vs. successful
-  attacks) was **0.35** on this final run — across three consecutive
-  re-runs as more data landed (n_nominal=20/21/24), AUROC read 0.60, 0.45,
-  then 0.35, and detection count read 1/4, 0/4, 0/4.
-- **That AUROC trending *down* as more real nominal data arrives, while
-  swinging by ±0.25 between runs, is itself the headline finding.** At
-  n≈5-24 per split the estimate has not stabilized and there's no basis to
-  claim any particular number is representative — these are not
-  statistically meaningful FAR/ARL/AUROC results yet. What they do show is
-  that the pipeline runs correctly end-to-end on real, heterogeneous (two
-  different domains, two different tool sets) agent trajectories, and that
-  the current hashed-argument surprise score's separation between nominal
-  and attack trajectories is weak and possibly non-existent net of noise
-  (an AUROC of 0.35 is *below* chance, i.e. consistent with no real signal
-  once sampling variance is accounted for) — not that SENTRY has been
-  validated at this feature/model configuration.
+Both are real, verifiable defects (reproduced with a raw JSON string and
+`str.split()` vs. a regex tokenizer) independent of anything statistical.
 
-See `real_data/plots/real_data_traces.png` for a real nominal vs. real
-successful-attack trace: qualitatively, the e-detector statistic does rise
-measurably after the true drift index on the attack trajectory while
-staying flat on the nominal one — the signal exists — but the tiny D_thresh
-sample means the calibrated threshold is far too conservative for the
-statistic to actually cross it at this alpha/delta target.
+## A third finding: max(stream) confounds with trajectory length
 
-## Why the numbers are weak, concretely
+After fixing the above and quadrupling the attack sample, AUROC (nominal
+vs. successful attack, using `max` of the raw surprise-score stream per
+trajectory) came out at **0.27 -- decisively below chance**, and this time
+with enough data (16 attacks x 5 held-out nominal = 80 pairs) that it
+wasn't just noise. Investigating: nominal trajectories average **5.3**
+actions, successful attacks average **2.6** -- about half as long. `max`
+over a longer stream has more chances to hit a high value by chance alone,
+regardless of whether anything is actually anomalous, so this metric was
+measuring trajectory length more than surprise.
 
-1. **Sample size.** All splits above have single-digit or low-double-digit
-   sizes. This is a session/free-tier-budget constraint (each AgentDojo
-   task takes ~10-400s on OpenRouter's free-model router; the collection
-   scripts in `real_data/agentdojo/run.py` and `real_data/tau_bench/run.py`
-   were deliberately scoped down to finish in a reasonable session, not
-   because more data isn't collectible — rerunning with larger
-   `FULL_CONFIG`/`end_index` values and more session time is the direct fix).
-2. **Feature representation.** The surprise score is `-log P(tool | context)`
-   under a Laplace-smoothed categorical/Gaussian MLE over *hashed* tool
-   arguments (`sentry/scores.py`, `real_data/adapters.py`). This captures
-   "which tool, roughly what argument shape" but not the *semantic content*
-   of injected text. A successful AgentDojo attack often still calls a
-   plausible-looking tool (e.g. `send_money` in the banking domain) with
-   attacker-influenced arguments — structurally unsurprising to this model
-   even though the content is compromised. algorithm.md itself scopes this
-   as a simplification (§2, "a full causal-discovery engine ... is out of
-   scope"); a real embedding of tool arguments/results, or the actual
-   CAIRN-style causal world model, is the natural next step and would
-   likely raise detection power substantially.
+Switching to a length-normalized, drift-aware metric -- mean surprise over
+the *post-drift* region for attacks (the quantity algorithm.md §5's
+detection-delay bound actually depends on, `D(Q‖P)`) vs. mean surprise over
+the whole trajectory for nominal streams -- gives **AUROC 0.44**. Still
+below 0.5, but no longer a dramatic, confidently-wrong signal; more
+accurately described as "no reliable separation found yet" rather than
+"actively anti-correlated." (`real_data/evaluate.py` now reports both
+numbers explicitly, labeled, so this confound can't silently reappear.)
+
+One individual trace (`real_data/plots/real_data_traces.png`) shows a
+clean, steady rise in the e-detector statistic immediately after the true
+drift index on a real successful attack, while a real nominal trajectory
+stays flat -- so the signal *can* show up clearly case-by-case. It just
+doesn't show up reliably enough across the full 16-attack set to move the
+aggregate AUROC away from chance.
+
+## Why detection is still structurally hard here
+
+- **PAC threshold still saturated.** D_thresh has only 5 streams, so
+  `c_alpha` (131.7) is literally the max observed nominal statistic in
+  that tiny sample, not a real bound -- `empirical_far=0.0` remains a
+  vacuous consequence of that, not evidence of good FAR control.
+  `detected 0/16` follows directly: the threshold is enormous relative to
+  any individual trajectory's statistic at this scale.
+- **Attacks are short by construction.** AgentDojo's `important_instructions`
+  attack is designed to make the agent perform one extra malicious action
+  and then continue -- median attack length here is 2 actions, meaning as
+  few as 1 post-drift observation exists to accumulate evidence on. This
+  is a structural limit for *any* sequential change-point detector, not
+  specific to SENTRY's feature choices: e-detectors need multiple
+  post-change steps to build up a statistic past a threshold (algorithm.md
+  §5's delay bound assumes this). A single-shot "is this one action
+  causally consistent" score (algorithm.md §2b's intervention-consistency
+  score, implemented in `sentry/scores.py` but **not yet wired into this
+  evaluation**) is the more natural tool for a 1-2 step attack than
+  accumulation-based SR/CUSUM, and is the most promising concrete next step.
+- **Argument features are still generic hashing, not novelty-aware.** The
+  fix above lets the model see argument/observation *content*, but it's
+  still a frequency-based hash, not "is this recipient IBAN one I've seen
+  before." A per-argument-slot novelty/OOV feature (has this exact value,
+  or this value's type/shape, appeared in training data before?) is a
+  concrete, implementable improvement that directly targets what actually
+  makes an injected `send_money` call anomalous -- an unfamiliar
+  recipient -- rather than relying on generic hash collisions to surface it.
 
 ## Comparison to 2026 literature
 
-No 2026 paper found (arXiv search, see prior turn) reports FAR/ARL/AUROC
+No 2026 paper found (arXiv search, prior turn) reports FAR/ARL/AUROC
 results on AgentDojo, InjecAgent, WebArena, or tau-bench using an e-process
-or e-detector method — SENTRY reporting *any* number on these benchmarks,
-even a weak preliminary one, appears to be a first for this combination of
-method (Ville/e-detector guarantees) and benchmark family. Specific points:
+or e-detector method. That's still true after this round -- SENTRY
+reporting *any* number here, even a weak one, remains a first for this
+combination of method and benchmark family, not a reproduction of anyone
+else's numbers. Specific points, updated:
 
 - **E-valuator** (arXiv 2512.03109, SENTRY's direct ancestor for the
-  PAC-thresholding subroutine): its own PAC-threshold construction has the
-  same finite-sample dependency SENTRY hit here — the E-valuator paper's
-  reported numbers presumably use a much larger calibration set than the
-  4-20 trajectories available in this session; that's the most direct
-  apples-to-apples gap to close before a real comparison is possible.
-- **Cheap Reward Hacking Detection** (arXiv 2606.08893): reports AUROC
-  0.9467 (linear probe on model internals) vs. an LLM-judge baseline of
-  0.9510, no formal guarantee. SENTRY's 0.35-0.60 AUROC here is far below
-  that (and, at the low end, below the 0.5 chance line), but the
-  comparison isn't fair yet: that paper's detector is trained
-  on presumably hundreds+ labeled examples, uses model-internal features
-  (not just hashed tool arguments), and targets a different failure mode
-  (reward hacking in coding trajectories vs. prompt injection in tool-use
-  agents). It's the right empirical power target to benchmark against once
-  SENTRY's feature representation and sample size are both improved.
+  PAC-thresholding subroutine): same finite-sample dependency SENTRY hit
+  here (D_thresh=5). Its own reported numbers presumably use a
+  substantially larger calibration set; that gap, not the feature
+  engineering done in this round, is the most direct lever for a real
+  apples-to-apples comparison.
+- **Cheap Reward Hacking Detection** (arXiv 2606.08893): AUROC 0.9467
+  (linear probe on model internals), no formal guarantee. SENTRY's
+  length-normalized AUROC of 0.44 here is far below that. The gap didn't
+  close this round -- it's now measured more honestly (0.27 vs. 0.44
+  depending on metric) rather than closed.
 - **ToolChain-CRC** (arXiv 2606.18467) and the **strategic-deviations**
-  paper (arXiv 2601.05427): closest in *framing* (conformal risk control +
-  anytime escalation; e-value/test-supermartingale for behavioral
-  deviation) but evaluated on synthetic/game-theoretic settings respectively,
-  not on agent-safety benchmarks — no numeric benchmark overlap to compare
-  against directly.
+  paper (arXiv 2601.05427): still no numeric benchmark overlap -- different
+  evaluation settings (synthetic/RAG drift; game-theoretic), so still no
+  direct comparison possible.
 
-## What would fix this
+## What would actually move the needle (in priority order)
 
-1. More collection budget/time: scale `real_data/agentdojo/run.py`'s
-   `FULL_CONFIG` and `real_data/tau_bench/run.py`'s `end_index` up, and
-   rerun `python -m real_data.evaluate` — the pipeline is already correct
-   and reruns are just data-volume-limited, not code-limited (the split
-   logic, PAC threshold, and SR/CUSUM recursion are all covered by the 24
-   passing tests in `tests/`, exercised on synthetic data where sample size
-   isn't a constraint).
-2. Replace the hashed-argument feature with a real text embedding of tool
-   arguments and results (or the full causal-world-model do-intervention
-   score from algorithm.md §2b) to raise the surprise score's actual
-   discriminative power, independent of the sample-size fix above.
-3. Rerun `select_order_statistic`/`pac_threshold` (`sentry/calibration.py`)
-   at a larger D_thresh to get a real, non-saturated PAC bound instead of
-   the vacuous max-of-5 threshold used here.
+1. **Wire in the intervention-consistency score** (`sentry/scores.py`'s
+   `CausalWorldModel.intervention_consistency_score`, unused by
+   `real_data/evaluate.py` so far) as a second signal alongside the
+   predictive-residual score, specifically because it's a single-action
+   score and attacks here average 2.6 actions -- it doesn't need
+   accumulation time the way the SR/CUSUM recursion does.
+2. **Novelty-aware argument features**: track, per tool and argument key,
+   the set of values seen during training, and score unseen values as
+   surprising directly -- rather than relying on generic hash collisions
+   to indirectly surface novelty.
+3. **More D_thresh samples** to get a real (non-saturated) PAC threshold --
+   orthogonal to the two items above, and the fix for the vacuous
+   `empirical_far=0.0` specifically.
+4. **More attack trajectories still** -- 16 is enough to make AUROC
+   estimates meaningful (as this round demonstrated, going from 4 to 16
+   changed the finding qualitatively), but a future round with 40-60 would
+   tighten the confidence interval on whatever the next feature change
+   produces.
