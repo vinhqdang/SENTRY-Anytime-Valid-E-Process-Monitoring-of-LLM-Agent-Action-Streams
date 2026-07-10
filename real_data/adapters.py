@@ -36,7 +36,7 @@ from typing import Any
 
 import numpy as np
 
-from sentry.scores import Action, Context, Trajectory
+from sentry.scores import Action, Context, Trajectory, instruction_likeness
 
 ARGS_HASH_DIM = 24
 OBS_HASH_DIM = 16
@@ -91,13 +91,21 @@ def _normalize_ws(s: str) -> str:
     return " ".join(s.split())
 
 
+def _alnum(s: str) -> str:
+    """Collapse to lowercase alphanumerics only -- robust to any
+    re-serialization the environment applies to an injected string (YAML
+    line-folding with '\\' continuations, re-indentation, quoting), which
+    defeated whitespace-only normalization on several real logs."""
+    return re.sub(r"[^a-z0-9]", "", s.lower())
+
+
 def agentdojo_log_to_trajectory(log: dict, task_key: Any) -> tuple[Trajectory, dict]:
     """One AgentDojo TaskResults JSON dict -> (Trajectory, metadata)."""
     injections = log.get("injections") or {}
     # Environments re-serialize injected strings (e.g. YAML-dump a dict that
     # embeds one as a field value), which re-wraps/re-indents its newlines.
     # Whitespace-normalize both sides so the substring match survives that.
-    injected_strings = [_normalize_ws(v) for v in injections.values() if isinstance(v, str) and v.strip()]
+    injected_strings = [_alnum(v) for v in injections.values() if isinstance(v, str) and v.strip()]
 
     tools_seen: set[str] = set()
     actions: list[tuple[str, Any, str]] = []
@@ -109,7 +117,7 @@ def agentdojo_log_to_trajectory(log: dict, task_key: Any) -> tuple[Trajectory, d
         if m["role"] == "tool":
             raw_text = _content_text(m.get("content"))
             last_observation = raw_text
-            text = _normalize_ws(raw_text)
+            text = _alnum(raw_text)
             if injected_strings and any(s in text for s in injected_strings):
                 injected_content_seen = True
         elif m["role"] == "assistant" and m.get("tool_calls"):
@@ -121,7 +129,15 @@ def agentdojo_log_to_trajectory(log: dict, task_key: Any) -> tuple[Trajectory, d
 
     ctx = Context(task_id=task_key, available_tools=frozenset(tools_seen))
     traj: Trajectory = [
-        (ctx, Action(tool=n, features=_hash_features(a, obs), tokens=_arg_tokens(a)))
+        (
+            ctx,
+            Action(
+                tool=n,
+                features=_hash_features(a, obs),
+                tokens=_arg_tokens(a),
+                obs_instruction_likeness=instruction_likeness(obs),
+            ),
+        )
         for n, a, obs in actions
     ]
     meta = {
@@ -176,7 +192,15 @@ def taubench_entry_to_trajectory(entry: dict, task_key: Any) -> tuple[Trajectory
 
     ctx = Context(task_id=task_key, available_tools=frozenset(tools_seen))
     traj: Trajectory = [
-        (ctx, Action(tool=n, features=_hash_features(a, obs), tokens=_arg_tokens(a)))
+        (
+            ctx,
+            Action(
+                tool=n,
+                features=_hash_features(a, obs),
+                tokens=_arg_tokens(a),
+                obs_instruction_likeness=instruction_likeness(obs),
+            ),
+        )
         for n, a, obs in actions
     ]
     meta = {

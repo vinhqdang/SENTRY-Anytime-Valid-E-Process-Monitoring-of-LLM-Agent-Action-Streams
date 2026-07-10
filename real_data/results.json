@@ -11,8 +11,8 @@
     "causal_hash": {
       "aggregate": {
         "auroc_mean_norm": {
-          "mean": 0.47000000000000003,
-          "std": 0.09717895862788405
+          "mean": 0.465,
+          "std": 0.09902651160169178
         },
         "auroc_max": {
           "mean": 0.32249999999999995,
@@ -160,7 +160,7 @@
         },
         {
           "seed": 7,
-          "auroc_mean_norm": 0.45625,
+          "auroc_mean_norm": 0.40625,
           "auroc_max": 0.31875,
           "c_alpha": 4.952147466826374,
           "pac_saturated": true,
@@ -214,32 +214,33 @@
     "bigram_novelty": {
       "aggregate": {
         "auroc_mean_norm": {
-          "mean": 0.6862499999999999,
-          "std": 0.13980455107041403
+          "mean": 0.7849999999999999,
+          "std": 0.1045526183316324
         },
         "auroc_max": {
-          "mean": 0.6006250000000001,
-          "std": 0.13836235262888527
+          "mean": 0.7343750000000001,
+          "std": 0.08169350111851004
         },
         "ville_detection_rate": {
-          "mean": 0.45625,
-          "std": 0.0886090429922364
+          "mean": 0.6375,
+          "std": 0.0375
         },
         "ville_nominal_far": {
-          "mean": 0.11450281618023554,
-          "std": 0.11250341798923147
+          "mean": 0.11603891449052739,
+          "std": 0.12322318563232702
         },
         "pac_detection_rate": {
-          "mean": 0.3875,
-          "std": 0.09185586535436917
+          "mean": 0.625,
+          "std": 0.0
         },
         "pac_nominal_far": {
-          "mean": 0.05552304147465437,
-          "std": 0.05406582251803155
+          "mean": 0.05229723502304147,
+          "std": 0.054394353477123146
         }
       },
       "pac_saturated_in_all_seeds": true,
       "ville_delays_all_seeds": [
+        1,
         0,
         0,
         1,
@@ -247,24 +248,38 @@
         1,
         1,
         1,
-        6,
+        1,
+        1,
+        1,
+        1,
+        1,
         2,
         2,
         2,
         2,
         2,
+        1,
+        1,
         0,
         0,
         0,
+        1,
+        1,
+        1,
+        1,
+        1,
         1,
         1,
         1,
         1,
         1,
         3,
+        2,
         3,
         3,
         3,
+        1,
+        1,
         0,
         0,
         0,
@@ -273,14 +288,9 @@
         1,
         1,
         1,
-        6,
         1,
         1,
-        2,
-        2,
-        2,
-        2,
-        2,
+        1,
         1,
         1,
         2,
@@ -288,6 +298,19 @@
         2,
         2,
         2,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        2,
+        2,
+        2,
+        1,
+        1,
+        1,
         0,
         0,
         1,
@@ -299,11 +322,16 @@
         2,
         1,
         1,
+        1,
+        1,
+        1,
         2,
         2,
         2,
         2,
         2,
+        1,
+        1,
         0,
         0,
         0,
@@ -312,83 +340,107 @@
         1,
         1,
         1,
+        0,
         1
       ],
       "per_seed": [
         {
           "seed": 0,
-          "auroc_mean_norm": 0.6625,
-          "auroc_max": 0.50625,
-          "c_alpha": 7.453636622470092,
+          "auroc_mean_norm": 0.75,
+          "auroc_max": 0.69375,
+          "c_alpha": 10.546344524996064,
           "pac_saturated": true,
-          "pac_detection_rate": 0.4375,
+          "pac_detection_rate": 0.625,
           "pac_delays": [
-            0,
-            0,
             1,
             1,
             1,
+            2,
+            2,
+            2,
+            2,
+            2,
             1,
             1
           ],
-          "pac_nominal_far": 0.06451612903225806,
-          "ville_detection_rate": 0.4375,
+          "pac_nominal_far": 0.03225806451612903,
+          "ville_detection_rate": 0.625,
           "ville_delays": [
+            1,
             0,
             0,
+            1,
+            1,
             1,
             1,
             1,
             1,
             1
           ],
-          "ville_nominal_far": 0.0967741935483871
+          "ville_nominal_far": 0.06451612903225806
         },
         {
           "seed": 1,
-          "auroc_mean_norm": 0.925,
-          "auroc_max": 0.7625,
+          "auroc_mean_norm": 0.975,
+          "auroc_max": 0.8125,
           "c_alpha": 7.569977394895075,
           "pac_saturated": true,
-          "pac_detection_rate": 0.3125,
+          "pac_detection_rate": 0.625,
           "pac_delays": [
+            1,
+            1,
+            1,
             2,
             2,
             2,
             3,
-            3
+            3,
+            1,
+            1
           ],
           "pac_nominal_far": 0.0,
-          "ville_detection_rate": 0.375,
+          "ville_detection_rate": 0.625,
           "ville_delays": [
-            6,
+            1,
+            1,
+            1,
             2,
             2,
             2,
             2,
-            2
+            2,
+            1,
+            1
           ],
           "ville_nominal_far": 0.0
         },
         {
           "seed": 2,
-          "auroc_mean_norm": 0.5,
-          "auroc_max": 0.375,
-          "c_alpha": 62.71038960405499,
+          "auroc_mean_norm": 0.6375,
+          "auroc_max": 0.6,
+          "c_alpha": 110.30844968557106,
           "pac_saturated": true,
-          "pac_detection_rate": 0.25,
+          "pac_detection_rate": 0.625,
           "pac_delays": [
+            1,
+            1,
+            1,
+            3,
+            2,
             3,
             3,
             3,
-            3
+            1,
+            1
           ],
           "pac_nominal_far": 0.0,
-          "ville_detection_rate": 0.5,
+          "ville_detection_rate": 0.625,
           "ville_delays": [
             0,
             0,
             0,
+            1,
+            1,
             1,
             1,
             1,
@@ -399,38 +451,52 @@
         },
         {
           "seed": 3,
-          "auroc_mean_norm": 0.8125,
-          "auroc_max": 0.80625,
-          "c_alpha": 8.738848995182563,
+          "auroc_mean_norm": 0.8875,
+          "auroc_max": 0.875,
+          "c_alpha": 8.60773473162003,
           "pac_saturated": true,
-          "pac_detection_rate": 0.25,
+          "pac_detection_rate": 0.625,
           "pac_delays": [
+            1,
+            1,
+            1,
+            3,
+            2,
             3,
             3,
             3,
-            3
+            1,
+            1
           ],
           "pac_nominal_far": 0.0,
-          "ville_detection_rate": 0.25,
+          "ville_detection_rate": 0.625,
           "ville_delays": [
+            1,
+            1,
+            1,
+            3,
+            2,
             3,
             3,
             3,
-            3
+            1,
+            1
           ],
           "ville_nominal_far": 0.0
         },
         {
           "seed": 4,
-          "auroc_mean_norm": 0.75,
-          "auroc_max": 0.65625,
-          "c_alpha": 3.4615031710328084,
+          "auroc_mean_norm": 0.8375,
+          "auroc_max": 0.74375,
+          "c_alpha": 3.3964675994883633,
           "pac_saturated": true,
-          "pac_detection_rate": 0.5,
+          "pac_detection_rate": 0.625,
           "pac_delays": [
             0,
             0,
             0,
+            1,
+            1,
             1,
             1,
             1,
@@ -438,11 +504,13 @@
             1
           ],
           "pac_nominal_far": 0.08,
-          "ville_detection_rate": 0.5,
+          "ville_detection_rate": 0.625,
           "ville_delays": [
             0,
             0,
             0,
+            1,
+            1,
             1,
             1,
             1,
@@ -453,71 +521,87 @@
         },
         {
           "seed": 5,
-          "auroc_mean_norm": 0.525,
-          "auroc_max": 0.45625,
-          "c_alpha": 11.32321778258131,
+          "auroc_mean_norm": 0.675,
+          "auroc_max": 0.65,
+          "c_alpha": 8.728039371585572,
           "pac_saturated": true,
-          "pac_detection_rate": 0.3125,
+          "pac_detection_rate": 0.625,
           "pac_delays": [
+            1,
+            1,
+            1,
             2,
             2,
             2,
             2,
-            2
+            2,
+            1,
+            1
           ],
           "pac_nominal_far": 0.041666666666666664,
-          "ville_detection_rate": 0.5,
+          "ville_detection_rate": 0.625,
           "ville_delays": [
-            6,
             1,
             1,
+            1,
             2,
             2,
             2,
             2,
-            2
+            2,
+            1,
+            1
           ],
           "ville_nominal_far": 0.125
         },
         {
           "seed": 6,
-          "auroc_mean_norm": 0.8625,
-          "auroc_max": 0.7375,
+          "auroc_mean_norm": 0.8875,
+          "auroc_max": 0.80625,
           "c_alpha": 4.993641215198774,
           "pac_saturated": true,
-          "pac_detection_rate": 0.4375,
+          "pac_detection_rate": 0.625,
           "pac_delays": [
             1,
             1,
+            1,
             2,
             2,
             2,
             2,
-            2
+            2,
+            1,
+            1
           ],
           "pac_nominal_far": 0.0,
-          "ville_detection_rate": 0.4375,
+          "ville_detection_rate": 0.625,
           "ville_delays": [
             1,
             1,
+            1,
             2,
             2,
             2,
             2,
-            2
+            2,
+            1,
+            1
           ],
           "ville_nominal_far": 0.0
         },
         {
           "seed": 7,
-          "auroc_mean_norm": 0.6,
-          "auroc_max": 0.60625,
-          "c_alpha": 6.148158279047289,
+          "auroc_mean_norm": 0.7375,
+          "auroc_max": 0.775,
+          "c_alpha": 6.071780817150721,
           "pac_saturated": true,
-          "pac_detection_rate": 0.4375,
+          "pac_detection_rate": 0.625,
           "pac_delays": [
+            1,
             0,
             0,
+            1,
+            1,
             1,
             1,
             1,
@@ -525,8 +609,9 @@
             1
           ],
           "pac_nominal_far": 0.14285714285714285,
-          "ville_detection_rate": 0.5625,
+          "ville_detection_rate": 0.75,
           "ville_delays": [
+            1,
             0,
             0,
             1,
@@ -535,21 +620,25 @@
             1,
             1,
             2,
-            2
+            2,
+            1,
+            1
           ],
           "ville_nominal_far": 0.19047619047619047
         },
         {
           "seed": 8,
-          "auroc_mean_norm": 0.675,
-          "auroc_max": 0.6375,
+          "auroc_mean_norm": 0.7875,
+          "auroc_max": 0.7375,
           "c_alpha": 2.8423055803529715,
           "pac_saturated": true,
-          "pac_detection_rate": 0.5,
+          "pac_detection_rate": 0.625,
           "pac_delays": [
             0,
             0,
             0,
+            1,
+            1,
             1,
             1,
             1,
@@ -557,28 +646,34 @@
             1
           ],
           "pac_nominal_far": 0.08333333333333333,
-          "ville_detection_rate": 0.4375,
+          "ville_detection_rate": 0.625,
           "ville_delays": [
             1,
             1,
+            1,
             2,
             2,
             2,
             2,
-            2
+            2,
+            1,
+            1
           ],
           "ville_nominal_far": 0.041666666666666664
         },
         {
           "seed": 9,
-          "auroc_mean_norm": 0.55,
-          "auroc_max": 0.4625,
+          "auroc_mean_norm": 0.675,
+          "auroc_max": 0.65,
           "c_alpha": 57.63406212547479,
           "pac_saturated": true,
-          "pac_detection_rate": 0.4375,
+          "pac_detection_rate": 0.625,
           "pac_delays": [
+            1,
             0,
             0,
+            1,
+            1,
             1,
             1,
             1,
@@ -586,7 +681,7 @@
             1
           ],
           "pac_nominal_far": 0.14285714285714285,
-          "ville_detection_rate": 0.5625,
+          "ville_detection_rate": 0.625,
           "ville_delays": [
             0,
             0,
@@ -596,9 +691,10 @@
             1,
             1,
             1,
+            0,
             1
           ],
-          "ville_nominal_far": 0.3333333333333333
+          "ville_nominal_far": 0.38095238095238093
         }
       ]
     }

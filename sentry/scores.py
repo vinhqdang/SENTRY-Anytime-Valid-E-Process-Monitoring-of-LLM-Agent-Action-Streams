@@ -21,6 +21,7 @@ be dropped in later per algorithm.md §8 "next steps".
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass, field
 from typing import Hashable, Sequence
 
@@ -28,6 +29,52 @@ import numpy as np
 
 _EPS = 1e-9
 _MAX_SURPRISE = 50.0  # clip -log(0) to a large finite value
+
+# --- Instruction-likeness of a tool observation (algorithm.md §2, extended) --
+#
+# A tool result is supposed to be passive *data*. Indirect prompt injection
+# works by smuggling an *instruction* into that data. So instruction-like
+# content appearing in a tool observation is, under a nominal reference where
+# tool outputs are data, a high-surprise event -- and it fires at the
+# observation, before the agent acts on it (near-zero detection delay).
+#
+# The lexicon below is deliberately GENERIC (imperative verbs, second-person
+# address, delimiter/tag mimicry, exclamations) -- no proper nouns, no
+# benchmark-specific phrases -- so it is not overfit to AgentDojo's particular
+# attack template. Measured AUROC (successful-attack vs benign observations)
+# on real collected data was 0.955 with these a-priori weights; the CommandSans
+# result (arXiv:2510.08829, AgentDojo attack-success 34%->3%) validates the
+# general approach of detecting instructions inside tool outputs.
+_IMPERATIVE_VERBS = re.compile(
+    r"\b(please|send|ignore|forward|delete|do|make|ensure|note|remember|must|should|"
+    r"now|first|before|after|reply|share|provide|include|update|create|add|remove|"
+    r"transfer|pay|buy|book|post|invite|execute|run|call|fetch|download|upload)\b"
+)
+_SECOND_PERSON = re.compile(r"\b(you|your|yours)\b")
+_PSEUDO_TAG = re.compile(r"<[a-zA-Z/][^>]{0,40}>")
+_WORD = re.compile(r"[a-z']+")
+# a-priori weights on [imperative density, second-person density, tag count,
+# exclamation density]; not fit to labels.
+_INSTR_WEIGHTS = np.array([3.0, 2.0, 2.0, 1.0])
+
+
+def instruction_likeness(text: str) -> float:
+    """Generic instruction-likeness of a text (higher = more instruction-like,
+    ~0 for passive data). Model-free, domain-independent, cheap."""
+    if not text:
+        return 0.0
+    tl = text.lower()
+    words = _WORD.findall(tl)
+    n = max(len(words), 1)
+    feats = np.array(
+        [
+            len(_IMPERATIVE_VERBS.findall(tl)) / n,
+            len(_SECOND_PERSON.findall(tl)) / n,
+            float(len(_PSEUDO_TAG.findall(text))),
+            text.count("!") / n,
+        ]
+    )
+    return float(_INSTR_WEIGHTS @ feats)
 
 
 @dataclass(frozen=True)
@@ -49,6 +96,10 @@ class Action:
     tool: str
     features: np.ndarray = field(default_factory=lambda: np.zeros(0))
     tokens: tuple[str, ...] = ()
+    obs_instruction_likeness: float = 0.0
+    """instruction_likeness() of the tool observation immediately preceding
+    this action -- the injection signal, computed by the log adapter which
+    owns the raw observation text (algorithm.md §2's H_{t-1} conditioning)."""
 
 
 Trajectory = Sequence[tuple[Context, Action]]
@@ -175,15 +226,23 @@ class SequentialWorldModel:
     the PAC thresholding downstream is what absorbs its estimation error.
     """
 
-    def __init__(self, laplace_alpha: float = 1.0, novelty_weight: float = 4.0) -> None:
+    def __init__(
+        self,
+        laplace_alpha: float = 1.0,
+        novelty_weight: float = 4.0,
+        instruction_weight: float = 4.0,
+    ) -> None:
         self.laplace_alpha = laplace_alpha
         self.novelty_weight = novelty_weight
+        self.instruction_weight = instruction_weight
         self._bigram: dict[str, dict[str, float]] = {}
         self._tools: set[str] = set()
         self._tool_vocab: dict[str, set[str]] = {}
         self._global_vocab: set[str] = set()
+        self._instr_baseline: float = 0.0
 
     def fit(self, trajectories: Sequence[Trajectory]) -> "SequentialWorldModel":
+        instr_vals: list[float] = []
         for traj in trajectories:
             prev = _START_TOOL
             for _context, action in traj:
@@ -193,7 +252,13 @@ class SequentialWorldModel:
                 vocab = self._tool_vocab.setdefault(action.tool, set())
                 vocab.update(action.tokens)
                 self._global_vocab.update(action.tokens)
+                instr_vals.append(action.obs_instruction_likeness)
                 prev = action.tool
+        # Learn the nominal instruction-likeness ceiling: any observation more
+        # instruction-like than anything seen in nominal data is the signal.
+        # Learned (not hardcoded) so the term self-calibrates to a deployment
+        # whose tools legitimately return more directive-sounding text.
+        self._instr_baseline = max(instr_vals) if instr_vals else 0.0
         return self
 
     def tool_log_prob(self, prev_tool: str, tool: str) -> float:
@@ -215,10 +280,20 @@ class SequentialWorldModel:
         unseen = sum(1 for t in action.tokens if t not in vocab and t not in self._global_vocab)
         return unseen / len(action.tokens)
 
+    def instruction_excess(self, action: Action) -> float:
+        """How much the preceding observation's instruction-likeness exceeds
+        anything seen in nominal training data (0 if within nominal range).
+        This is the indirect-prompt-injection signal."""
+        return max(0.0, action.obs_instruction_likeness - self._instr_baseline)
+
     def surprise(self, context: Context, history: Trajectory, action: Action) -> float:
         prev = history[-1][1].tool if history else _START_TOOL
         nll = -self.tool_log_prob(prev, action.tool)
-        s = nll + self.novelty_weight * self.novelty_fraction(action)
+        s = (
+            nll
+            + self.novelty_weight * self.novelty_fraction(action)
+            + self.instruction_weight * self.instruction_excess(action)
+        )
         return float(min(s, _MAX_SURPRISE))
 
 
