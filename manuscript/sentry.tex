@@ -361,6 +361,7 @@ We describe each stage.
 
 \begin{figure}[t]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   node distance=6mm and 9mm,
   box/.style={draw, rounded corners=2pt, align=center, minimum height=9mm,
@@ -391,7 +392,8 @@ We describe each stage.
   \draw[arr] (thr) -- node[lbl, above]{yes} (alarm);
   \draw[arr] (thr.south) to[out=-90,in=-90] node[lbl,below]{no: continue} (sr.south);
   \node[lbl, above=1mm of s1.north east, xshift=-3mm] {trace-only signals};
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{The SENTRY monitor. Each agent action and its preceding observation
 yield three trace-only surprise signals; these are mapped to a baseline
 increment (a single tilted increment, or a per-signal conformal e-value
