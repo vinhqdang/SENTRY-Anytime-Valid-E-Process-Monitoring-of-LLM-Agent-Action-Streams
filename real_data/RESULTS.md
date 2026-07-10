@@ -53,6 +53,34 @@ The three signals in `SequentialWorldModel`, and why each was added:
    AgentDojo attack-success 34%→3% by detecting instructions inside tool
    outputs.
 
+## Two ways to combine the signals: power vs. rigor (both shipped)
+
+The three signals can be combined two ways, and they trade off:
+
+| combiner (PAC threshold, 10 seeds) | detection | FAR | guarantee |
+|---|---|---|---|
+| **summed surprise** (weighted sum → one exponential increment) | **62.5% ± 0.0%** | 5.2% | validity via PAC calibration of the summed scalar |
+| **per-signal e-value mixture** (each signal → own conformal e-value, averaged) | 52.5% ± 10.9% | 6.2% | **each signal distribution-free Ville-valid; per-signal attribution; no sub-Gaussian assumption** |
+
+The e-value mixture (`sentry.baseline.MultiSignalConformalIncrement`) is the
+more principled object: each signal is turned into a conformal e-value
+(exact validity under exchangeability, no tail assumption, no hand-tuned
+cross-signal weights) and merged by the *only* admissible symmetric merge —
+the arithmetic mean (Vovk–Wang 2021). That mean is also its weakness on this
+data: averaging **dilutes a single dominant signal** (a huge instruction
+e-value merged with two ~1 e-values is divided by 3), so uniform weights
+give only 42.5% detection. An informed prior weighting (0.2/0.2/0.6, from
+the per-signal *isolation* AUROCs — instruction ≈0.955 ≫ the others, a prior
+over informativeness, not fit to the detection metric) recovers it to 52.5%.
+At the exact-Ville threshold the e-value mixture runs at **0.0% false-alarm
+rate** (conformal e-values are bounded, so 1/α is rarely crossed) — the
+conservative operating point if you want the formal guarantee over raw power.
+
+Honest read: summed-surprise is more powerful *here*; the e-value mixture is
+more rigorously valid and gives per-signal attribution ("fired on
+instruction at step 2"). Which to prefer is a real deployment choice, not a
+solved question — both are implemented and both are reported.
+
 ## A signal that was tried and did NOT work here: data-flow taint
 
 The strongest published trace-only detector, AgentArmor (arXiv:2508.01249,
@@ -154,18 +182,23 @@ family, now at a defensible (if preliminary) signal level:
 
 ## What would move the needle next
 
-1. **More D_thresh streams** → a real, non-saturated PAC threshold and a
-   defensible FAR guarantee (the single biggest gap between "has the
-   theory" and "demonstrates the theory").
-2. **Re-test the taint signal on stronger-agent traces.** It failed on our
-   degenerate free-tier attacks (AUROC 0.47) but is the highest-evidence
-   trace-only signal in the literature (AgentArmor 95.75% TPR); collecting
-   AgentDojo trajectories from a capable agent (where successful attacks
-   actually execute payload-bearing tool calls) is the way to know if it
-   recovers.
-3. **More attacks and more diverse attack types** (AgentDojo has further
-   injection tasks per suite plus DoS variants untouched) to tighten the
-   split-variance and test generalization beyond `important_instructions`.
-4. **Explicit e-detector mixture of the three signals** as separate
-   baseline increments (algorithm.md §3) rather than a summed surprise, so
-   each carries its own tunable weight and Ville validity.
+The single biggest lever is **data quality**: ~11/16 "successful" attacks
+here have no injected instruction in the observation stream at all (weak
+free-tier agent), which caps every trace-only signal. Concretely:
+
+1. **Collect from a capable (paid) agent.** This lifts the ceiling directly
+   *and* is the way to re-test the two signals that failed on our degenerate
+   data — taint (AUROC 0.47 here vs. AgentArmor's 95.75% TPR on GPT-4
+   traces) and goal-grounding (0.499 here) — where successful attacks
+   actually execute payload-bearing tool calls. Blocked only on API budget.
+2. **More D_thresh streams** → a real, non-saturated PAC threshold (still
+   the gap between "has the theory" and "certifies the FAR bound").
+3. **More attack diversity** beyond `important_instructions` (other
+   injection templates, DoS variants) to test generalization.
+
+Tried and resolved this round: the **e-value mixture combiner** (done —
+implemented, more rigorous, power/rigor tradeoff characterized above);
+**goal-grounding** (tried, lexical version gives AUROC 0.499 — no
+separation, same failure mode as taint; a MELON-style masked-re-execution
+version needs embeddings/LLM re-runs and is deferred with the paid-agent
+work).

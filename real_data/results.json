@@ -8,7 +8,7 @@
   "mean_n_actions_nominal": 5.291666666666667,
   "mean_n_actions_successful_attack": 2.625,
   "models": {
-    "causal_hash": {
+    "causal_hash_summed": {
       "aggregate": {
         "auroc_mean_norm": {
           "mean": 0.465,
@@ -211,7 +211,7 @@
         }
       ]
     },
-    "bigram_novelty": {
+    "bigram_novelty_summed": {
       "aggregate": {
         "auroc_mean_norm": {
           "mean": 0.7849999999999999,
@@ -695,6 +695,198 @@
             1
           ],
           "ville_nominal_far": 0.38095238095238093
+        }
+      ]
+    },
+    "bigram_novelty_evalue_mixture": {
+      "aggregate": {
+        "auroc_mean_norm": {
+          "mean": NaN,
+          "std": NaN
+        },
+        "auroc_max": {
+          "mean": 0.618125,
+          "std": 0.046304866104978644
+        },
+        "ville_detection_rate": {
+          "mean": 0.13125,
+          "std": 0.12005857945186592
+        },
+        "ville_nominal_far": {
+          "mean": 0.0,
+          "std": 0.0
+        },
+        "pac_detection_rate": {
+          "mean": 0.525,
+          "std": 0.10897247358851683
+        },
+        "pac_nominal_far": {
+          "mean": 0.06225755248335894,
+          "std": 0.05604447449132553
+        }
+      },
+      "pac_saturated_in_all_seeds": true,
+      "ville_delays_all_seeds": [
+        3,
+        3,
+        3,
+        3,
+        1,
+        1,
+        3,
+        2,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        1,
+        1,
+        3,
+        2,
+        3,
+        4
+      ],
+      "per_seed": [
+        {
+          "seed": 0,
+          "auroc_max": 0.5625,
+          "auroc_mean_norm": NaN,
+          "pac_saturated": true,
+          "ville_detection_rate": 0.125,
+          "ville_nominal_far": 0.0,
+          "ville_delays": [
+            3,
+            3
+          ],
+          "pac_detection_rate": 0.3125,
+          "pac_nominal_far": 0.03225806451612903
+        },
+        {
+          "seed": 1,
+          "auroc_max": 0.65,
+          "auroc_mean_norm": NaN,
+          "pac_saturated": true,
+          "ville_detection_rate": 0.0,
+          "ville_nominal_far": 0.0,
+          "ville_delays": [],
+          "pac_detection_rate": 0.5625,
+          "pac_nominal_far": 0.08571428571428572
+        },
+        {
+          "seed": 2,
+          "auroc_max": 0.60625,
+          "auroc_mean_norm": NaN,
+          "pac_saturated": true,
+          "ville_detection_rate": 0.125,
+          "ville_nominal_far": 0.0,
+          "ville_delays": [
+            3,
+            3
+          ],
+          "pac_detection_rate": 0.375,
+          "pac_nominal_far": 0.05555555555555555
+        },
+        {
+          "seed": 3,
+          "auroc_max": 0.6,
+          "auroc_mean_norm": NaN,
+          "pac_saturated": true,
+          "ville_detection_rate": 0.0,
+          "ville_nominal_far": 0.0,
+          "ville_delays": [],
+          "pac_detection_rate": 0.5,
+          "pac_nominal_far": 0.0
+        },
+        {
+          "seed": 4,
+          "auroc_max": 0.65,
+          "auroc_mean_norm": NaN,
+          "pac_saturated": true,
+          "ville_detection_rate": 0.3125,
+          "ville_nominal_far": 0.0,
+          "ville_delays": [
+            1,
+            1,
+            3,
+            2,
+            3
+          ],
+          "pac_detection_rate": 0.625,
+          "pac_nominal_far": 0.08
+        },
+        {
+          "seed": 5,
+          "auroc_max": 0.6,
+          "auroc_mean_norm": NaN,
+          "pac_saturated": true,
+          "ville_detection_rate": 0.125,
+          "ville_nominal_far": 0.0,
+          "ville_delays": [
+            3,
+            3
+          ],
+          "pac_detection_rate": 0.5625,
+          "pac_nominal_far": 0.08333333333333333
+        },
+        {
+          "seed": 6,
+          "auroc_max": 0.6875,
+          "auroc_mean_norm": NaN,
+          "pac_saturated": true,
+          "ville_detection_rate": 0.0,
+          "ville_nominal_far": 0.0,
+          "ville_delays": [],
+          "pac_detection_rate": 0.625,
+          "pac_nominal_far": 0.0
+        },
+        {
+          "seed": 7,
+          "auroc_max": 0.65,
+          "auroc_mean_norm": NaN,
+          "pac_saturated": true,
+          "ville_detection_rate": 0.125,
+          "ville_nominal_far": 0.0,
+          "ville_delays": [
+            3,
+            3
+          ],
+          "pac_detection_rate": 0.625,
+          "pac_nominal_far": 0.09523809523809523
+        },
+        {
+          "seed": 8,
+          "auroc_max": 0.65,
+          "auroc_mean_norm": NaN,
+          "pac_saturated": true,
+          "ville_detection_rate": 0.125,
+          "ville_nominal_far": 0.0,
+          "ville_delays": [
+            3,
+            3
+          ],
+          "pac_detection_rate": 0.4375,
+          "pac_nominal_far": 0.0
+        },
+        {
+          "seed": 9,
+          "auroc_max": 0.525,
+          "auroc_mean_norm": NaN,
+          "pac_saturated": true,
+          "ville_detection_rate": 0.375,
+          "ville_nominal_far": 0.0,
+          "ville_delays": [
+            1,
+            1,
+            3,
+            2,
+            3,
+            4
+          ],
+          "pac_detection_rate": 0.625,
+          "pac_nominal_far": 0.19047619047619047
         }
       ]
     }

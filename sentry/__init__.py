@@ -11,6 +11,7 @@ from sentry.baseline import (
     ExponentialBaselineIncrement,
     ConformalBaselineIncrement,
     MixtureBaselineIncrement,
+    MultiSignalConformalIncrement,
 )
 from sentry.detector import SRDetector, CUSUMDetector, MixtureSRCUSUMDetector
 from sentry.calibration import fit_mixture, pac_threshold, select_order_statistic
@@ -20,6 +21,7 @@ __all__ = [
     "ExponentialBaselineIncrement",
     "ConformalBaselineIncrement",
     "MixtureBaselineIncrement",
+    "MultiSignalConformalIncrement",
     "SRDetector",
     "CUSUMDetector",
     "MixtureSRCUSUMDetector",

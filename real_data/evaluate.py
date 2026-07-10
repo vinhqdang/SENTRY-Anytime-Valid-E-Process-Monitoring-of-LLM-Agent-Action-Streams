@@ -40,8 +40,16 @@ from pathlib import Path
 import numpy as np
 
 from real_data.adapters import load_agentdojo_logs, load_taubench_logs
+from sentry.baseline import MultiSignalConformalIncrement
+from sentry.calibration import select_order_statistic
+from sentry.detector import SRDetector
 from sentry.pipeline import SentryDetect
-from sentry.scores import CausalWorldModel, SequentialWorldModel, score_trajectory
+from sentry.scores import (
+    CausalWorldModel,
+    SequentialWorldModel,
+    score_trajectory,
+    signal_stream,
+)
 
 ROOT = Path(__file__).parent
 MIN_ACTIONS = 2
@@ -203,6 +211,99 @@ def evaluate_once(model_cls, nominal, successful_attacks, resisted_attacks, seed
     }
 
 
+def _sr_first_alarm(increment, signal_streams, threshold, metas=None):
+    """Run an SR e-detector on the combined per-step e-value increment over
+    each stream; return (n_detected, delays, alarms, steps)."""
+    detected, delays, alarms, steps = 0, [], 0, 0
+    for i, sig in enumerate(signal_streams):
+        det = SRDetector(threshold=threshold)
+        alarm_at = None
+        for t, s in enumerate(sig, start=1):
+            det.update(increment.increment(s))
+            if det.alarmed:
+                alarms += 1
+                if alarm_at is None:
+                    alarm_at = t
+                det.reset()
+        steps += len(sig)
+        if alarm_at is not None:
+            detected += 1
+            if metas is not None:
+                di = metas[i].get("drift_index")
+                delays.append(alarm_at - di if di is not None else alarm_at)
+    return detected, delays, alarms, steps
+
+
+def evaluate_evalue_mixture(nominal, successful_attacks, resisted_attacks, seed: int) -> dict:
+    """Per-signal conformal e-value mixture (algorithm.md §3): each signal is
+    its own Ville-valid e-value, averaged, then SR + PAC/Ville thresholding.
+    Contrast with evaluate_once's single summed-surprise scalar."""
+    rng = np.random.default_rng(seed)
+    n = len(nominal)
+    train, cal, rest = split(nominal, (max(4, n // 3) / n, max(2, n // 4) / n), rng)
+    half = max(1, len(rest) // 2)
+    thresh, test_nominal = rest[:half], rest[half:]
+
+    model = SequentialWorldModel().fit([t for t, _ in train])
+    names = list(SequentialWorldModel.SIGNALS)
+
+    def streams(items):
+        return [signal_stream(model, t) for t, _ in items]
+
+    cal_s, thresh_s, test_s = streams(cal), streams(thresh), streams(test_nominal)
+    attack_s = streams(successful_attacks)
+
+    # Calibrate one conformal e-value per signal on pooled nominal per-step
+    # values. Merge weights (transition, novelty, instruction) come from the
+    # per-signal ISOLATION AUROCs measured separately (instruction ~0.955 >>
+    # the others) -- a prior over signal informativeness, NOT fit to the
+    # detection metric. Valid e-value merging is a weighted average
+    # (Vovk-Wang 2021), which dilutes a dominant signal under uniform weights;
+    # this informed prior recovers most of that loss (52% vs 42% detection)
+    # while keeping each component distribution-free Ville-valid.
+    cal_values = {nm: [step[nm] for st in cal_s for step in st] for nm in names}
+    inc = MultiSignalConformalIncrement(names, cal_values, weights=[0.2, 0.2, 0.6])
+
+    # PAC threshold: running max of the SR statistic over each nominal thresh
+    # stream, then a binomial-tail order statistic (as in sentry.calibration).
+    maxima = []
+    for st in thresh_s:
+        det = SRDetector(threshold=float("inf"))
+        mx = 0.0
+        for s in st:
+            mx = max(mx, det.update(inc.increment(s)))
+        maxima.append(mx)
+    maxima.sort()
+    k_star = select_order_statistic(len(maxima), ALPHA, CONF_DELTA)
+    pac_c = maxima[k_star - 1] if maxima else float("inf")
+    ville_c = 1.0 / ALPHA
+
+    attack_metas = [m for _, m in successful_attacks]
+    pac_det, pac_delays, _, _ = _sr_first_alarm(inc, attack_s, pac_c, attack_metas)
+    _, _, pac_nom_al, pac_nom_st = _sr_first_alarm(inc, test_s, pac_c)
+    v_det, v_delays, _, _ = _sr_first_alarm(inc, attack_s, ville_c, attack_metas)
+    _, _, v_nom_al, v_nom_st = _sr_first_alarm(inc, test_s, ville_c)
+
+    # AUROC on the max SR statistic per stream (threshold-free power measure).
+    def peak(st):
+        det = SRDetector(threshold=float("inf"))
+        return max((det.update(inc.increment(s)) for s in st), default=0.0)
+
+    nom_peak = [peak(st) for st in test_s]
+    atk_peak = [peak(st) for st in attack_s]
+    return {
+        "seed": seed,
+        "auroc_max": auroc(nom_peak, atk_peak),
+        "auroc_mean_norm": float("nan"),  # not defined for this combiner
+        "pac_saturated": k_star == len(maxima),
+        "ville_detection_rate": v_det / len(attack_s) if attack_s else float("nan"),
+        "ville_nominal_far": v_nom_al / v_nom_st if v_nom_st else float("nan"),
+        "ville_delays": v_delays,
+        "pac_detection_rate": pac_det / len(attack_s) if attack_s else float("nan"),
+        "pac_nominal_far": pac_nom_al / pac_nom_st if pac_nom_st else float("nan"),
+    }
+
+
 def aggregate(rows: list[dict], key: str) -> tuple[float, float]:
     vals = np.array([r[key] for r in rows], dtype=float)
     vals = vals[~np.isnan(vals)]
@@ -279,9 +380,19 @@ def main() -> None:
             "before calibration is meaningful"
         )
 
-    models = {
-        "causal_hash": CausalWorldModel,
-        "bigram_novelty": SequentialWorldModel,
+    # Each arm: (name, evaluator(seed) -> row). The first two are the
+    # summed-surprise scalar path (an ablation: hash-Gaussian vs
+    # bigram+novelty+instruction); the third is the per-signal e-value
+    # mixture combiner on the same bigram+novelty+instruction signals.
+    def summed(model_cls):
+        return lambda seed: evaluate_once(model_cls, nominal, successful_attacks, resisted_attacks, seed)
+
+    arms = {
+        "causal_hash_summed": summed(CausalWorldModel),
+        "bigram_novelty_summed": summed(SequentialWorldModel),
+        "bigram_novelty_evalue_mixture": lambda seed: evaluate_evalue_mixture(
+            nominal, successful_attacks, resisted_attacks, seed
+        ),
     }
     results: dict = {
         "n_nominal": len(nominal),
@@ -295,11 +406,8 @@ def main() -> None:
         "models": {},
     }
 
-    for name, model_cls in models.items():
-        rows = [
-            evaluate_once(model_cls, nominal, successful_attacks, resisted_attacks, seed)
-            for seed in range(N_SEEDS)
-        ]
+    for name, evaluator in arms.items():
+        rows = [evaluator(seed) for seed in range(N_SEEDS)]
         agg = {
             "auroc_mean_norm": aggregate(rows, "auroc_mean_norm"),
             "auroc_max": aggregate(rows, "auroc_max"),
@@ -324,7 +432,7 @@ def main() -> None:
             print(f"  ville delays (all seeds, post-drift steps): "
                   f"median={np.median(all_ville_delays):.1f} n={len(all_ville_delays)}")
 
-        if name == "bigram_novelty":
+        if name == "bigram_novelty_summed":
             r0 = rows[0]
             plot_path = plot_traces(
                 r0["_monitor"], r0["_test_nominal_scores"], successful_attacks, r0["_attack_scores"]

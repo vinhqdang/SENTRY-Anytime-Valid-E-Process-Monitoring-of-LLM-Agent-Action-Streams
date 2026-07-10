@@ -113,6 +113,54 @@ class ConformalBaselineIncrement:
         return vovk_wang_e_value(p, self.kappa)
 
 
+class MultiSignalConformalIncrement:
+    """Per-signal e-value mixture (algorithm.md §3, multiple e_j-processes
+    combined). Each named signal (e.g. tool-transition surprise, argument
+    novelty, observation instruction-likeness) is calibrated *independently*
+    into a distribution-free conformal e-value against its own nominal
+    per-step calibration values, and the increment is their weighted average:
+
+        L_n = sum_k w_k * e_k(signal_k(step_n)),   sum_k w_k = 1.
+
+    Each e_k satisfies E_P[e_k] <= 1 under exchangeability of that signal's
+    nominal values (Vovk-Wang calibrator), so the average is itself a valid
+    baseline increment -- no sub-Gaussian tail assumption on any signal, and
+    no hand-tuned relative weighting of signals on different scales (the
+    conformal transform maps each to a common e-value scale). Unlike the
+    summed-surprise scalar, this also yields per-signal attribution: the
+    dominant e_k at the alarm step says *which* signal fired.
+    """
+
+    def __init__(
+        self,
+        signal_names: Sequence[str],
+        cal_values: dict[str, Sequence[float]],
+        weights: Sequence[float] | None = None,
+        kappa: float = 0.5,
+    ) -> None:
+        self.signal_names = list(signal_names)
+        if weights is None:
+            weights = [1.0 / len(self.signal_names)] * len(self.signal_names)
+        if not math.isclose(sum(weights), 1.0, abs_tol=1e-9):
+            raise ValueError("weights must sum to 1")
+        self.weights = list(weights)
+        self._components = {
+            name: ConformalBaselineIncrement(
+                cal_scores=list(cal_values[name]), nonconformity=lambda x: x, kappa=kappa
+            )
+            for name in self.signal_names
+        }
+        self._n = 0
+
+    def per_signal_evalues(self, signals: dict[str, float]) -> dict[str, float]:
+        return {name: self._components[name].increment(signals[name]) for name in self.signal_names}
+
+    def increment(self, signals: dict[str, float]) -> float:
+        self._n += 1
+        es = self.per_signal_evalues(signals)
+        return float(sum(w * es[name] for w, name in zip(self.weights, self.signal_names)))
+
+
 @dataclass
 class MixtureBaselineIncrement:
     """Finite or adaptively-growing mixture over unknown drift magnitude,

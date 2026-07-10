@@ -286,13 +286,31 @@ class SequentialWorldModel:
         This is the indirect-prompt-injection signal."""
         return max(0.0, action.obs_instruction_likeness - self._instr_baseline)
 
-    def surprise(self, context: Context, history: Trajectory, action: Action) -> float:
+    SIGNALS = ("transition", "novelty", "instruction")
+
+    def signal_vector(self, context: Context, history: Trajectory, action: Action) -> dict[str, float]:
+        """The three anomaly signals for this action, unweighted and
+        un-summed -- the input to a per-signal e-value mixture
+        (sentry.baseline.MultiSignalConformalIncrement), where each signal
+        becomes its own Ville-valid e-detector component with independent
+        attribution. Higher = more anomalous for every signal."""
         prev = history[-1][1].tool if history else _START_TOOL
-        nll = -self.tool_log_prob(prev, action.tool)
+        return {
+            "transition": -self.tool_log_prob(prev, action.tool),
+            "novelty": self.novelty_fraction(action),
+            "instruction": self.instruction_excess(action),
+        }
+
+    def surprise(self, context: Context, history: Trajectory, action: Action) -> float:
+        """Scalar summed surprise (backward-compatible single-stream path).
+        The per-signal e-value mixture in sentry.pipeline is the preferred,
+        more principled combiner; this remains for the exponential-baseline
+        pipeline and for ablations."""
+        v = self.signal_vector(context, history, action)
         s = (
-            nll
-            + self.novelty_weight * self.novelty_fraction(action)
-            + self.instruction_weight * self.instruction_excess(action)
+            v["transition"]
+            + self.novelty_weight * v["novelty"]
+            + self.instruction_weight * v["instruction"]
         )
         return float(min(s, _MAX_SURPRISE))
 
@@ -309,3 +327,14 @@ def score_trajectory(model, trajectory: Trajectory) -> np.ndarray:
         scores[i] = model.surprise(context, history, action)
         history.append((context, action))
     return scores
+
+
+def signal_stream(model, trajectory: Trajectory) -> list[dict[str, float]]:
+    """Per-step signal vectors for a trajectory (requires the model to
+    expose ``signal_vector``), for the per-signal e-value mixture."""
+    out: list[dict[str, float]] = []
+    history: list[tuple[Context, Action]] = []
+    for context, action in trajectory:
+        out.append(model.signal_vector(context, history, action))
+        history.append((context, action))
+    return out

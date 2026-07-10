@@ -85,3 +85,35 @@ def test_mixture_baseline_adaptive_grows_active_components():
     active_late = mix.active_k()
     assert active_late >= active_early
     assert active_late <= 10
+
+
+def test_multisignal_conformal_increment_validity_and_weighting():
+    import numpy as np
+    from sentry.baseline import MultiSignalConformalIncrement
+
+    rng = np.random.default_rng(0)
+    names = ["a", "b"]
+    cal = {"a": rng.normal(size=500).tolist(), "b": rng.normal(size=500).tolist()}
+    inc = MultiSignalConformalIncrement(names, cal)
+
+    # E[L_n] <= 1 under nominal for the averaged e-value (baseline-increment
+    # condition): feed nominal-distributed signal draws.
+    vals = [inc.increment({"a": float(rng.normal()), "b": float(rng.normal())}) for _ in range(5000)]
+    assert np.mean(vals) <= 1.0 + 0.05
+
+    # An extreme value in one signal raises the increment above nominal.
+    hi = inc.increment({"a": 100.0, "b": 0.0})
+    lo = inc.increment({"a": 0.0, "b": 0.0})
+    assert hi > lo
+
+    # per-signal attribution is exposed
+    es = inc.per_signal_evalues({"a": 100.0, "b": 0.0})
+    assert es["a"] > es["b"]
+
+
+def test_multisignal_weights_must_sum_to_one():
+    import pytest as _pytest
+    from sentry.baseline import MultiSignalConformalIncrement
+
+    with _pytest.raises(ValueError):
+        MultiSignalConformalIncrement(["a", "b"], {"a": [0.0], "b": [0.0]}, weights=[0.5, 0.6])
