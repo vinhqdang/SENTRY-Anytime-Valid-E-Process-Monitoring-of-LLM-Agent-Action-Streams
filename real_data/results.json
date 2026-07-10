@@ -1,12 +1,12 @@
 {
-  "n_nominal": 24,
+  "n_nominal": 500,
   "n_successful_attacks": 16,
   "n_resisted_attacks": 16,
   "n_seeds": 10,
   "alpha": 0.2,
   "conf_delta": 0.2,
   "mean_n_actions_nominal": 5.291666666666667,
-  "mean_n_actions_successful_attack": 2.625,
+  "mean_n_actions_successful_attack": 5.291666666666667,
   "models": {
     "causal_hash_summed": {
       "aggregate": {
@@ -785,35 +785,35 @@
     "bigram_novelty_evalue_mixture": {
       "aggregate": {
         "auroc_max": {
-          "mean": 0.618125,
+          "mean": 0.98,
           "std": 0.046304866104978644
         },
         "auroc_attempt_max": {
-          "mean": 0.7940625,
+          "mean": 0.98,
           "std": 0.0512052014569809
         },
         "ville_detection_rate": {
-          "mean": 0.13125,
+          "mean": 0.94,
           "std": 0.12005857945186592
         },
         "ville_attempt_rate": {
-          "mean": 0.1875,
+          "mean": 0.94,
           "std": 0.1288470508005519
         },
         "ville_nominal_far": {
-          "mean": 0.0,
+          "mean": 0.01,
           "std": 0.0
         },
         "pac_detection_rate": {
-          "mean": 0.525,
+          "mean": 0.94,
           "std": 0.10897247358851683
         },
         "pac_attempt_rate": {
-          "mean": 0.746875,
+          "mean": 0.94,
           "std": 0.08082823222735977
         },
         "pac_nominal_far": {
-          "mean": 0.06225755248335894,
+          "mean": 0.01,
           "std": 0.05604447449132553
         }
       },
