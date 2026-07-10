@@ -40,11 +40,15 @@ class Context:
 
 @dataclass(frozen=True)
 class Action:
-    """A single agent action a_t: which tool was invoked and a continuous
-    feature vector summarizing its arguments (e.g. an embedding)."""
+    """A single agent action a_t: which tool was invoked, a continuous
+    feature vector summarizing its arguments (e.g. an embedding), and the
+    raw argument tokens (for vocabulary/novelty-based scoring, which needs
+    exact values -- a hash of "US133000000121212121212" can collide with
+    anything; the token itself can be checked against training data)."""
 
     tool: str
     features: np.ndarray = field(default_factory=lambda: np.zeros(0))
+    tokens: tuple[str, ...] = ()
 
 
 Trajectory = Sequence[tuple[Context, Action]]
@@ -141,10 +145,89 @@ class CausalWorldModel:
         return float(max(gap, 0.0))
 
 
-def score_trajectory(model: CausalWorldModel, trajectory: Trajectory) -> np.ndarray:
+_START_TOOL = "<START>"
+
+
+class SequentialWorldModel:
+    """Tool-transition + argument-novelty surprise score.
+
+    Fixes two failure modes of CausalWorldModel measured on real AgentDojo
+    data (see real_data/RESULTS.md):
+
+      1. CausalWorldModel conditions tool probabilities on ``task_id``,
+         which is *always unseen* for held-out and attack trajectories, so
+         its tool term degenerates to near-uniform exactly where it is
+         evaluated. This model conditions on the previous tool instead
+         (Laplace-smoothed bigram over tool transitions, pooled across all
+         training trajectories), which transfers across tasks: "read_file
+         is usually followed by get_balance, not send_money" is task-
+         independent structure.
+      2. Hashed argument features can only surface novelty via accidental
+         collision statistics. This model keeps a per-tool vocabulary of
+         argument tokens seen during training and scores the *fraction of
+         unseen tokens* directly -- an injected recipient IBAN or attacker
+         URL is, by construction, absent from nominal training data, which
+         is precisely the signature of a hijacked action.
+
+    surprise(a_t) = -log P(tool_t | tool_{t-1}) + novelty_weight * unseen_fraction(tokens_t)
+
+    This remains a learned reference in the sense of algorithm.md §2/§4 --
+    the PAC thresholding downstream is what absorbs its estimation error.
+    """
+
+    def __init__(self, laplace_alpha: float = 1.0, novelty_weight: float = 4.0) -> None:
+        self.laplace_alpha = laplace_alpha
+        self.novelty_weight = novelty_weight
+        self._bigram: dict[str, dict[str, float]] = {}
+        self._tools: set[str] = set()
+        self._tool_vocab: dict[str, set[str]] = {}
+        self._global_vocab: set[str] = set()
+
+    def fit(self, trajectories: Sequence[Trajectory]) -> "SequentialWorldModel":
+        for traj in trajectories:
+            prev = _START_TOOL
+            for _context, action in traj:
+                self._tools.add(action.tool)
+                row = self._bigram.setdefault(prev, {})
+                row[action.tool] = row.get(action.tool, 0.0) + 1.0
+                vocab = self._tool_vocab.setdefault(action.tool, set())
+                vocab.update(action.tokens)
+                self._global_vocab.update(action.tokens)
+                prev = action.tool
+        return self
+
+    def tool_log_prob(self, prev_tool: str, tool: str) -> float:
+        counts = self._bigram.get(prev_tool, {})
+        support = self._tools | {tool}
+        alpha = self.laplace_alpha
+        denom = sum(counts.values()) + alpha * len(support)
+        numer = counts.get(tool, 0.0) + alpha
+        return math.log(numer / denom) if denom > 0 else -_MAX_SURPRISE
+
+    def novelty_fraction(self, action: Action) -> float:
+        """Fraction of the action's argument tokens never seen during
+        training, for this tool or any other. 1.0 for an entirely novel
+        argument set (or an unseen tool with tokens), 0.0 when every token
+        was observed in nominal data."""
+        if not action.tokens:
+            return 0.0
+        vocab = self._tool_vocab.get(action.tool, set())
+        unseen = sum(1 for t in action.tokens if t not in vocab and t not in self._global_vocab)
+        return unseen / len(action.tokens)
+
+    def surprise(self, context: Context, history: Trajectory, action: Action) -> float:
+        prev = history[-1][1].tool if history else _START_TOOL
+        nll = -self.tool_log_prob(prev, action.tool)
+        s = nll + self.novelty_weight * self.novelty_fraction(action)
+        return float(min(s, _MAX_SURPRISE))
+
+
+def score_trajectory(model, trajectory: Trajectory) -> np.ndarray:
     """Map a trajectory of (context, action) pairs to its surprise-score
     stream s_1, ..., s_T (algorithm.md §2(a)), the input to the baseline
-    increments in sentry.baseline."""
+    increments in sentry.baseline. ``model`` is anything exposing
+    ``surprise(context, history, action)`` (CausalWorldModel,
+    SequentialWorldModel, or a future CAIRN-style world model)."""
     scores = np.empty(len(trajectory))
     history: list[tuple[Context, Action]] = []
     for i, (context, action) in enumerate(trajectory):

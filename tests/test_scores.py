@@ -1,6 +1,15 @@
-import numpy as np
+import math
 
-from sentry.scores import Action, CausalWorldModel, Context, score_trajectory
+import numpy as np
+import pytest
+
+from sentry.scores import (
+    Action,
+    CausalWorldModel,
+    Context,
+    SequentialWorldModel,
+    score_trajectory,
+)
 
 
 def _toy_trajectory(rng, task_id="t1", n=20, tools=("search", "write_file"), drift=False):
@@ -45,3 +54,42 @@ def test_intervention_consistency_score_nonnegative():
     action = Action(tool="write_file", features=np.zeros(3))
     score = model.intervention_consistency_score(ctx, action, do_remove=frozenset({"search"}))
     assert score >= 0.0
+
+
+def _seq_trajectory(tools_and_tokens):
+    ctx = Context(task_id="seq", available_tools=frozenset(t for t, _ in tools_and_tokens))
+    return [(ctx, Action(tool=t, tokens=tuple(toks))) for t, toks in tools_and_tokens]
+
+
+def test_sequential_model_bigram_prefers_seen_transition():
+    train = [_seq_trajectory([("read", ["a.txt"]), ("summarize", ["a.txt"])]) for _ in range(20)]
+    model = SequentialWorldModel().fit(train)
+    assert model.tool_log_prob("read", "summarize") > model.tool_log_prob("read", "read")
+
+
+def test_sequential_model_bigram_probs_normalize():
+    train = [_seq_trajectory([("read", []), ("summarize", []), ("read", [])])]
+    model = SequentialWorldModel().fit(train)
+    total = sum(math.exp(model.tool_log_prob("read", t)) for t in ["read", "summarize"])
+    assert total == pytest.approx(1.0)
+
+
+def test_sequential_model_novelty_flags_unseen_tokens():
+    train = [_seq_trajectory([("send_money", ["recipient", "UK111", "amount", "50"])]) for _ in range(5)]
+    model = SequentialWorldModel().fit(train)
+    seen = Action(tool="send_money", tokens=("recipient", "UK111", "amount", "50"))
+    injected = Action(tool="send_money", tokens=("recipient", "US133000000121212121212", "amount", "50"))
+    assert model.novelty_fraction(seen) == 0.0
+    assert model.novelty_fraction(injected) > 0.0
+
+    ctx = Context(task_id="x", available_tools=frozenset({"send_money"}))
+    assert model.surprise(ctx, [], injected) > model.surprise(ctx, [], seen)
+
+
+def test_sequential_model_score_trajectory_interface():
+    train = [_seq_trajectory([("read", ["f1"]), ("write", ["f1", "data"])]) for _ in range(10)]
+    model = SequentialWorldModel().fit(train)
+    traj = _seq_trajectory([("read", ["f1"]), ("write", ["f1", "data"])])
+    scores = score_trajectory(model, traj)
+    assert scores.shape == (2,)
+    assert np.isfinite(scores).all()

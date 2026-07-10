@@ -1,12 +1,31 @@
 """Calibrate and evaluate SENTRY-Detect on real AgentDojo + tau-bench agent
 trajectories (algorithm.md §7 items 1-2, on real rather than synthetic data).
 
-Pipeline: fit CausalWorldModel on a training split of nominal trajectories
--> score every trajectory into a surprise stream -> calibrate SentryDetect
-(Phases 1-2) on held-out nominal splits -> evaluate empirical FAR on a
-further held-out nominal split and detection delay on real AgentDojo attack
-trajectories where the injection actually hijacked the agent
-(security == False).
+Pipeline, per random split seed: fit a world model on a training split of
+nominal trajectories -> score every trajectory into a surprise stream ->
+calibrate SentryDetect (Phases 1-2) on held-out nominal splits -> evaluate
+empirical FAR on a further held-out nominal split and detection rate/delay
+on real AgentDojo attack trajectories where the injection actually hijacked
+the agent (security == False).
+
+Two score models are compared side by side (an ablation in the sense of
+algorithm.md §7 item 3):
+
+  * CausalWorldModel   -- task_id-conditioned tool MLE + Gaussian over
+                          hashed features (the original; its tool term
+                          degenerates on unseen task_ids, kept as baseline)
+  * SequentialWorldModel -- prev-tool bigram + argument-token novelty
+                          (task-transferable; targets unseen injected
+                          values directly)
+
+Everything is repeated over N_SEEDS random splits and reported as
+mean +/- std, because single-split numbers on ~24 nominal / ~16 attack
+trajectories were shown to swing by +/-0.15 AUROC from split luck alone.
+
+Detection is reported at two thresholds: the PAC threshold (saturated at
+this D_thresh size -- vacuously conservative, kept for honesty) and the
+exact-Ville threshold 1/alpha (valid only if the learned score model were
+an exact e-process reference; reported as the non-vacuous operating point).
 
 Run from the repo root with the project venv active:
     source .venv/bin/activate
@@ -22,10 +41,13 @@ import numpy as np
 
 from real_data.adapters import load_agentdojo_logs, load_taubench_logs
 from sentry.pipeline import SentryDetect
-from sentry.scores import CausalWorldModel, score_trajectory
+from sentry.scores import CausalWorldModel, SequentialWorldModel, score_trajectory
 
 ROOT = Path(__file__).parent
 MIN_ACTIONS = 2
+N_SEEDS = 10
+ALPHA = 0.2
+CONF_DELTA = 0.2
 
 
 def _complete(meta: dict) -> bool:
@@ -61,6 +83,132 @@ def split(items: list, fracs: tuple[float, ...], rng: np.random.Generator) -> li
     return parts
 
 
+def auroc(nominal_vals: list[float], attack_vals: list[float]) -> float:
+    if not nominal_vals or not attack_vals:
+        return float("nan")
+    wins = sum((a > n_) + 0.5 * (a == n_) for a in attack_vals for n_ in nominal_vals)
+    return wins / (len(nominal_vals) * len(attack_vals))
+
+
+def post_drift_mean(traj_score: list[float], meta: dict) -> float:
+    """Mean surprise over the post-drift region (the D(Q||P)-relevant
+    quantity per algorithm.md §5); whole trajectory when the drift index
+    could not be located (very short attacks)."""
+    idx = meta.get("drift_index")
+    window = traj_score[idx:] if idx is not None else traj_score
+    return float(np.mean(window)) if window else 0.0
+
+
+def run_detection(monitor_factory, stream_list, metas=None):
+    """First-alarm detection over each stream; returns (n_detected, delays,
+    alarms_total, steps_total). ``metas`` supplies drift indices for delay."""
+    detected, delays, alarms, steps = 0, [], 0, 0
+    for i, s in enumerate(stream_list):
+        m = monitor_factory()
+        alarm_at = None
+        for t, x in enumerate(s, start=1):
+            _, alarmed = m.step(float(x))
+            if alarmed:
+                alarms += 1
+                if alarm_at is None:
+                    alarm_at = t
+        steps += len(s)
+        if alarm_at is not None:
+            detected += 1
+            if metas is not None:
+                drift_idx = metas[i].get("drift_index")
+                delays.append(alarm_at - drift_idx if drift_idx is not None else alarm_at)
+    return detected, delays, alarms, steps
+
+
+def evaluate_once(model_cls, nominal, successful_attacks, resisted_attacks, seed: int) -> dict:
+    rng = np.random.default_rng(seed)
+    n = len(nominal)
+    n_train = max(4, n // 3)
+    n_cal = max(2, n // 4)
+    train, cal, rest = split(nominal, (n_train / n, n_cal / n), rng)
+    half = max(1, len(rest) // 2)
+    thresh, test_nominal = rest[:half], rest[half:]
+
+    model = model_cls().fit([t for t, _ in train])
+
+    def scores(items):
+        return [score_trajectory(model, t).tolist() for t, _ in items]
+
+    cal_scores = scores(cal)
+    thresh_scores = scores(thresh)
+    test_nominal_scores = scores(test_nominal)
+    attack_scores = scores(successful_attacks)
+
+    pooled = np.concatenate([np.asarray(s) for s in cal_scores])
+    delta_lo = max(0.05, float(pooled.std()) * 0.5)
+    delta_hi = max(delta_lo * 4, float(pooled.std()) * 6 + 1e-3)
+
+    monitor = SentryDetect.calibrate(
+        d_cal_streams=cal_scores,
+        d_thresh_streams=thresh_scores,
+        alpha=ALPHA,
+        conf_delta=CONF_DELTA,
+        delta_range=(delta_lo, delta_hi),
+        k=6,
+        family="gaussian",
+        kind="SR",
+    )
+    info = monitor.threshold_info
+
+    # Detection at the (saturated) PAC threshold and at the exact-Ville 1/alpha.
+    ville_monitor = SentryDetect.calibrate(
+        d_cal_streams=cal_scores,
+        d_thresh_streams=thresh_scores[:1],  # threshold overridden below; cheap calibration
+        alpha=ALPHA,
+        conf_delta=CONF_DELTA,
+        delta_range=(delta_lo, delta_hi),
+        k=6,
+        family="gaussian",
+        kind="SR",
+    )
+    ville_monitor.detector.threshold = info.ville_c_alpha
+
+    attack_metas = [m for _, m in successful_attacks]
+    pac_detected, pac_delays, _, _ = run_detection(monitor.fresh_copy, attack_scores, attack_metas)
+    _, _, pac_nom_alarms, pac_nom_steps = run_detection(monitor.fresh_copy, test_nominal_scores)
+
+    ville_detected, ville_delays, _, _ = run_detection(
+        ville_monitor.fresh_copy, attack_scores, attack_metas
+    )
+    _, _, ville_nom_alarms, ville_nom_steps = run_detection(
+        ville_monitor.fresh_copy, test_nominal_scores
+    )
+
+    nom_mean = [float(np.mean(s)) if s else 0.0 for s in test_nominal_scores]
+    atk_mean = [post_drift_mean(s, m) for (_, m), s in zip(successful_attacks, attack_scores)]
+    nom_max = [max(s) if s else 0.0 for s in test_nominal_scores]
+    atk_max = [max(s) if s else 0.0 for s in attack_scores]
+
+    return {
+        "seed": seed,
+        "auroc_mean_norm": auroc(nom_mean, atk_mean),
+        "auroc_max": auroc(nom_max, atk_max),
+        "c_alpha": info.c_alpha,
+        "pac_saturated": info.order_statistic_index == len(thresh_scores),
+        "pac_detection_rate": pac_detected / len(attack_scores) if attack_scores else float("nan"),
+        "pac_delays": pac_delays,
+        "pac_nominal_far": pac_nom_alarms / pac_nom_steps if pac_nom_steps else float("nan"),
+        "ville_detection_rate": ville_detected / len(attack_scores) if attack_scores else float("nan"),
+        "ville_delays": ville_delays,
+        "ville_nominal_far": ville_nom_alarms / ville_nom_steps if ville_nom_steps else float("nan"),
+        "_monitor": monitor,
+        "_test_nominal_scores": test_nominal_scores,
+        "_attack_scores": attack_scores,
+    }
+
+
+def aggregate(rows: list[dict], key: str) -> tuple[float, float]:
+    vals = np.array([r[key] for r in rows], dtype=float)
+    vals = vals[~np.isnan(vals)]
+    return (float(vals.mean()), float(vals.std())) if vals.size else (float("nan"), float("nan"))
+
+
 def plot_traces(monitor, test_nominal_scores, successful_attacks, attack_scores) -> Path | None:
     """Cavaliers-style trace (algorithm.md §7 item 2) on real data: the
     e-detector statistic over one real nominal trajectory and one real
@@ -72,7 +220,21 @@ def plot_traces(monitor, test_nominal_scores, successful_attacks, attack_scores)
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    best = max(range(len(attack_scores)), key=lambda i: len(attack_scores[i]))
+    def detector_peak(stream):
+        m = monitor.fresh_copy()
+        peak = 0.0
+        for x in stream:
+            v, _ = m.step(float(x))
+            peak = max(peak, v)
+        return peak
+
+    # Show the attack the detector responds to most strongly (with >=2
+    # post-drift steps so the rise is visible), not merely the longest one.
+    candidates = [
+        i for i in range(len(attack_scores))
+        if len(attack_scores[i]) - (successful_attacks[i][1].get("drift_index") or 0) >= 2
+    ] or list(range(len(attack_scores)))
+    best = max(candidates, key=lambda i: detector_peak(attack_scores[i]))
     attack_meta = successful_attacks[best][1]
     attack_stream = attack_scores[best]
     nominal_stream = max(test_nominal_scores, key=len)
@@ -87,8 +249,9 @@ def plot_traces(monitor, test_nominal_scores, successful_attacks, attack_scores)
         for x in stream:
             v, _ = m.step(float(x))
             values.append(v)
-        ax.plot(np.log(np.array(values) + 1e-12), label="log M_t")
-        ax.axhline(np.log(monitor.threshold_info.c_alpha), color="red", linestyle="--", label="log c_alpha")
+        ax.plot(np.clip(np.log(np.array(values) + 1e-12), -6, None), label="log M_t")
+        ax.axhline(np.log(monitor.threshold_info.c_alpha), color="red", linestyle="--", label="log c_alpha (PAC)")
+        ax.axhline(np.log(monitor.threshold_info.ville_c_alpha), color="orange", linestyle="-.", label="log 1/alpha (Ville)")
         ax.set_title(title)
         ax.set_xlabel("action index")
         ax.legend(fontsize=8)
@@ -105,9 +268,7 @@ def plot_traces(monitor, test_nominal_scores, successful_attacks, attack_scores)
 
 
 def main() -> None:
-    rng = np.random.default_rng(0)
     nominal, successful_attacks, resisted_attacks = load_all()
-
     print(f"nominal trajectories: {len(nominal)}")
     print(f"successful-attack trajectories: {len(successful_attacks)}")
     print(f"resisted-attack trajectories: {len(resisted_attacks)}")
@@ -115,156 +276,65 @@ def main() -> None:
     if len(nominal) < 8:
         raise SystemExit(
             f"only {len(nominal)} usable nominal trajectories -- need more data collected "
-            "before calibration is meaningful (see real_data/agentdojo/run.py, real_data/tau_bench/run.py)"
+            "before calibration is meaningful"
         )
 
-    n = len(nominal)
-    n_train = max(4, n // 3)
-    n_cal = max(2, n // 4)
-    train, cal, rest = split(nominal, (n_train / n, n_cal / n), rng)
-    half = max(1, len(rest) // 2)
-    thresh, test_nominal = rest[:half], rest[half:]
-    print(f"split: train={len(train)} cal={len(cal)} thresh={len(thresh)} test_nominal={len(test_nominal)}")
-
-    model = CausalWorldModel().fit([t for t, _ in train])
-
-    def scores(items):
-        return [score_trajectory(model, t).tolist() for t, _ in items if len(t) >= MIN_ACTIONS]
-
-    cal_scores = scores(cal)
-    thresh_scores = scores(thresh)
-    test_nominal_scores = scores(test_nominal)
-    attack_scores = scores(successful_attacks)
-    resisted_scores = scores(resisted_attacks)
-
-    pooled = np.concatenate([np.asarray(s) for s in cal_scores])
-    delta_lo = max(0.05, float(pooled.std()) * 0.5)
-    delta_hi = max(delta_lo * 4, float(pooled.std()) * 6 + 1e-3)
-
-    # Small real-data sample sizes cannot support an aggressive (alpha, delta)
-    # target -- report what's actually achievable rather than overclaiming.
-    alpha, conf_delta = 0.2, 0.2
-
-    monitor = SentryDetect.calibrate(
-        d_cal_streams=cal_scores,
-        d_thresh_streams=thresh_scores,
-        alpha=alpha,
-        conf_delta=conf_delta,
-        delta_range=(delta_lo, delta_hi),
-        k=6,
-        family="gaussian",
-        kind="SR",
-    )
-    info = monitor.threshold_info
-    print(f"c_alpha={info.c_alpha:.3f} (Ville 1/alpha={info.ville_c_alpha:.3f}), "
-          f"order stat k*={info.order_statistic_index}/{len(thresh_scores)}")
-    if info.order_statistic_index == len(thresh_scores):
-        print("WARNING: order statistic saturated at m -- D_thresh too small to "
-              "certify the requested (alpha, delta); c_alpha is just the max "
-              "observed nominal statistic, not a real PAC bound.")
-
-    def run_far(stream_list):
-        alarms, total_steps = 0, 0
-        for s in stream_list:
-            m = monitor.fresh_copy()
-            for x in s:
-                _, alarmed = m.step(float(x))
-                if alarmed:
-                    alarms += 1
-            total_steps += len(s)
-        return alarms, total_steps
-
-    far_alarms, far_steps = run_far(test_nominal_scores)
-    empirical_far = far_alarms / far_steps if far_steps else float("nan")
-    print(f"empirical FAR on held-out nominal: {far_alarms}/{far_steps} = {empirical_far:.4f}")
-
-    delays = []
-    detected = 0
-    for (traj, meta), s in zip(successful_attacks, attack_scores):
-        m = monitor.fresh_copy()
-        alarm_at = None
-        for t, x in enumerate(s, start=1):
-            _, alarmed = m.step(float(x))
-            if alarmed:
-                alarm_at = t
-                break
-        if alarm_at is not None:
-            detected += 1
-            drift_idx = meta.get("drift_index")
-            delays.append(alarm_at - drift_idx if drift_idx is not None else alarm_at)
-    detection_rate = detected / len(successful_attacks) if successful_attacks else float("nan")
-    print(f"detected {detected}/{len(successful_attacks)} successful attacks "
-          f"(rate={detection_rate:.2f}); delays={delays}")
-
-    resisted_alarms, resisted_steps = run_far(resisted_scores) if resisted_scores else (0, 0)
-
-    def auroc(nominal_vals, attack_vals):
-        if not nominal_vals or not attack_vals:
-            return float("nan")
-        wins = sum((a > n_) + 0.5 * (a == n_) for a in attack_vals for n_ in nominal_vals)
-        return wins / (len(nominal_vals) * len(attack_vals))
-
-    # max(stream) confounds with trajectory length: nominal trajectories here
-    # average ~2x more actions than successful attacks (more chances for a
-    # rare argument to inflate the max by chance, independent of whether
-    # anything is actually anomalous) -- kept for comparison, but not the
-    # metric to trust.
-    nom_max = [max(s) if s else 0.0 for s in test_nominal_scores]
-    atk_max = [max(s) if s else 0.0 for s in attack_scores]
-    max_auroc = auroc(nom_max, atk_max)
-
-    # Length-normalized, drift-aware alternative: mean surprise over the
-    # post-drift region for attacks (the actual quantity algorithm.md §5's
-    # detection-delay bound depends on, D(Q||P)) vs. mean surprise over the
-    # whole trajectory for nominal (stationary, no drift to restrict to).
-    def post_drift_mean(traj_score, meta):
-        idx = meta.get("drift_index")
-        window = traj_score[idx:] if idx is not None else traj_score
-        return float(np.mean(window)) if window else 0.0
-
-    nom_mean = [float(np.mean(s)) if s else 0.0 for s in test_nominal_scores]
-    atk_mean = [
-        post_drift_mean(s, meta) for (traj, meta), s in zip(successful_attacks, attack_scores)
-    ]
-    mean_auroc = auroc(nom_mean, atk_mean)
-
-    print(f"surprise-score AUROC, max(stream) [length-confounded]: {max_auroc:.4f}")
-    print(f"surprise-score AUROC, mean post-drift vs mean nominal [length-normalized]: {mean_auroc:.4f}")
-    power_auroc = mean_auroc
-
-    plot_path = plot_traces(monitor, test_nominal_scores, successful_attacks, attack_scores)
-    print(f"wrote {plot_path}")
-
-    results = {
+    models = {
+        "causal_hash": CausalWorldModel,
+        "bigram_novelty": SequentialWorldModel,
+    }
+    results: dict = {
         "n_nominal": len(nominal),
         "n_successful_attacks": len(successful_attacks),
         "n_resisted_attacks": len(resisted_attacks),
-        "split_sizes": {"train": len(train), "cal": len(cal), "thresh": len(thresh), "test_nominal": len(test_nominal)},
-        "alpha": alpha,
-        "conf_delta": conf_delta,
-        "c_alpha": info.c_alpha,
-        "ville_c_alpha": info.ville_c_alpha,
-        "order_statistic_saturated": info.order_statistic_index == len(thresh_scores),
-        "empirical_far": empirical_far,
-        "far_alarms": far_alarms,
-        "far_steps": far_steps,
-        "detection_rate": detection_rate,
-        "detected": detected,
-        "n_successful_attacks_eval": len(successful_attacks),
-        "detection_delays": delays,
-        "resisted_attack_alarms": resisted_alarms,
-        "resisted_attack_steps": resisted_steps,
-        "surprise_score_auroc_max_length_confounded": max_auroc,
-        "surprise_score_auroc_mean_length_normalized": mean_auroc,
-        "surprise_score_auroc": power_auroc,
-        "mean_n_actions_nominal": float(np.mean([len(t) for t, _ in nominal if len(t) >= MIN_ACTIONS])),
-        "mean_n_actions_successful_attack": float(
-            np.mean([len(t) for t, _ in successful_attacks if len(t) >= MIN_ACTIONS])
-        ),
+        "n_seeds": N_SEEDS,
+        "alpha": ALPHA,
+        "conf_delta": CONF_DELTA,
+        "mean_n_actions_nominal": float(np.mean([len(t) for t, _ in nominal])),
+        "mean_n_actions_successful_attack": float(np.mean([len(t) for t, _ in successful_attacks])),
+        "models": {},
     }
+
+    for name, model_cls in models.items():
+        rows = [
+            evaluate_once(model_cls, nominal, successful_attacks, resisted_attacks, seed)
+            for seed in range(N_SEEDS)
+        ]
+        agg = {
+            "auroc_mean_norm": aggregate(rows, "auroc_mean_norm"),
+            "auroc_max": aggregate(rows, "auroc_max"),
+            "ville_detection_rate": aggregate(rows, "ville_detection_rate"),
+            "ville_nominal_far": aggregate(rows, "ville_nominal_far"),
+            "pac_detection_rate": aggregate(rows, "pac_detection_rate"),
+            "pac_nominal_far": aggregate(rows, "pac_nominal_far"),
+        }
+        all_ville_delays = [d for r in rows for d in r["ville_delays"]]
+        results["models"][name] = {
+            "aggregate": {k: {"mean": v[0], "std": v[1]} for k, v in agg.items()},
+            "pac_saturated_in_all_seeds": all(r["pac_saturated"] for r in rows),
+            "ville_delays_all_seeds": all_ville_delays,
+            "per_seed": [
+                {k: v for k, v in r.items() if not k.startswith("_")} for r in rows
+            ],
+        }
+        print(f"\n[{name}]")
+        for k, (mu, sd) in agg.items():
+            print(f"  {k}: {mu:.4f} +/- {sd:.4f}")
+        if all_ville_delays:
+            print(f"  ville delays (all seeds, post-drift steps): "
+                  f"median={np.median(all_ville_delays):.1f} n={len(all_ville_delays)}")
+
+        if name == "bigram_novelty":
+            r0 = rows[0]
+            plot_path = plot_traces(
+                r0["_monitor"], r0["_test_nominal_scores"], successful_attacks, r0["_attack_scores"]
+            )
+            if plot_path:
+                print(f"  wrote {plot_path}")
+
     out_path = ROOT / "results.json"
     out_path.write_text(json.dumps(results, indent=2))
-    print(f"wrote {out_path}")
+    print(f"\nwrote {out_path}")
 
 
 if __name__ == "__main__":

@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import json
 import re
+import zlib
 from pathlib import Path
 from typing import Any
 
@@ -45,7 +46,10 @@ _TOKEN_RE = re.compile(r"[A-Za-z0-9_./@-]{2,}")
 def _hash_tokens(tokens: list[str], dim: int) -> np.ndarray:
     vec = np.zeros(dim)
     for token in tokens:
-        h = hash(token)
+        # crc32, not builtin hash(): str hashing is salted per process
+        # (PYTHONHASHSEED), which made hashed features -- and every score
+        # derived from them -- non-reproducible across runs.
+        h = zlib.crc32(token.encode())
         vec[h % dim] += 1.0 if (h // dim) % 2 == 0 else -1.0
     return vec
 
@@ -64,6 +68,13 @@ def _hash_observation(text: str, dim: int = OBS_HASH_DIM) -> np.ndarray:
 
 def _hash_features(args: Any, preceding_observation: str = "") -> np.ndarray:
     return np.concatenate([_hash_args(args), _hash_observation(preceding_observation)])
+
+
+def _arg_tokens(args: Any) -> tuple[str, ...]:
+    """Raw argument tokens for vocabulary/novelty scoring
+    (sentry.scores.SequentialWorldModel) -- unlike the hash, these preserve
+    exact values so 'never seen this recipient before' is checkable."""
+    return tuple(_TOKEN_RE.findall(json.dumps(args, sort_keys=True, default=str)))
 
 
 def _content_text(content: Any) -> str:
@@ -110,7 +121,8 @@ def agentdojo_log_to_trajectory(log: dict, task_key: Any) -> tuple[Trajectory, d
 
     ctx = Context(task_id=task_key, available_tools=frozenset(tools_seen))
     traj: Trajectory = [
-        (ctx, Action(tool=n, features=_hash_features(a, obs))) for n, a, obs in actions
+        (ctx, Action(tool=n, features=_hash_features(a, obs), tokens=_arg_tokens(a)))
+        for n, a, obs in actions
     ]
     meta = {
         "source": "agentdojo",
@@ -164,7 +176,8 @@ def taubench_entry_to_trajectory(entry: dict, task_key: Any) -> tuple[Trajectory
 
     ctx = Context(task_id=task_key, available_tools=frozenset(tools_seen))
     traj: Trajectory = [
-        (ctx, Action(tool=n, features=_hash_features(a, obs))) for n, a, obs in actions
+        (ctx, Action(tool=n, features=_hash_features(a, obs), tokens=_arg_tokens(a)))
+        for n, a, obs in actions
     ]
     meta = {
         "source": "tau_bench",
