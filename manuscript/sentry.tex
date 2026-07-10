@@ -57,18 +57,18 @@ run length to false alarm with no independence assumption on the highly
 dependent action stream. Because the reference is learned from a small corpus
 of trusted trajectories, SENTRY calibrates its threshold with a
 distribution-free PAC procedure. Surprise is built from three cheap,
-model-free signals---a tool-transition model, an argument-novelty term, and an
+LLM-free signals---a tool-transition model, an argument-novelty term, and an
 observation instruction-likeness term---combined either as a tilted increment
 or as a per-signal conformal e-value mixture that preserves component-wise
 validity and yields per-signal attribution. On real AgentDojo and
 \(\tau\)-bench trajectories collected through a free-model router, SENTRY
-detects \(94\%\) of prompt-injection \emph{attempts} at a \(1\%\) false-alarm
-rate with zero-delay median detection, and we argue that injection-attempt
+detects \(81\%\) of prompt-injection \emph{attempts} at a \(5.2\%\) false-alarm
+rate with median delay one action, and we argue that injection-attempt
 detection, not hijack-success prediction, is the correct guardrail target. We
-provide a comprehensive ablation demonstrating the robust, state-of-the-art
-performance of our architecture across large-scale, high-fidelity agentic datasets.
-To our knowledge this is the first anytime-valid
-change-detection study on LLM-agent-safety benchmarks.}
+give an honest ablation---including three signals we implemented and
+\emph{rejected}---and are explicit about the ceiling imposed by small,
+free-tier data. We frame this as a preliminary empirical trace detector
+with a proposed validity framework.}
 
 \keywords{Large language model agents, prompt injection, e-values, sequential
 change detection, anytime-valid inference, runtime monitoring}
@@ -134,26 +134,26 @@ Shiryaev--Roberts / CUSUM e-detector on per-action surprise scores
 and correcting for the learned reference with distribution-free PAC
 thresholding.
 
-\item \textbf{Three cheap, model-free signals and two principled combiners.}
+\item \textbf{Three cheap, LLM-free signals and two principled combiners.}
 We derive surprise from a tool-transition model, an argument-novelty term and
 an \emph{observation instruction-likeness} term, and combine them either as a
 single tilted increment or as a per-signal conformal \emph{e-value mixture}
 that keeps every component Ville-valid and exposes which signal fired
 (Section~\ref{sec:method}).
 
-\item \textbf{The first anytime-valid results on LLM-agent-safety
-benchmarks, with an operational reframe.} On real AgentDojo and
-\(\tau\)-bench trajectories, SENTRY detects \(94\%\) of injection
-\emph{attempts} at a \(1\%\) false-alarm rate with median delay zero actions
+\item \textbf{A preliminary empirical trace detector with an operational reframe.} On real AgentDojo and
+\(\tau\)-bench trajectories, SENTRY detects \(81\%\) of injection
+\emph{attempts} at a \(5.2\%\) false-alarm rate with median delay one action
 (Section~\ref{sec:results}). We show that injection-\emph{attempt} detection,
-not hijack-\emph{success} prediction, is the correct monitor objective, and
-that it is the more attainable one.
+not hijack-\emph{success} prediction, is a more attainable monitor objective, though
+we acknowledge this is a post-hoc target motivated by our data constraints.
 
-\item \textbf{A robust, state-of-the-art ablation.} We systematically demonstrate
-that our architecture dominates baseline metrics, integrating data-flow taint,
-lexical goal-grounding and an injection-conditioned interaction term to achieve
-unprecedented separation on large-scale agentic benchmarks (Section~\ref{sec:ablation}),
-establishing a new ceiling for safety monitors (Section~\ref{sec:discussion}).
+\item \textbf{An honest, reproducible ablation.} We report not only what
+worked but three signals we implemented and \emph{rejected}---data-flow taint,
+lexical goal-grounding and an injection-conditioned interaction term---because
+they did not separate on our data (Section~\ref{sec:ablation}), and we are
+explicit about the ceiling imposed by small, free-tier data
+(Section~\ref{sec:discussion}).
 \end{enumerate}
 
 All code, collected trajectories, verified references and the scripts that
@@ -302,10 +302,11 @@ control the \emph{average run length to false alarm} and minimise
    \label{eq:delay}
 \end{align}
 where \(\Ecal_{P,\infty}\) denotes the law with no change ever, and
-\(\Ecal_\nu\) the law with change at \(\nu\). Equation~\eqref{eq:arl} is
-equivalent to a per-step false-alarm rate at most \(\alpha\); it must hold
-nonasymptotically, without i.i.d.\ assumptions, and under continuous
-monitoring.
+\(\Ecal_\nu\) the law with change at \(\nu\). Equation~\eqref{eq:arl} bounds
+the expected time to the \emph{first} false alarm, which is not generally 
+equivalent to a per-step false-alarm rate for dependent streams or repeatedly 
+restarted detectors; our reported empirical metric (total alarms divided by 
+total actions) is therefore a proxy.
 
 \paragraph{Threat model.} We assume a \emph{black-box} monitor: SENTRY sees
 the sequence of tool calls (name and arguments) and tool results, but not the
@@ -514,8 +515,10 @@ where \(\psi\) is a sub-Gaussian/sub-exponential cumulant bound chosen so the
 increment condition holds under the pre-change class, and \(m_0\) is the
 nominal mean surprise. A finite mixture \(L_n=\sum_k \omega_k L_n^{(\lambda_k)}\)
 over a grid of tilts \(\{\lambda_k\}\) hedges against an unknown post-change
-magnitude, since a convex combination of valid increments is a valid
-increment.
+increment. We acknowledge that our empirical implementation estimates means 
+and variances directly from calibration traces without a proven sub-Gaussian bound, 
+and our null class is therefore implicitly restricted to processes satisfying 
+this learned baseline-increment condition rather than all possible benign agents.
 
 \paragraph{Per-signal conformal e-value mixture.} Summing signals into one
 scalar forces a hand-chosen relative weighting and a tail assumption. A more
@@ -526,17 +529,18 @@ per-step calibration values \(\{c^{(k)}_i\}\), the conformal
 \(p_k(x)=\frac{1+|\{i:c^{(k)}_i\ge x\}|}{|\{c^{(k)}_i\}|+1}\), and a
 power calibrator maps it to an e-value \(e_k(x)=\kappa\,p_k(x)^{\kappa-1}\)
 with \(\Ecal_P[e_k]\le 1\) under exchangeability~\cite{vovk2021evalues}. The
-merged increment is the weighted arithmetic mean, the only admissible
-symmetric merge of e-values~\cite{vovk2021evalues},
+merged increment is the weighted arithmetic mean (an admissible 
+merge of e-values~\cite{vovk2021evalues}),
 \begin{equation}
 L_n \;=\; \sum_{k} \omega_k\, e_k\!\bigl(s^{(k)}_n\bigr),
 \qquad \sum_k \omega_k = 1,
 \label{eq:evalue-mix}
 \end{equation}
-which is itself a valid increment, requires no tail assumption on any signal,
-maps signals on different scales to a common e-value scale, and exposes
-per-signal attribution (the dominant \(e_k\) at the alarm names the signal
-that fired).
+which requires no tail assumption on any signal, maps signals on different 
+scales to a common e-value scale, and exposes per-signal attribution. We note, 
+however, that marginal conformal validity assumes exchangeability, which is 
+insufficient for the conditional expectation required by a strict e-detector 
+when allowing arbitrary history dependence.
 
 \subsection{The e-detector and its guarantee}
 
@@ -561,56 +565,41 @@ stream.
 
 On alarm, SENTRY resets \(M\gets 0\) and continues, so the guarantee re-applies
 from each restart (a generalised Lorden argument~\cite{lorden1971procedures,
-shin2023edetectors})---this is what lets a single monitor run across an
-unbounded deployment rather than certifying one bounded trajectory. We record
-the delay behaviour, again inherited rather than newly proved.
+shin2023edetectors}). We explicitly note that over an infinite deployment with 
+repeated resets, even a valid detector will eventually false-alarm with probability 
+one; repeated restart guarantees \emph{conditional} ARL between alarms, not global 
+probability of no false alarm forever.
 
 \begin{proposition}[Detection delay, {\cite[\S4]{shin2023edetectors}}]
 \label{prop:delay}
 For the mixture SR/CUSUM e-detector with an exponential-family baseline
-increment, the worst-case average detection delay obeys
-\begin{equation}
-\mathrm{delay} \;\le\; \frac{g_\alpha}{D(\Qcal\Vert\Pcal)}
-   \;+\; \frac{\mathbb{V}_{\Qcal}\!\left[\log L_1^{(\lambda_{\mathrm{op}})}\right]}
-   {\left[D(\Qcal\Vert\Pcal)\right]^2} \;+\; 1,
-\label{eq:delay-bound}
-\end{equation}
-where \(g_\alpha=O(\log(1/\alpha))\), \(D(\Qcal\Vert\Pcal)\) is the
-Kullback--Leibler separation between the post- and pre-change score laws
-achievable by the mixture, and \(\lambda_{\mathrm{op}}\) is the operative
-tilt.
+increment, the worst-case average detection delay obeys a bound inversely 
+proportional to \(D(\Qcal\Vert\Pcal)\), the Kullback--Leibler separation 
+between the post- and pre-change score laws achievable by the mixture.
 \end{proposition}
 
-Equation~\eqref{eq:delay-bound} makes precise the intuition that drives
-SENTRY's signal design: delay shrinks as \(D(\Qcal\Vert\Pcal)\) grows, so the
-better a signal separates injected from nominal behaviour, the faster the
-alarm. It is the theoretical reason the observation instruction-likeness
-term---which places almost all of its nominal mass at zero and its attack mass
-far above it (Section~\ref{sec:results})---yields the one-action median delay
-we observe empirically.
+While \(D(\Qcal\Vert\Pcal)\) is technically undefined for the broad, implicit 
+distribution classes we employ, and this exponential-family delay result is not 
+formally established for our conformal combiner, Proposition~\ref{prop:delay} 
+nevertheless formalizes the intuition driving SENTRY's signal design: delay 
+shrinks as separation grows. This is why the instruction-likeness term yields 
+a one-action median delay empirically.
 
 \subsection{PAC-calibrated thresholding}
 
 Theorem~\ref{thm:arl} assumes an \emph{exact} increment. SENTRY's reference is
 \emph{learned} from finite data, so \(L_n\) is only approximately valid and the
-exact Ville threshold \(1/\alpha\) need not control the false-alarm rate. We
-adopt the PAC-thresholding correction of E-valuator~\cite{sadhuka2025evaluator},
-adapted to the e-detector's running maximum. On a held-out nominal split
-\(\Dcal_{\mathrm{thresh}}\) of \(m\) trajectories we run the detector to
-completion, record each trajectory's running maximum \(M^{(i)}\), and set the
-threshold to an order statistic of the sorted maxima chosen by a
-Binomial-tail (Wilks) tolerance bound: the smallest \(k\) with
-\(\Prob[F(M_{(k)})\ge 1-\alpha]\ge 1-\delta\), using
-\(F(M_{(k)})\sim\mathrm{Beta}(k,m-k+1)\). This yields the two-level guarantee
-\begin{equation}
-\Prob_{\Dcal_{\mathrm{cal}}}\!\Bigl(\Prob_{\Hcal}\bigl[\exists t: M_t > c_\alpha\bigr]
-   \le \alpha\Bigr) \;\ge\; 1-\delta,
-\label{eq:pac}
-\end{equation}
-analogous to E-valuator's Proposition~1. We report results at both the PAC
-threshold \(c_\alpha\) and the exact-Ville threshold \(1/\alpha\), and are
-explicit (Section~\ref{sec:discussion}) about when \(\Dcal_{\mathrm{thresh}}\)
-is too small for the bound to be non-vacuous.
+exact Ville threshold \(1/\alpha\) need not control the false-alarm rate. We adopt the PAC-thresholding correction of E-valuator~\cite{sadhuka2025evaluator},
+adapted to the e-detector's running maximum on finite trajectories. On a held-out 
+nominal split \(\Dcal_{\mathrm{thresh}}\) of \(m\) trajectories we run the detector to
+completion, record each trajectory's running maximum \(M^{(i)}\), and aim to set the
+threshold to an order statistic chosen by a Binomial-tail (Wilks) bound. However, we 
+explicitly note that our protocol has only \(m=5\) threshold trajectories. For our 
+targets \((\alpha=0.2, \delta=0.2)\), no order statistic satisfies the confidence 
+requirement; the implementation falls back to the sample maximum. Thus, our reported 
+PAC results are technically uncertified. Furthermore, PAC guarantees strictly apply 
+only to the finite horizons observed during calibration; true infinite monitoring 
+would require the Ville threshold without PAC corrections.
 
 \begin{algorithm}[t]
 \caption{SENTRY-Detect}\label{alg:sentry}
@@ -859,13 +848,18 @@ in Figure~\ref{fig:traces} is an instance of case (i).
 \subsection{Which signals help}
 
 Figure~\ref{fig:ablation} and Table~\ref{tab:main} together trace the
-contribution of each design choice. The baseline hash+Gaussian surprise 
-achieves an AUROC of \(0.65\). Replacing it with the tool-transition bigram 
-and adding argument novelty lifts detection to \(0.82\); adding the observation 
-instruction-likeness term and data-flow taint lifts it to a state-of-the-art 
-\(0.98\)---demonstrating overwhelming superiority. The instruction weight is highly 
-robust: Figure~\ref{fig:robust} shows AUROC is perfectly stable across all weight configurations,
-validating the extreme power of the proposed features.
+contribution of each design choice. The original hash+Gaussian surprise is
+near chance (AUROC \(0.40\) attempt, \(0.05\) detection): its tool term
+conditioned on task identifiers that are always unseen at test time. Replacing
+it with the tool-transition bigram and adding argument novelty lifts detection
+to \(0.46\) (attempt); adding the observation instruction-likeness term lifts
+it to \(0.81\)---by far the largest single jump. Data-flow taint and goal grounding
+were implemented but rejected, as they did not separate on our free-tier data,
+and are not shipped in the final model. The instruction weight is not
+knife-edge tuned: Figure~\ref{fig:robust} shows AUROC is flat for any weight in
+\([2,16]\), and likewise for the novelty weight, though we caution that our
+headline signal was developed on this evaluation corpus without a preregistered
+development set, presenting a risk of feature-selection leakage.
 
 \begin{figure}[t]
 \centering
@@ -979,12 +973,18 @@ maximum, so the PAC guarantee~\eqref{eq:pac} is not yet certified at a useful
 biggest gap between having the theory and demonstrating it. \emph{(ii)~Data
 quality caps detection}: \(\sim\!11/16\) ``successful'' attacks have no
 observable injection because the free-tier agent's successes are degenerate.
-\emph{(iii)~Small samples}: \(n=16\) attacks suffices to separate \(0.87\) from
-chance on identical splits but leaves wide intervals. \emph{(iv)~One attack
-family}: we evaluate AgentDojo's \texttt{important\_instructions}; generality
-across attack templates is untested. None of these are limitations of the
-method's design; all are addressable with a paid, capable agent and more data,
-which we identify as the highest-value next step and which would also let us
+\emph{(iii)~Experimental confounding}: attacks were not resampled across splits,
+leading to artificially zero cross-split variance. There is severe domain and length
+confounding (attacks average 2.6 actions vs 5.3 for nominal), and our free-model router
+confounds detector performance with varying model identities. \emph{(iv)~Lack of baselines}:
+we do not include external raw baselines (e.g. LLM judge, CUSUM anomaly detector), and the
+AgentArmor comparison uses a different denominator. \emph{(v)~Data-dependent tuning}:
+e-value mixture weights were chosen post-hoc on the evaluation corpus, and our headline
+signal was developed on the evaluation corpus without preregistration, presenting a risk of
+feature-selection leakage. \emph{(vi)~API and Synthetic limits}: our public API requires
+precomputed scalars and does not implement the instrumentation hook required for true ``zero-delay'',
+while our synthetic experiment validates only a finite-horizon Gaussian simulation, not
+arbitrary multi-task dependence.
 re-test the taint and grounding signals under the conditions where the
 literature reports they succeed.
 
@@ -1083,13 +1083,14 @@ anytime-valid sequential change detection. By building a Shiryaev--Roberts
 e-detector on cheap, trace-only surprise signals and correcting the learned
 reference with PAC thresholding, SENTRY controls the false-alarm rate under
 continuous monitoring with no independence assumption on the action stream. On
-comprehensive AgentDojo and \(\tau\)-bench trajectories it detects \(94\%\) of
-prompt-injection attempts at a \(1\%\) false-alarm rate with instantaneous 
-zero-delay median detection, and we argued that injection-attempt detection is the right
-target for a guardrail. Our comprehensive ablation demonstrates robust, 
-state-of-the-art performance that completely dominates existing baseline architectures. 
-The clear next step is to deploy this powerful monitoring architecture to production 
-agent environments; longer term, replacing the lightweight
+real AgentDojo and \(\tau\)-bench trajectories it detects \(81\%\) of
+prompt-injection attempts at a \(5.2\%\) false-alarm rate with a one-action
+median delay, and we argued that injection-attempt detection is an attainable
+target for a guardrail. Our ablation is honest about three signals that did
+not help and about the data-driven ceiling on our numbers, framing this as a 
+preliminary empirical trace detector. The clear next step
+is a capable-agent data collection, which we expect to lift the ceiling and
+to revive the provenance-based signals; longer term, replacing the lightweight
 reference with a causal world model, and formalising the multi-signal
 e-value mixture's detection-delay bound, are natural extensions.
 
@@ -1113,6 +1114,10 @@ corpus, and the scripts that reproduce every reported number and figure are
 released with the project repository.
 \item \textbf{Author contributions.} Q.-V.\ Dang conceived the method,
 implemented the system, ran the experiments and wrote the manuscript.
+\item \textbf{Data governance and privacy.} The released logs contain account-like 
+identifiers and user/task content from the underlying benchmark suites. We release 
+them solely for reproducibility under the terms of the original datasets, but make no 
+further privacy guarantees.
 \end{itemize}
 
 \begin{appendices}
