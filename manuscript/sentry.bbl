@@ -1,0 +1,504 @@
+%% BioMed_Central_Bib_Style_v1.01
+
+\begin{thebibliography}{29}
+% BibTex style file: bmc-mathphys.bst (version 2.1), 2014-07-24
+\ifx \bisbn   \undefined \def \bisbn  #1{ISBN #1}\fi
+\ifx \binits  \undefined \def \binits#1{#1}\fi
+\ifx \bauthor  \undefined \def \bauthor#1{#1}\fi
+\ifx \batitle  \undefined \def \batitle#1{#1}\fi
+\ifx \bjtitle  \undefined \def \bjtitle#1{#1}\fi
+\ifx \bvolume  \undefined \def \bvolume#1{\textbf{#1}}\fi
+\ifx \byear  \undefined \def \byear#1{#1}\fi
+\ifx \bissue  \undefined \def \bissue#1{#1}\fi
+\ifx \bfpage  \undefined \def \bfpage#1{#1}\fi
+\ifx \blpage  \undefined \def \blpage #1{#1}\fi
+\ifx \burl  \undefined \def \burl#1{\textsf{#1}}\fi
+\ifx \doiurl  \undefined \def \doiurl#1{\url{https://doi.org/#1}}\fi
+\ifx \betal  \undefined \def \betal{\textit{et al.}}\fi
+\ifx \binstitute  \undefined \def \binstitute#1{#1}\fi
+\ifx \binstitutionaled  \undefined \def \binstitutionaled#1{#1}\fi
+\ifx \bctitle  \undefined \def \bctitle#1{#1}\fi
+\ifx \beditor  \undefined \def \beditor#1{#1}\fi
+\ifx \bpublisher  \undefined \def \bpublisher#1{#1}\fi
+\ifx \bbtitle  \undefined \def \bbtitle#1{#1}\fi
+\ifx \bedition  \undefined \def \bedition#1{#1}\fi
+\ifx \bseriesno  \undefined \def \bseriesno#1{#1}\fi
+\ifx \blocation  \undefined \def \blocation#1{#1}\fi
+\ifx \bsertitle  \undefined \def \bsertitle#1{#1}\fi
+\ifx \bsnm \undefined \def \bsnm#1{#1}\fi
+\ifx \bsuffix \undefined \def \bsuffix#1{#1}\fi
+\ifx \bparticle \undefined \def \bparticle#1{#1}\fi
+\ifx \barticle \undefined \def \barticle#1{#1}\fi
+\bibcommenthead
+\ifx \bconfdate \undefined \def \bconfdate #1{#1}\fi
+\ifx \botherref \undefined \def \botherref #1{#1}\fi
+\ifx \url \undefined \def \url#1{\textsf{#1}}\fi
+\ifx \bchapter \undefined \def \bchapter#1{#1}\fi
+\ifx \bbook \undefined \def \bbook#1{#1}\fi
+\ifx \bcomment \undefined \def \bcomment#1{#1}\fi
+\ifx \oauthor \undefined \def \oauthor#1{#1}\fi
+\ifx \citeauthoryear \undefined \def \citeauthoryear#1{#1}\fi
+\ifx \endbibitem  \undefined \def \endbibitem {}\fi
+\ifx \bconflocation  \undefined \def \bconflocation#1{#1}\fi
+\ifx \arxivurl  \undefined \def \arxivurl#1{\textsf{#1}}\fi
+\csname PreBibitemsHook\endcsname
+
+%%% 1
+\bibitem[\protect\citeauthoryear{Zhan et~al.}{2024}]{zhan2024injecagent}
+\begin{barticle}
+\bauthor{\bsnm{Zhan}, \binits{Q.}},
+\bauthor{\bsnm{Liang}, \binits{Z.}},
+\bauthor{\bsnm{Ying}, \binits{Z.}},
+\bauthor{\bsnm{Kang}, \binits{D.}}:
+\batitle{Injecagent: Benchmarking indirect prompt injections in tool-integrated
+  large language model agents}.
+\bjtitle{arXiv preprint arXiv:2403.02691}
+(\byear{2024})
+\doiurl{10.48550/arXiv.2403.02691}
+\end{barticle}
+\endbibitem
+
+%%% 2
+\bibitem[\protect\citeauthoryear{Debenedetti
+  et~al.}{2024}]{debenedetti2024agentdojo}
+\begin{barticle}
+\bauthor{\bsnm{Debenedetti}, \binits{E.}},
+\bauthor{\bsnm{Zhang}, \binits{J.}},
+\bauthor{\bsnm{Balunović}, \binits{M.}},
+\bauthor{\bsnm{Beurer-Kellner}, \binits{L.}},
+\bauthor{\bsnm{Fischer}, \binits{M.}},
+\bauthor{\bsnm{Tramèr}, \binits{F.}}:
+\batitle{Agentdojo: A dynamic environment to evaluate prompt injection attacks
+  and defenses for llm agents}.
+\bjtitle{arXiv preprint arXiv:2406.13352}
+(\byear{2024})
+\doiurl{10.48550/arXiv.2406.13352}
+\end{barticle}
+\endbibitem
+
+%%% 3
+\bibitem[\protect\citeauthoryear{Belenky et~al.}{2026}]{belenky2026cheap}
+\begin{barticle}
+\bauthor{\bsnm{Belenky}, \binits{I.}},
+\bauthor{\bsnm{Itria}, \binits{J.}},
+\bauthor{\bsnm{Johns}, \binits{S.}}:
+\batitle{Cheap reward hacking detection}.
+\bjtitle{arXiv preprint arXiv:2606.08893}
+(\byear{2026})
+\doiurl{10.48550/arXiv.2606.08893}
+\end{barticle}
+\endbibitem
+
+%%% 4
+\bibitem[\protect\citeauthoryear{Thaman}{2026}]{thaman2026rewardhacking}
+\begin{barticle}
+\bauthor{\bsnm{Thaman}, \binits{K.}}:
+\batitle{Reward hacking benchmark: Measuring exploits in llm agents with tool
+  use}.
+\bjtitle{arXiv preprint arXiv:2605.02964}
+(\byear{2026})
+\doiurl{10.48550/arXiv.2605.02964}
+\end{barticle}
+\endbibitem
+
+%%% 5
+\bibitem[\protect\citeauthoryear{Debenedetti
+  et~al.}{2025}]{debenedetti2025camel}
+\begin{barticle}
+\bauthor{\bsnm{Debenedetti}, \binits{E.}},
+\bauthor{\bsnm{Shumailov}, \binits{I.}},
+\bauthor{\bsnm{Fan}, \binits{T.}},
+\bauthor{\bsnm{Hayes}, \binits{J.}},
+\bauthor{\bsnm{Carlini}, \binits{N.}},
+\bauthor{\bsnm{Fabian}, \binits{D.}},
+\bauthor{\bsnm{Kern}, \binits{C.}},
+\bauthor{\bsnm{Shi}, \binits{C.}},
+\bauthor{\bsnm{Terzis}, \binits{A.}},
+\bauthor{\bsnm{Tramèr}, \binits{F.}}:
+\batitle{Defeating prompt injections by design}.
+\bjtitle{arXiv preprint arXiv:2503.18813}
+(\byear{2025})
+\doiurl{10.48550/arXiv.2503.18813}
+\end{barticle}
+\endbibitem
+
+%%% 6
+\bibitem[\protect\citeauthoryear{Das et~al.}{2025}]{das2025commandsans}
+\begin{barticle}
+\bauthor{\bsnm{Das}, \binits{D.}},
+\bauthor{\bsnm{Beurer-Kellner}, \binits{L.}},
+\bauthor{\bsnm{Fischer}, \binits{M.}},
+\bauthor{\bsnm{Baader}, \binits{M.}}:
+\batitle{Commandsans: Securing ai agents with surgical precision prompt
+  sanitization}.
+\bjtitle{arXiv preprint arXiv:2510.08829}
+(\byear{2025})
+\doiurl{10.48550/arXiv.2510.08829}
+\end{barticle}
+\endbibitem
+
+%%% 7
+\bibitem[\protect\citeauthoryear{Liu et~al.}{2025}]{liu2025datasentinel}
+\begin{barticle}
+\bauthor{\bsnm{Liu}, \binits{Y.}},
+\bauthor{\bsnm{Jia}, \binits{Y.}},
+\bauthor{\bsnm{Jia}, \binits{J.}},
+\bauthor{\bsnm{Song}, \binits{D.}},
+\bauthor{\bsnm{Gong}, \binits{N.Z.}}:
+\batitle{Datasentinel: A game-theoretic detection of prompt injection attacks}.
+\bjtitle{arXiv preprint arXiv:2504.11358}
+(\byear{2025})
+\doiurl{10.48550/arXiv.2504.11358}
+\end{barticle}
+\endbibitem
+
+%%% 8
+\bibitem[\protect\citeauthoryear{Jia et~al.}{2024}]{jia2024taskshield}
+\begin{barticle}
+\bauthor{\bsnm{Jia}, \binits{F.}},
+\bauthor{\bsnm{Wu}, \binits{T.}},
+\bauthor{\bsnm{Qin}, \binits{X.}},
+\bauthor{\bsnm{Squicciarini}, \binits{A.}}:
+\batitle{The task shield: Enforcing task alignment to defend against indirect
+  prompt injection in llm agents}.
+\bjtitle{arXiv preprint arXiv:2412.16682}
+(\byear{2024})
+\doiurl{10.48550/arXiv.2412.16682}
+\end{barticle}
+\endbibitem
+
+%%% 9
+\bibitem[\protect\citeauthoryear{Ramdas et~al.}{2023}]{ramdas2023gametheoretic}
+\begin{barticle}
+\bauthor{\bsnm{Ramdas}, \binits{A.}},
+\bauthor{\bsnm{Gr\"unwald}, \binits{P.}},
+\bauthor{\bsnm{Vovk}, \binits{V.}},
+\bauthor{\bsnm{Shafer}, \binits{G.}}:
+\batitle{Game-theoretic statistics and safe anytime-valid inference}.
+\bjtitle{Statistical Science}
+\bvolume{38}(\bissue{4}),
+\bfpage{576}--\blpage{601}
+(\byear{2023})
+\doiurl{10.1214/23-sts894}
+\end{barticle}
+\endbibitem
+
+%%% 10
+\bibitem[\protect\citeauthoryear{Vovk and Wang}{2021}]{vovk2021evalues}
+\begin{barticle}
+\bauthor{\bsnm{Vovk}, \binits{V.}},
+\bauthor{\bsnm{Wang}, \binits{R.}}:
+\batitle{E-values: Calibration, combination and applications}.
+\bjtitle{The Annals of Statistics}
+\bvolume{49}(\bissue{3}),
+\bfpage{1736}--\blpage{1754}
+(\byear{2021})
+\doiurl{10.1214/20-aos2020}
+\end{barticle}
+\endbibitem
+
+%%% 11
+\bibitem[\protect\citeauthoryear{Gr\"unwald
+  et~al.}{2024}]{grunwald2024safetesting}
+\begin{barticle}
+\bauthor{\bsnm{Gr\"unwald}, \binits{P.}},
+\bauthor{\bsnm{Heide}, \binits{R.}},
+\bauthor{\bsnm{Koolen}, \binits{W.M.}}:
+\batitle{Safe testing}.
+\bjtitle{Journal of the Royal Statistical Society Series B: Statistical
+  Methodology}
+\bvolume{86}(\bissue{5}),
+\bfpage{1091}--\blpage{1128}
+(\byear{2024})
+\doiurl{10.1093/jrsssb/qkae011}
+\end{barticle}
+\endbibitem
+
+%%% 12
+\bibitem[\protect\citeauthoryear{Shin et~al.}{2023}]{shin2023edetectors}
+\begin{barticle}
+\bauthor{\bsnm{Shin}, \binits{J.}},
+\bauthor{\bsnm{Ramdas}, \binits{A.}},
+\bauthor{\bsnm{Rinaldo}, \binits{A.}}:
+\batitle{E-detectors: A nonparametric framework for sequential change
+  detection}.
+\bjtitle{The New England Journal of Statistics in Data Science}
+\bvolume{1}(\bissue{2}),
+\bfpage{229}--\blpage{260}
+(\byear{2023})
+\doiurl{10.51387/23-nejsds51}
+\end{barticle}
+\endbibitem
+
+%%% 13
+\bibitem[\protect\citeauthoryear{Sadhuka et~al.}{2025}]{sadhuka2025evaluator}
+\begin{barticle}
+\bauthor{\bsnm{Sadhuka}, \binits{S.}},
+\bauthor{\bsnm{Prinster}, \binits{D.}},
+\bauthor{\bsnm{Fannjiang}, \binits{C.}},
+\bauthor{\bsnm{Scalia}, \binits{G.}},
+\bauthor{\bsnm{Berger}, \binits{B.}},
+\bauthor{\bsnm{Regev}, \binits{A.}},
+\bauthor{\bsnm{Wang}, \binits{H.}}:
+\batitle{E-valuator: Reliable agent verifiers with sequential hypothesis
+  testing}.
+\bjtitle{arXiv preprint arXiv:2512.03109}
+(\byear{2025})
+\doiurl{10.48550/arXiv.2512.03109}
+\end{barticle}
+\endbibitem
+
+%%% 14
+\bibitem[\protect\citeauthoryear{Waudby-Smith and
+  Ramdas}{2023}]{waudbysmith2023betting}
+\begin{barticle}
+\bauthor{\bsnm{Waudby-Smith}, \binits{I.}},
+\bauthor{\bsnm{Ramdas}, \binits{A.}}:
+\batitle{Estimating means of bounded random variables by betting}.
+\bjtitle{Journal of the Royal Statistical Society Series B: Statistical
+  Methodology}
+\bvolume{86}(\bissue{1}),
+\bfpage{1}--\blpage{27}
+(\byear{2023})
+\doiurl{10.1093/jrsssb/qkad009}
+\end{barticle}
+\endbibitem
+
+%%% 15
+\bibitem[\protect\citeauthoryear{Vovk et~al.}{2022}]{vovk2022algorithmic}
+\begin{bbook}
+\bauthor{\bsnm{Vovk}, \binits{V.}},
+\bauthor{\bsnm{Gammerman}, \binits{A.}},
+\bauthor{\bsnm{Shafer}, \binits{G.}}:
+\bbtitle{Algorithmic Learning in a Random World},
+\bedition{2nd} edn.
+\bpublisher{Springer}, \blocation{???}
+(\byear{2022}).
+\doiurl{10.1007/978-3-031-06649-8}
+\end{bbook}
+\endbibitem
+
+%%% 16
+\bibitem[\protect\citeauthoryear{Page}{1954}]{page1954cusum}
+\begin{barticle}
+\bauthor{\bsnm{Page}, \binits{E.S.}}:
+\batitle{Continuous inspection schemes}.
+\bjtitle{Biometrika}
+\bvolume{41}(\bissue{1/2}),
+\bfpage{100}--\blpage{115}
+(\byear{1954})
+\doiurl{10.1093/biomet/41.1-2.100}
+\end{barticle}
+\endbibitem
+
+%%% 17
+\bibitem[\protect\citeauthoryear{Lorden}{1971}]{lorden1971procedures}
+\begin{barticle}
+\bauthor{\bsnm{Lorden}, \binits{G.}}:
+\batitle{Procedures for reacting to a change in distribution}.
+\bjtitle{The Annals of Mathematical Statistics}
+\bvolume{42}(\bissue{6}),
+\bfpage{1897}--\blpage{1908}
+(\byear{1971})
+\doiurl{10.1214/aoms/1177693055}
+\end{barticle}
+\endbibitem
+
+%%% 18
+\bibitem[\protect\citeauthoryear{Zhou et~al.}{2023}]{zhou2023webarena}
+\begin{barticle}
+\bauthor{\bsnm{Zhou}, \binits{S.}},
+\bauthor{\bsnm{Xu}, \binits{F.F.}},
+\bauthor{\bsnm{Zhu}, \binits{H.}},
+\bauthor{\bsnm{Zhou}, \binits{X.}},
+\bauthor{\bsnm{Lo}, \binits{R.}},
+\bauthor{\bsnm{Sridhar}, \binits{A.}},
+\bauthor{\bsnm{Cheng}, \binits{X.}},
+\bauthor{\bsnm{Ou}, \binits{T.}},
+\bauthor{\bsnm{Bisk}, \binits{Y.}},
+\bauthor{\bsnm{Fried}, \binits{D.}},
+\bauthor{\bsnm{Alon}, \binits{U.}},
+\bauthor{\bsnm{Neubig}, \binits{G.}}:
+\batitle{Webarena: A realistic web environment for building autonomous agents}.
+\bjtitle{arXiv preprint arXiv:2307.13854}
+(\byear{2023})
+\doiurl{10.48550/arXiv.2307.13854}
+\end{barticle}
+\endbibitem
+
+%%% 19
+\bibitem[\protect\citeauthoryear{Yao et~al.}{2024}]{yao2024taubench}
+\begin{barticle}
+\bauthor{\bsnm{Yao}, \binits{S.}},
+\bauthor{\bsnm{Shinn}, \binits{N.}},
+\bauthor{\bsnm{Razavi}, \binits{P.}},
+\bauthor{\bsnm{Narasimhan}, \binits{K.}}:
+\batitle{$\tau$-bench: A benchmark for tool-agent-user interaction in
+  real-world domains}.
+\bjtitle{arXiv preprint arXiv:2406.12045}
+(\byear{2024})
+\doiurl{10.48550/arXiv.2406.12045}
+\end{barticle}
+\endbibitem
+
+%%% 20
+\bibitem[\protect\citeauthoryear{Li et~al.}{2026}]{li2026taxonomy}
+\begin{barticle}
+\bauthor{\bsnm{Li}, \binits{M.Q.}},
+\bauthor{\bsnm{Fung}, \binits{B.C.M.}},
+\bauthor{\bsnm{Li}, \binits{B.}},
+\bauthor{\bsnm{Ismail}, \binits{H.}},
+\bauthor{\bsnm{Iqbal}, \binits{F.}}:
+\batitle{Taxonomy and consistency analysis of safety benchmarks for ai agents}.
+\bjtitle{arXiv preprint arXiv:2605.16282}
+(\byear{2026})
+\doiurl{10.48550/arXiv.2605.16282}
+\end{barticle}
+\endbibitem
+
+%%% 21
+\bibitem[\protect\citeauthoryear{Wallace
+  et~al.}{2024}]{wallace2024instructionhierarchy}
+\begin{barticle}
+\bauthor{\bsnm{Wallace}, \binits{E.}},
+\bauthor{\bsnm{Xiao}, \binits{K.}},
+\bauthor{\bsnm{Leike}, \binits{R.}},
+\bauthor{\bsnm{Weng}, \binits{L.}},
+\bauthor{\bsnm{Heidecke}, \binits{J.}},
+\bauthor{\bsnm{Beutel}, \binits{A.}}:
+\batitle{The instruction hierarchy: Training llms to prioritize privileged
+  instructions}.
+\bjtitle{arXiv preprint arXiv:2404.13208}
+(\byear{2024})
+\doiurl{10.48550/arXiv.2404.13208}
+\end{barticle}
+\endbibitem
+
+%%% 22
+\bibitem[\protect\citeauthoryear{Wang et~al.}{2025}]{wang2025agentarmor}
+\begin{barticle}
+\bauthor{\bsnm{Wang}, \binits{P.}},
+\bauthor{\bsnm{Liu}, \binits{Y.}},
+\bauthor{\bsnm{Lu}, \binits{Y.}},
+\bauthor{\bsnm{Cai}, \binits{Y.}},
+\bauthor{\bsnm{Chen}, \binits{H.}},
+\bauthor{\bsnm{Yang}, \binits{Q.}},
+\bauthor{\bsnm{Zhang}, \binits{J.}},
+\bauthor{\bsnm{Hong}, \binits{J.}},
+\bauthor{\bsnm{Wu}, \binits{Y.}}:
+\batitle{Agentarmor: Enforcing program analysis on agent runtime trace to
+  defend against prompt injection}.
+\bjtitle{arXiv preprint arXiv:2508.01249}
+(\byear{2025})
+\doiurl{10.48550/arXiv.2508.01249}
+\end{barticle}
+\endbibitem
+
+%%% 23
+\bibitem[\protect\citeauthoryear{Zhu et~al.}{2025}]{zhu2025melon}
+\begin{barticle}
+\bauthor{\bsnm{Zhu}, \binits{K.}},
+\bauthor{\bsnm{Yang}, \binits{X.}},
+\bauthor{\bsnm{Wang}, \binits{J.}},
+\bauthor{\bsnm{Guo}, \binits{W.}},
+\bauthor{\bsnm{Wang}, \binits{W.Y.}}:
+\batitle{Melon: Provable defense against indirect prompt injection attacks in
+  ai agents}.
+\bjtitle{arXiv preprint arXiv:2502.05174}
+(\byear{2025})
+\doiurl{10.48550/arXiv.2502.05174}
+\end{barticle}
+\endbibitem
+
+%%% 24
+\bibitem[\protect\citeauthoryear{Nasr et~al.}{2025}]{nasr2025attackersecond}
+\begin{barticle}
+\bauthor{\bsnm{Nasr}, \binits{M.}},
+\bauthor{\bsnm{Carlini}, \binits{N.}},
+\bauthor{\bsnm{Sitawarin}, \binits{C.}},
+\bauthor{\bsnm{Schulhoff}, \binits{S.V.}},
+\bauthor{\bsnm{Hayes}, \binits{J.}},
+\bauthor{\bsnm{Ilie}, \binits{M.}},
+\bauthor{\bsnm{Pluto}, \binits{J.}},
+\bauthor{\bsnm{Song}, \binits{S.}},
+\bauthor{\bsnm{Chaudhari}, \binits{H.}},
+\bauthor{\bsnm{Shumailov}, \binits{I.}},
+\bauthor{\bsnm{Thakurta}, \binits{A.}},
+\bauthor{\bsnm{Xiao}, \binits{K.Y.}},
+\bauthor{\bsnm{Terzis}, \binits{A.}},
+\bauthor{\bsnm{Tramèr}, \binits{F.}}:
+\batitle{The attacker moves second: Stronger adaptive attacks bypass defenses
+  against llm jailbreaks and prompt injections}.
+\bjtitle{arXiv preprint arXiv:2510.09023}
+(\byear{2025})
+\doiurl{10.48550/arXiv.2510.09023}
+\end{barticle}
+\endbibitem
+
+%%% 25
+\bibitem[\protect\citeauthoryear{Opoku and Banahene}{2026}]{opoku2026toolchain}
+\begin{barticle}
+\bauthor{\bsnm{Opoku}, \binits{J.}},
+\bauthor{\bsnm{Banahene}, \binits{D.}}:
+\batitle{Toolchain-crc: Conformal risk control for agentic ai under retrieval
+  and tool-use drift}.
+\bjtitle{arXiv preprint arXiv:2606.18467}
+(\byear{2026})
+\doiurl{10.48550/arXiv.2606.18467}
+\end{barticle}
+\endbibitem
+
+%%% 26
+\bibitem[\protect\citeauthoryear{Li}{2026}]{li2026whodrifted}
+\begin{barticle}
+\bauthor{\bsnm{Li}, \binits{Y.}}:
+\batitle{Who drifted: the system or the judge? anytime-valid attribution in llm
+  evaluation pipelines}.
+\bjtitle{arXiv preprint arXiv:2606.15474}
+(\byear{2026})
+\doiurl{10.48550/arXiv.2606.15474}
+\end{barticle}
+\endbibitem
+
+%%% 27
+\bibitem[\protect\citeauthoryear{Feng
+  et~al.}{2026}]{feng2026conformalattribution}
+\begin{barticle}
+\bauthor{\bsnm{Feng}, \binits{N.}},
+\bauthor{\bsnm{Sui}, \binits{Y.}},
+\bauthor{\bsnm{Hou}, \binits{S.}},
+\bauthor{\bsnm{Wu}, \binits{G.}},
+\bauthor{\bsnm{Cresswell}, \binits{J.C.}}:
+\batitle{Conformal agent error attribution}.
+\bjtitle{arXiv preprint arXiv:2605.06788}
+(\byear{2026})
+\doiurl{10.48550/arXiv.2605.06788}
+\end{barticle}
+\endbibitem
+
+%%% 28
+\bibitem[\protect\citeauthoryear{Xie}{2026}]{xie2026sequential}
+\begin{barticle}
+\bauthor{\bsnm{Xie}, \binits{Y.}}:
+\batitle{Sequential statistical inference for large language models:
+  Representation, validity, and monitoring}.
+\bjtitle{arXiv preprint arXiv:2606.07624}
+(\byear{2026})
+\doiurl{10.48550/arXiv.2606.07624}
+\end{barticle}
+\endbibitem
+
+%%% 29
+\bibitem[\protect\citeauthoryear{Gauthier et~al.}{2026}]{gauthier2026strategic}
+\begin{barticle}
+\bauthor{\bsnm{Gauthier}, \binits{E.}},
+\bauthor{\bsnm{Bach}, \binits{F.}},
+\bauthor{\bsnm{Jordan}, \binits{M.I.}}:
+\batitle{Anytime detection of strategic deviations in multi-agent systems}.
+\bjtitle{arXiv preprint arXiv:2601.05427}
+(\byear{2026})
+\doiurl{10.48550/arXiv.2601.05427}
+\end{barticle}
+\endbibitem
+
+\end{thebibliography}
