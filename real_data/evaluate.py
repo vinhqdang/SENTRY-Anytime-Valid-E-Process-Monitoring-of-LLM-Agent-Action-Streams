@@ -35,6 +35,7 @@ Run from the repo root with the project venv active:
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -56,6 +57,10 @@ MIN_ACTIONS = 2
 N_SEEDS = 10
 ALPHA = 0.2
 CONF_DELTA = 0.2
+# Which collection to evaluate. Trajectories from different agents must not be
+# mixed (that confounds the nominal-vs-attack comparison), so each agent writes
+# to its own directory; override with SENTRY_EVAL_LOGDIR.
+LOGDIR_NAME = os.environ.get("SENTRY_EVAL_LOGDIR", "logs_deepseek")
 
 
 def _complete(meta: dict) -> bool:
@@ -64,9 +69,9 @@ def _complete(meta: dict) -> bool:
 
 def load_all():
     agentdojo = [
-        (t, m) for t, m in load_agentdojo_logs(ROOT / "agentdojo" / "logs") if len(t) >= MIN_ACTIONS
+        (t, m) for t, m in load_agentdojo_logs(ROOT / "agentdojo" / LOGDIR_NAME) if len(t) >= MIN_ACTIONS
     ]
-    taubench = [(t, m) for t, m in load_taubench_logs(ROOT / "tau_bench" / "logs") if len(t) >= MIN_ACTIONS]
+    taubench = [(t, m) for t, m in load_taubench_logs(ROOT / "tau_bench" / LOGDIR_NAME) if len(t) >= MIN_ACTIONS]
 
     nominal_agentdojo = [(t, m) for t, m in agentdojo if not m["is_attack"] and _complete(m)]
     attacks = [(t, m) for t, m in agentdojo if m["is_attack"] and m.get("security") is not None]

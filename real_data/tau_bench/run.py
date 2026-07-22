@@ -25,7 +25,10 @@ load_dotenv()
 from tau_bench.run import run  # noqa: E402
 from tau_bench.types import RunConfig  # noqa: E402
 
-LOGDIR = Path(__file__).parent / "logs"
+import os  # noqa: E402
+
+MODEL = os.environ.get("SENTRY_MODEL", "deepseek/deepseek-v4-flash")
+LOGDIR = Path(__file__).parent / os.environ.get("SENTRY_LOGDIR", "logs_deepseek")
 
 
 def main() -> None:
@@ -38,8 +41,8 @@ def main() -> None:
     config = RunConfig(
         model_provider="openrouter",
         user_model_provider="openrouter",
-        model="free",
-        user_model="free",
+        model=MODEL,
+        user_model=MODEL,
         num_trials=1,
         env="retail",
         agent_strategy="tool-calling",

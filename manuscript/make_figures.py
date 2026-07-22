@@ -50,8 +50,9 @@ C = {"nominal": "#4C78A8", "attack": "#E45756", "accent": "#F58518", "muted": "#
 
 
 def _load():
-    ad = [(t, m) for t, m in load_agentdojo_logs(ROOT / "real_data" / "agentdojo" / "logs") if len(t) >= 2]
-    tb = [(t, m) for t, m in load_taubench_logs(ROOT / "real_data" / "tau_bench" / "logs") if len(t) >= 2]
+    ld = os.environ.get("SENTRY_EVAL_LOGDIR", "logs_deepseek")
+    ad = [(t, m) for t, m in load_agentdojo_logs(ROOT / "real_data" / "agentdojo" / ld) if len(t) >= 2]
+    tb = [(t, m) for t, m in load_taubench_logs(ROOT / "real_data" / "tau_bench" / ld) if len(t) >= 2]
     nominal = [(t, m) for t, m in ad if not m["is_attack"] and m.get("utility") is not None] + tb
     attacks = [(t, m) for t, m in ad if m["is_attack"] and m.get("security") is not None]
     succ = [x for x in attacks if x[1]["security"] is False]

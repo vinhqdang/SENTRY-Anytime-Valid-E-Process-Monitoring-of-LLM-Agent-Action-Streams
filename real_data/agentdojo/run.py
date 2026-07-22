@@ -29,11 +29,16 @@ from agentdojo.benchmark import run_task_with_injection_tasks, run_task_without_
 from agentdojo.logging import OutputLogger  # noqa: E402
 from agentdojo.task_suite.load_suites import get_suite  # noqa: E402
 
-# Must contain a substring from agentdojo.attacks.base_attacks.MODEL_NAMES so
-# the important_instructions attack can phrase its injection ("local" ->
-# "Local model" -- an honest label for a router over open-weight free models).
-MODEL_NAME = "openrouter-free-router-local"
-LOGDIR = Path(__file__).parent / "logs"
+# Agent model served through OpenRouter. Override with SENTRY_MODEL.
+MODEL = os.environ.get("SENTRY_MODEL", "deepseek/deepseek-v4-flash")
+# Pipeline name must contain a substring from
+# agentdojo.attacks.base_attacks.MODEL_NAMES so the important_instructions
+# attack can phrase its injection; "local" -> "Local model" is an honest,
+# model-agnostic label for a black-box agent behind the router.
+MODEL_NAME = os.environ.get("SENTRY_MODEL_NAME", "deepseek-v4-flash-local")
+# Fresh directory per agent so trajectories from different agents are never
+# mixed (that would confound the nominal-vs-attack comparison).
+LOGDIR = Path(__file__).parent / os.environ.get("SENTRY_LOGDIR", "logs_deepseek")
 
 FULL_CONFIG = {
     "banking": {"n_benign": 10, "n_attack_user_tasks": 4, "n_injection_tasks": 2},
@@ -70,7 +75,7 @@ def build_pipeline() -> AgentPipeline:
         api_key=os.environ["OPENROUTER_API_KEY"],
         base_url="https://openrouter.ai/api/v1",
     )
-    llm = OpenAILLM(client, "openrouter/free")
+    llm = OpenAILLM(client, MODEL)
     llm.name = MODEL_NAME
     config = PipelineConfig(
         llm=llm,
