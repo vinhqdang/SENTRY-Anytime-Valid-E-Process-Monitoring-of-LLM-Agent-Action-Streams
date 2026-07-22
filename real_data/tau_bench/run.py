@@ -54,6 +54,21 @@ def main() -> None:
         max_concurrency=1,
         user_strategy="llm",
     )
+    # tau-bench builds its checkpoint path by interpolating user_model raw;
+    # a provider-qualified id like "deepseek/deepseek-v4-flash" contains a
+    # slash, so the path gains a subdirectory (".../user-deepseek/...") that
+    # tau-bench never creates, crashing the checkpoint write. Pre-create every
+    # such implied directory (the slashy segment is deterministic -- the
+    # timestamp lives only in the filename).
+    if "/" in MODEL:
+        LOGDIR.mkdir(parents=True, exist_ok=True)
+        # the implied parent dir ends with the user_model org segment
+        implied = LOGDIR / (
+            f"{config.agent_strategy}-{MODEL.split('/')[-1]}-{config.temperature}"
+            f"_range_{config.start_index}-{config.end_index}"
+            f"_user-{MODEL.split('/')[0]}"
+        )
+        implied.mkdir(parents=True, exist_ok=True)
     run(config)
 
 
