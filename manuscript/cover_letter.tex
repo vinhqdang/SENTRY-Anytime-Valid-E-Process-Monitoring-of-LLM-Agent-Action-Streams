@@ -1,5 +1,5 @@
 \documentclass[11pt]{article}
-\usepackage[a4paper,margin=0.85in]{geometry}
+\usepackage[a4paper,margin=0.8in]{geometry}
 \usepackage{parskip}
 \usepackage{hyperref}
 \hypersetup{hidelinks}
@@ -50,10 +50,12 @@ whose payload is observable in the black-box trace ($128/198$) at a $2\%$
 per-step false-alarm rate with a one-action median detection delay, using only
 three cheap, model-agnostic signals and no access to model internals. The study
 also reframes the guardrail objective from hijack-\emph{success} prediction to
-injection-\emph{attempt} detection, reports a full ablation---including three
-signals I implemented and rejected---and is explicit about its limitations. To
-my knowledge this is the first anytime-valid change-detection study on
-LLM-agent-safety benchmarks.
+injection-\emph{attempt} detection, and reports a full ablation. A
+generalisation study shows the method transfers to a second, unrelated agent
+(GPT-4o-mini, AUROC $0.82$) but that its trace-only signal is attack-specific,
+failing on InjecAgent's data-integration payloads (AUROC $0.47$)---a boundary I
+report and explain rather than hide. To my knowledge this is the first
+anytime-valid change-detection study on LLM-agent-safety benchmarks.
 
 The work fits squarely within the Special Issue's scope, in particular
 \emph{safety mechanisms in autonomous systems} and \emph{adversarial robustness
