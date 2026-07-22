@@ -78,11 +78,13 @@ delay, and \(66\%\) of all attempts including the \(70/198\) with no
 trace-observable payload; we argue that injection-attempt detection, not
 hijack-success prediction, is the correct guardrail target. The PAC threshold
 is certified---it does not saturate the calibration order statistic---so the
-false-alarm guarantee holds with finite trusted data. We give a full
-ablation---including three signals we implemented and \emph{rejected} because
-they did not separate on our data---and are explicit about the ceiling imposed
-by trace observability and by evaluation on a single agent and attack family.
-To our knowledge this is the first anytime-valid change-detection study on
+false-alarm guarantee holds with finite trusted data. A generalisation study shows the method transfers cleanly to a second, unrelated
+agent (GPT-4o-mini, AUROC \(0.82\)) but that the shipped signal is
+attack-specific: it detects imperative-style injections near-perfectly yet
+fails on InjecAgent's data-integration payloads (AUROC \(0.47\)), a boundary we
+report and explain rather than hide. We give a full ablation---including three
+signals we implemented and \emph{rejected} because they did not separate on our
+data. To our knowledge this is the first anytime-valid change-detection study on
 LLM-agent-safety benchmarks.}
 
 \keywords{Large language model agents, prompt injection, e-values, sequential
@@ -1051,6 +1053,72 @@ line even with the capable agent; Section~\ref{sec:negatives} explains why
 lexical proxies for provenance and goal-grounding are too coarse.}\label{fig:signals}
 \end{figure}
 
+\subsection{Generalisation across agents and attacks}\label{sec:generalization}
+
+The headline numbers come from one agent and one attack family. To probe how
+far they carry, we repeat the evaluation---identical protocol, ten
+splits---holding the method fixed while changing one axis at a time
+(Table~\ref{tab:gen}, Figure~\ref{fig:gen}).
+
+\emph{A different agent (cross-agent).} We re-collected the entire AgentDojo
+benign-plus-\texttt{important\_instructions} corpus with a second, unrelated
+agent, GPT-4o-mini (a different vendor and model family), and re-fit the
+nominal reference on \emph{its} trajectories. Detection is essentially
+unchanged---indeed marginally stronger: \(100\%\) observable-injection
+detection, \(77\%\) over all attempts, and attempt-AUROC \(0.82\) (versus
+\(0.77\) for DeepSeek), at a \(4.6\%\) false-alarm rate. The method is
+\emph{not} tuned to a particular agent: because the reference is learned
+per-deployment from that agent's own nominal behaviour, it transfers.
+
+\emph{A different attack (cross-attack).} We then held the agent fixed
+(DeepSeek) and swapped the attack for InjecAgent~\cite{zhan2024injecagent}, a
+data-integration injection whose payload is phrased to read like ordinary
+retrieved content rather than an imperative instruction. Here SENTRY
+\emph{fails}: attempt-AUROC falls to \(0.47\)---chance---and only \(10\%\) of
+InjecAgent injections are even observable to the instruction-likeness signal,
+versus \(99\%\) for \texttt{important\_instructions}. The mechanism is exactly
+the one Section~\ref{sec:reframe} identifies: SENTRY's detection weight rests
+almost entirely on the observation instruction-likeness term, and InjecAgent's
+payloads carry near-zero instruction-likeness (median \(0.0\) versus \(4.1\)
+for \texttt{important\_instructions}). SENTRY detects \emph{imperative-style}
+injections extremely well and \emph{subtle data-integration} injections
+essentially not at all.
+
+We report this negative prominently because it is the honest boundary of the
+contribution and it sharpens, rather than merely admits, the ``single attack
+family'' caveat: the anytime-valid \emph{framework} is attack-agnostic, but the
+particular trace-only \emph{signal} we ship is not. Catching InjecAgent-style
+attacks needs a signal that models provenance or content transformation rather
+than surface imperativeness---precisely the richer-reference direction of
+Section~\ref{sec:future}, now motivated by direct evidence rather than
+speculation.
+
+\begin{table}[htbp]
+\centering
+\caption{Generalisation: same method and protocol, one axis changed at a time
+(mean over 10 splits, PAC threshold). Cross-agent transfer is strong;
+cross-attack transfer to a data-integration injection fails.}\label{tab:gen}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Scenario & Nominal & Attacks & Observable det. & Attempt det. & AUROC \\
+\midrule
+Baseline (DeepSeek, imp.\ instr.)   & 121 & 198 & 0.99 & 0.66 & 0.77 \\
+New agent (GPT-4o-mini, imp.\ instr.) & 70 & 153 & \textbf{1.00} & \textbf{0.77} & \textbf{0.82} \\
+New attack (DeepSeek, InjecAgent)   & 121 & 42 & \textbf{0.10} & \textbf{0.08} & \textbf{0.47} \\
+\botrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/generalization.pdf}
+\caption{Generalisation of SENTRY. Changing the \emph{agent} (GPT-4o-mini)
+leaves detection intact; changing the \emph{attack} to InjecAgent's
+data-integration injection collapses attempt-AUROC to chance, because that
+attack's payload carries almost no instruction-likeness---the signal SENTRY
+depends on.}\label{fig:gen}
+\end{figure}
+
 \section{Discussion}\label{sec:discussion}
 
 \paragraph{What SENTRY is, and is not.} SENTRY contributes an
@@ -1088,17 +1156,24 @@ achieves the attacker's goal without surfacing the poisoned field), which is
 exactly the \(0.66\) vs \(0.99\) gap of Section~\ref{sec:reframe}. This is an
 information-theoretic ceiling for \emph{any} trace-only monitor, not a defect
 of SENTRY; a monitor with access to the raw retrieved documents (before the
-agent chooses what to surface) could close it. \emph{(ii)~One attack family}:
-we evaluate AgentDojo's \texttt{important\_instructions} attack across four
-suites; generality across attack templates and against \emph{adaptive}
-adversaries that phrase injections to minimise instruction-likeness is untested
-and is the most important robustness question. \emph{(iii)~Single agent}: all
-trajectories come from DeepSeek-V4-Flash; whether the nominal reference
-transfers across agent models is open. Note that the two limitations that
-dominated an earlier small-sample version of this work---a saturated PAC
-threshold and single-digit sample sizes---are \emph{resolved} here: with \(121\)
-nominal trajectories the Binomial-tail order statistic is non-degenerate and
-the PAC bound~\eqref{eq:pac} is a genuine certified guarantee.
+agent chooses what to surface) could close it. \emph{(ii)~The shipped signal is
+attack-specific.} The generalisation study (Section~\ref{sec:generalization})
+shows this concretely: SENTRY detects imperative-style injections
+(\texttt{important\_instructions}) near-perfectly but essentially fails on
+InjecAgent's data-integration payloads (AUROC \(0.47\)), whose phrasing carries
+almost no instruction-likeness. The anytime-valid framework is attack-agnostic;
+the particular trace-only signal is not, and closing this gap---provenance- or
+transformation-aware signals rather than surface imperativeness---is the
+foremost item of future work. Adaptive adversaries that deliberately minimise
+instruction-likeness are a special case of this same weakness.
+\emph{(iii)~Single attack \textbf{corpus}}: both attacks come from the
+AgentDojo/InjecAgent ecosystem on four suites; DoS and tool-knowledge templates
+remain untested. Note that three limitations that dominated earlier versions of
+this work are now \emph{resolved}: a saturated PAC threshold and single-digit
+sample sizes (fixed by the \(121\)-trajectory collection, so the Binomial-tail
+order statistic is non-degenerate and the PAC bound~\eqref{eq:pac} is certified),
+and the ``single agent'' concern---SENTRY transfers cleanly to a second,
+unrelated agent (GPT-4o-mini; AUROC \(0.82\), Section~\ref{sec:generalization}).
 
 \paragraph{Computational cost.} SENTRY is designed to sit inline in an agent
 loop without perceptibly slowing it. Per action it computes three signals and

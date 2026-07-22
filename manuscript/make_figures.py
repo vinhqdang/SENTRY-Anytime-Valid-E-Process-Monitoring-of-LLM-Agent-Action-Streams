@@ -42,6 +42,8 @@ ROOT = Path(__file__).resolve().parents[1]
 FIG = Path(__file__).resolve().parent / "figures"
 FIG.mkdir(parents=True, exist_ok=True)
 RESULTS = json.loads((ROOT / "real_data" / "results.json").read_text())
+_GEN_PATH = ROOT / "real_data" / "results_generalization.json"
+RESULTS_GEN = json.loads(_GEN_PATH.read_text()) if _GEN_PATH.exists() else None
 
 plt.rcParams.update({
     "font.size": 11,
@@ -499,6 +501,47 @@ def fig_case_trace(nominal):
     fig.tight_layout(); fig.savefig(FIG / "case_trace.pdf"); plt.close(fig)
 
 
+def fig_generalization():
+    """Cross-attack and cross-agent generalisation: observable-injection
+    detection and attempt-AUROC for the baseline, a new attack family
+    (InjecAgent) and a new agent (GPT-4o-mini). Read from
+    results_generalization.json."""
+    if RESULTS_GEN is None:
+        print("  (results_generalization.json missing, skipping generalization.pdf)")
+        return
+    order = [
+        ("A_baseline_deepseek_important", "baseline\n(DeepSeek,\nimportant_instr.)", C["nominal"]),
+        ("C_newagent_gpt4omini_important", "new agent\n(GPT-4o-mini,\nimportant_instr.)", C["green"]),
+        ("B_newattack_deepseek_injecagent", "new attack\n(DeepSeek,\nInjecAgent)", C["attack"]),
+    ]
+    labels, obs, auroc, obs_e, auroc_e, cols = [], [], [], [], [], []
+    for key, lab, col in order:
+        r = RESULTS_GEN.get(key)
+        if not r:
+            continue
+        labels.append(lab); cols.append(col)
+        obs.append(r["pac_observable_rate"]["mean"]); obs_e.append(r["pac_observable_rate"]["std"])
+        auroc.append(r["auroc_attempt_max"]["mean"]); auroc_e.append(r["auroc_attempt_max"]["std"])
+
+    x = np.arange(len(labels)); w = 0.36
+    fig, ax = plt.subplots(figsize=(7.4, 4.0))
+    b1 = ax.bar(x - w / 2, obs, w, yerr=obs_e, capsize=3, color=cols,
+                edgecolor="black", linewidth=0.5, label="observable-injection detection")
+    b2 = ax.bar(x + w / 2, auroc, w, yerr=auroc_e, capsize=3, color=cols, alpha=0.5,
+                edgecolor="black", linewidth=0.5, hatch="//", label="attempt AUROC")
+    ax.axhline(0.5, color=C["muted"], ls="--", lw=1)
+    ax.text(len(labels) - 0.5, 0.52, "chance (AUROC)", fontsize=8, color=C["muted"], ha="right")
+    for xi, v in zip(x - w / 2, obs):
+        ax.text(xi, v + 0.02, f"{v:.2f}", ha="center", fontsize=8)
+    for xi, v in zip(x + w / 2, auroc):
+        ax.text(xi, v + 0.02, f"{v:.2f}", ha="center", fontsize=8)
+    ax.set_xticks(x); ax.set_xticklabels(labels, fontsize=8.5)
+    ax.set_ylabel("detection rate / AUROC"); ax.set_ylim(0, 1.08)
+    ax.set_title("Generalisation: robust across agents, attack-specific")
+    ax.legend(frameon=False, fontsize=9, loc="upper center", ncol=2)
+    fig.tight_layout(); fig.savefig(FIG / "generalization.pdf"); plt.close(fig)
+
+
 def fig_delay():
     """Detection-delay distribution (post-injection steps) for the shipped model."""
     m = RESULTS["models"]
@@ -524,6 +567,7 @@ def main():
     fig_dataset(nominal, succ, resisted); print("  dataset.pdf")
     fig_case_trace(nominal); print("  case_trace.pdf")
     fig_roc(nominal, succ, resisted); print("  roc.pdf")
+    fig_generalization(); print("  generalization.pdf")
     fig_instruction_sep(nominal, succ, resisted); print("  instruction_sep.pdf")
     fig_ablation_progression(); print("  ablation_progression.pdf")
     fig_robustness(nominal, succ, resisted); print("  robustness.pdf")
