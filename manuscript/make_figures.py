@@ -264,6 +264,132 @@ def fig_negative_signals(nominal, succ, resisted):
     fig.tight_layout(); fig.savefig(FIG / "signals.pdf"); plt.close(fig)
 
 
+def _suite_of(traj, meta):
+    """AgentDojo suite name lives in the Context.task_id tuple's first slot
+    (see real_data/adapters); tau-bench trajectories are tagged 'retail'."""
+    if meta.get("source") == "tau_bench":
+        return "retail"
+    ctx = traj[0][0]
+    tid = getattr(ctx, "task_id", None)
+    if isinstance(tid, (tuple, list)) and tid:
+        return str(tid[0])
+    return "?"
+
+
+def fig_dataset(nominal, succ, resisted):
+    """Real-corpus characterisation: (a) trajectory-length distributions by
+    role, (b) per-suite composition. Everything is read straight from the
+    collected trajectories -- no modelling."""
+    nom_len = [len(t) for t, _ in nominal]
+    atk_len = [len(t) for t, _ in succ + resisted]
+
+    # per-suite counts (benign / successful / resisted), AgentDojo suites only
+    suites = ["banking", "workspace", "travel", "slack"]
+    ben_c = {s: 0 for s in suites}
+    suc_c = {s: 0 for s in suites}
+    res_c = {s: 0 for s in suites}
+    for t, m in nominal:
+        s = _suite_of(t, m)
+        if s in ben_c:
+            ben_c[s] += 1
+    for t, m in succ:
+        s = _suite_of(t, m)
+        if s in suc_c:
+            suc_c[s] += 1
+    for t, m in resisted:
+        s = _suite_of(t, m)
+        if s in res_c:
+            res_c[s] += 1
+
+    fig, ax = plt.subplots(1, 2, figsize=(9.6, 3.7))
+
+    bins = np.arange(1.5, max(max(nom_len, default=2), max(atk_len, default=2)) + 1.5, 1)
+    ax[0].hist(nom_len, bins=bins, color=C["nominal"], alpha=0.8,
+               label=f"benign (n={len(nom_len)})")
+    ax[0].hist(atk_len, bins=bins, color=C["attack"], alpha=0.65,
+               label=f"attack (n={len(atk_len)})")
+    ax[0].axvline(np.mean(nom_len), color=C["nominal"], ls="--", lw=1)
+    ax[0].axvline(np.mean(atk_len), color=C["attack"], ls="--", lw=1)
+    ax[0].set_xlabel("trajectory length (actions)")
+    ax[0].set_ylabel("number of trajectories")
+    ax[0].set_title("(a) Action-count distribution")
+    ax[0].legend(frameon=False, fontsize=9)
+
+    x = np.arange(len(suites))
+    b = [ben_c[s] for s in suites]
+    su = [suc_c[s] for s in suites]
+    re = [res_c[s] for s in suites]
+    ax[1].bar(x, b, color=C["nominal"], label="benign")
+    ax[1].bar(x, su, bottom=b, color=C["attack"], label="successful atk")
+    ax[1].bar(x, re, bottom=np.array(b) + np.array(su), color=C["accent"],
+              label="resisted atk")
+    ax[1].set_xticks(x)
+    ax[1].set_xticklabels(suites, fontsize=9)
+    ax[1].set_ylabel("number of trajectories")
+    ax[1].set_title("(b) Corpus composition by AgentDojo suite")
+    ax[1].legend(frameon=False, fontsize=8)
+    fig.tight_layout(); fig.savefig(FIG / "dataset.pdf"); plt.close(fig)
+
+
+def fig_roc(nominal, succ, resisted):
+    """ROC of the shipped three-signal model on real held-out data, for the
+    three targets (observable / all-attempts / hijack). Averaged over 10
+    random half-splits of the nominal set: for each split we fit on one half
+    and score the held-out half plus every attack, then average TPR on a
+    common FPR grid -- the same 10-split protocol behind Table 2, so the
+    annotated AUROCs match the headline numbers."""
+    def observable(traj):
+        return max((a.obs_instruction_likeness for _, a in traj), default=0.0) > 0.0
+
+    attempts = succ + resisted
+    grid = np.linspace(0, 1, 101)
+
+    def auroc(neg, pos):
+        return sum((p > n) + 0.5 * (p == n) for p in pos for n in neg) / (len(neg) * len(pos))
+
+    targets = {
+        "observable injection": [t for t, _ in attempts if observable(t)],
+        "all attempts": [t for t, _ in attempts],
+        "hijack success": [t for t, _ in succ],
+    }
+    tpr_acc = {k: [] for k in targets}
+    auc_acc = {k: [] for k in targets}
+
+    for seed in range(10):
+        rng = np.random.default_rng(seed)
+        idx = rng.permutation(len(nominal))
+        half = len(nominal) // 2
+        train = [nominal[i] for i in idx[:half]]
+        test_nom = [nominal[i] for i in idx[half:]]
+        model = SequentialWorldModel().fit([t for t, _ in train])
+
+        def peak(traj):
+            s = score_trajectory(model, traj)
+            return float(np.max(s)) if len(s) else 0.0
+
+        neg = [peak(t) for t, _ in test_nom]
+        for k, pos_trajs in targets.items():
+            pos = [peak(t) for t in pos_trajs]
+            thr = sorted(set(neg + pos), reverse=True)
+            fpr = np.array([0.0] + [sum(n >= x for n in neg) / len(neg) for x in thr])
+            tpr = np.array([0.0] + [sum(p >= x for p in pos) / len(pos) for x in thr])
+            tpr_acc[k].append(np.interp(grid, fpr, tpr))
+            auc_acc[k].append(auroc(neg, pos))
+
+    fig, ax = plt.subplots(figsize=(5.6, 5.0))
+    for k, col in zip(targets, [C["green"], C["attack"], C["purple"]]):
+        mean_tpr = np.mean(tpr_acc[k], axis=0)
+        ax.plot(grid, mean_tpr, "-", color=col, lw=2,
+                label=f"{k} (AUROC {np.mean(auc_acc[k]):.2f})")
+    ax.plot([0, 1], [0, 1], "k--", lw=1, label="chance")
+    ax.set_xlabel("false-positive rate (benign)")
+    ax.set_ylabel("true-positive rate (attack)")
+    ax.set_title("ROC on real held-out trajectories (mean of 10 splits)")
+    ax.set_xlim(0, 1); ax.set_ylim(0, 1.02)
+    ax.legend(frameon=False, fontsize=9, loc="lower right")
+    fig.tight_layout(); fig.savefig(FIG / "roc.pdf"); plt.close(fig)
+
+
 def fig_delay():
     """Detection-delay distribution (post-injection steps) for the shipped model."""
     m = RESULTS["models"]
@@ -286,6 +412,8 @@ def main():
     nominal, succ, resisted = _load()
     print(f"loaded nominal={len(nominal)} succ={len(succ)} resisted={len(resisted)}")
     fig_synthetic(); print("  synthetic.pdf")
+    fig_dataset(nominal, succ, resisted); print("  dataset.pdf")
+    fig_roc(nominal, succ, resisted); print("  roc.pdf")
     fig_instruction_sep(nominal, succ, resisted); print("  instruction_sep.pdf")
     fig_ablation_progression(); print("  ablation_progression.pdf")
     fig_robustness(nominal, succ, resisted); print("  robustness.pdf")

@@ -681,9 +681,12 @@ workspace, travel and slack suites, both benign and under the
 strongest baseline attack). From \(\tau\)-\textbf{bench}~\cite{yao2024taubench}
 we run the retail domain (benign only; \(\tau\)-bench has no attack suite),
 with the agent and the simulated user both served by the same model.
-Table~\ref{tab:data} summarises the corpus. All trajectories come from the
-\emph{same} agent so the nominal-versus-attack comparison is not confounded by
-model identity.
+Table~\ref{tab:data} summarises the corpus and Figure~\ref{fig:dataset} shows
+its shape: benign and attack trajectories have overlapping action-count
+distributions (so length alone is not a giveaway), and the four AgentDojo
+suites contribute heterogeneous tool vocabularies. All trajectories come from
+the \emph{same} agent so the nominal-versus-attack comparison is not confounded
+by model identity.
 
 \begin{table}[t]
 \centering
@@ -707,6 +710,19 @@ $\tau$-bench & retail & 50 & --- & --- & --- \\
 attack trajectories, \(128\) carry an injection observable in the black-box
 trace (Section~\ref{sec:reframe}).}
 \end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/dataset.pdf}
+\caption{The real trajectory corpus. \textbf{(a)}~Action-count distributions
+for benign and attack trajectories overlap (means dashed): trajectory length
+carries little signal on its own, so detection must come from the content of
+individual actions. \textbf{(b)}~Composition of the four AgentDojo suites by
+outcome; the corpus spans banking, workspace, travel and slack tool
+environments, exercising the transition and instruction signals across
+heterogeneous vocabularies. Read directly from the collected logs.}
+\label{fig:dataset}
+\end{figure}
 
 Trajectories are converted to per-action feature streams by a deterministic,
 GPU-free adapter: each tool call becomes an action carrying (i) a hashed
@@ -733,6 +749,8 @@ metric for both targets of Section~\ref{sec:setup}: hijack success
 All runs use \(\alpha=0.2\), \(\delta=0.2\).
 
 \section{Results}\label{sec:results}
+
+\subsection{Detection performance}\label{sec:detection}
 
 \begin{table}[t]
 \centering
@@ -770,12 +788,28 @@ regimes (Section~\ref{sec:limitations}). Counting \emph{all} \(198\) attempts,
 including \(70\) whose payload never appears in the trace
 (Section~\ref{sec:reframe}), detection is \(66\%\); on the harder
 hijack-success target it is \(64\%\), and the threshold-free attempt-vs-benign
-AUROC is \(0.77\). The median detection delay is one action: when SENTRY fires,
+AUROC is \(0.77\). Figure~\ref{fig:roc} plots the full ROC for all three
+targets on real held-out data: the observable-injection curve is nearly
+ideal (AUROC \(0.99\)), while the all-attempts and hijack curves are pulled
+down by the trace-invisible attacks discussed below. The median detection
+delay is one action: when SENTRY fires,
 it fires on essentially the first action after the injection enters the
 context. Figure~\ref{fig:delay} shows the full delay distribution---
 concentrated at one step for the injection-signal model, versus four to five
 steps for the hash baseline, an empirical confirmation of the mechanism
 Proposition~\ref{prop:delay} predicts.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.6\textwidth]{figures/roc.pdf}
+\caption{ROC of the shipped three-signal model on real held-out trajectories,
+averaged over the ten splits (AUROC annotated). On the observable-injection
+subset the monitor is near-perfect; the all-attempts and hijack-success curves
+are bounded away from the top-left corner entirely by the \(70/198\) attacks
+whose payload never enters the monitored trace (Section~\ref{sec:reframe}), not
+by false negatives on visible injections.}
+\label{fig:roc}
+\end{figure}
 
 \begin{figure}[t]
 \centering
@@ -882,9 +916,7 @@ reading the poisoned field into a tool result---so no trace-only signal fires.
 These three cover the qualitative regimes; the trace in
 Figure~\ref{fig:traces} is an instance of case (i).
 
-\section{Ablation Study}\label{sec:ablation}
-
-\subsection{Which signals help}
+\subsection{Ablation: which signals help}\label{sec:ablation}
 
 Figure~\ref{fig:ablation} and Table~\ref{tab:main} together trace the
 contribution of each design choice. The baseline hash+Gaussian surprise is
@@ -1095,7 +1127,7 @@ deployed in depth---alongside provenance-based prevention
 controlled, model-agnostic tripwire rather than to be the sole line of
 defense.
 
-\section{Future Work}\label{sec:future}
+\subsection{Future work}\label{sec:future}
 
 Our results and honest negatives point to a concrete, ordered research
 agenda.
