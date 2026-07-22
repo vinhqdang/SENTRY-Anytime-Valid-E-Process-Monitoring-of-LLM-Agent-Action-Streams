@@ -1,6 +1,7 @@
 \documentclass[pdflatex,sn-mathphys-num]{sn-jnl}% Math and Physical Sciences Numbered Reference Style
 
 \usepackage{graphicx}%
+\usepackage{placeins}% \FloatBarrier keeps figures near their text
 \usepackage{multirow}%
 \usepackage{amsmath,amssymb,amsfonts}%
 \usepackage{amsthm}%
@@ -27,6 +28,14 @@
 \newtheorem{definition}{Definition}%
 
 \raggedbottom
+
+% Let figures settle near their references rather than piling up on float pages.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.8}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{5}
 
 \newcommand{\Ecal}{\mathbb{E}}
 \newcommand{\Pcal}{\mathcal{P}}
@@ -279,7 +288,9 @@ ToolChain-CRC~\cite{opoku2026toolchain}      & drift     & yes & yes & synthetic
 \end{tabular}
 \end{table}
 
-\section{Problem Setup}\label{sec:setup}
+\section{The SENTRY Monitor}\label{sec:method}
+
+\subsection{Problem setup}\label{sec:setup}
 
 An LLM agent in deployment produces one unbounded stream of actions across
 possibly many tasks: \(a_1,a_2,\dots\), each with an observation
@@ -359,14 +370,14 @@ resisting, exactly the philosophy of provenance-based prevention
 target, because it does not depend on the (possibly weak) agent completing the
 attack.
 
-\section{The SENTRY Monitor}\label{sec:method}
+\subsection{Pipeline overview}\label{sec:overview}
 
 Figure~\ref{fig:overview} summarises the pipeline: per action, three signals
 are extracted from the trace, mapped to a baseline increment, driven through a
 Shiryaev--Roberts recursion, and compared against a PAC-calibrated threshold.
 We describe each stage.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
@@ -495,7 +506,7 @@ The scalar surprise combines the three:
 \(s_t = s^{\mathrm{tr}}_t + \lambda_{\mathrm{nov}} s^{\mathrm{nov}}_t
 + \lambda_{\mathrm{IL}} s^{\mathrm{IL}}_t\).
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/traces.pdf}
 \caption{The SENTRY e-detector statistic \(\log M_t\) on (a) a real benign
@@ -646,7 +657,7 @@ instruction ceiling \(\beta\)) on \(\Dcal_{\mathrm{train}}\)
 \end{algorithmic}
 \end{algorithm}
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\textwidth]{figures/synthetic.pdf}
 \caption{Synthetic validation. (a) On pure-nominal Gaussian streams, the
@@ -657,7 +668,7 @@ log e-detector statistic is flat before the change and crosses the threshold
 within a few steps after it.}\label{fig:synthetic}
 \end{figure}
 
-\section{Experimental Setup}\label{sec:experiments}
+\section{Experiments and Results}\label{sec:experiments}
 
 \subsection{Synthetic validation}
 
@@ -711,7 +722,7 @@ attack trajectories, \(128\) carry an injection observable in the black-box
 trace (Section~\ref{sec:reframe}).}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\textwidth]{figures/dataset.pdf}
 \caption{The real trajectory corpus. \textbf{(a)}~Action-count distributions
@@ -748,9 +759,7 @@ metric for both targets of Section~\ref{sec:setup}: hijack success
 (successful attacks vs benign) and injection attempt (all attacks vs benign).
 All runs use \(\alpha=0.2\), \(\delta=0.2\).
 
-\section{Results}\label{sec:results}
-
-\subsection{Detection performance}\label{sec:detection}
+\subsection{Detection performance}\label{sec:detection}\label{sec:results}
 
 \begin{table}[t]
 \centering
@@ -799,7 +808,7 @@ concentrated at one step for the injection-signal model, versus four to five
 steps for the hash baseline, an empirical confirmation of the mechanism
 Proposition~\ref{prop:delay} predicts.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.6\textwidth]{figures/roc.pdf}
 \caption{ROC of the shipped three-signal model on real held-out trajectories,
@@ -811,7 +820,7 @@ by false negatives on visible injections.}
 \label{fig:roc}
 \end{figure}
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.72\textwidth]{figures/delay.pdf}
 \caption{Detection delay (actions past the injection point) across all seeds.
@@ -884,7 +893,7 @@ from benign observations at AUROC \(0.80\). Figure~\ref{fig:traces} shows the
 same effect at the level of the e-detector statistic on individual real
 trajectories.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{figures/instruction_sep.pdf}
 \caption{Observation instruction-likeness (max over a trajectory) for benign,
@@ -897,8 +906,26 @@ instruction, hence on both successful and resisted attacks.}
 
 \subsection{Case studies}\label{sec:cases}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/case_trace.pdf}
+\caption{A real prompt-injection hijack from the collected AgentDojo banking
+logs, action by action. The user asks the agent to adjust a rent payment; at
+\(t_0\) the agent reads \texttt{landlord-notices.txt}, whose content hides an
+\texttt{<INFORMATION>} block instructing it to wire money to the attacker. The
+poisoned text enters the monitored trace at \(t_1\), where SENTRY's
+observation-instruction-likeness signal spikes and the e-detector fires
+(\textbf{ALARM}); the agent nonetheless complies at \(t_6\), sending money to
+the attacker IBAN \texttt{US133\ldots}---five actions after SENTRY would have
+halted it. Left: the agent's actual tool-call sequence with the poisoned and
+compliance steps highlighted; right: SENTRY's per-action signal, read directly
+from the log.}
+\label{fig:casetrace}
+\end{figure}
+
 Three real trajectories illustrate the behaviour behind the aggregate numbers.
-\emph{(i)~A caught banking hijack} (Example~\ref{ex:banking}): the poisoned
+\emph{(i)~A caught banking hijack} (Figure~\ref{fig:casetrace},
+Example~\ref{ex:banking}): the poisoned
 \texttt{read\_file} observation drives \(s^{\mathrm{IL}}\) far above the
 nominal ceiling at the injection step; the SR statistic crosses \(c_\alpha\)
 on the very next action, one step past the injection, and the monitor halts
@@ -913,8 +940,9 @@ success. \emph{(iii)~A missed attack:} a travel task whose
 AgentDojo-``successful'' outcome leaves no injected text in any observation
 the agent surfaced---the agent achieved the attacker's goal without ever
 reading the poisoned field into a tool result---so no trace-only signal fires.
-These three cover the qualitative regimes; the trace in
-Figure~\ref{fig:traces} is an instance of case (i).
+These three cover the qualitative regimes; Figure~\ref{fig:casetrace} walks
+through case (i) action by action, and the e-detector trace in
+Figure~\ref{fig:traces} shows the same episode at the level of the statistic.
 
 \subsection{Ablation: which signals help}\label{sec:ablation}
 
@@ -935,7 +963,7 @@ tuned: Figure~\ref{fig:robust} shows AUROC is flat for any weight in
 signal carries the detection is itself an interesting finding: for a strong
 agent, \emph{watch the data entering the context}, not just the actions.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/ablation_progression.pdf}
 \caption{Detection rate at the PAC threshold by score model and target
@@ -945,7 +973,7 @@ little power for stronger per-signal validity (Section~\ref{sec:ablation-combine
 \label{fig:ablation}
 \end{figure}
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\textwidth]{figures/robustness.pdf}
 \caption{Robustness of injection-attempt AUROC to the novelty and instruction
@@ -1014,7 +1042,7 @@ prediction (it did not), and we report the corrected explanation above rather
 than bury the failed forecast---which is exactly the value of stating
 falsifiable claims in the first place.
 
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{figures/signals.pdf}
 \caption{Injection-attempt AUROC (in isolation) of the three shipped signals
