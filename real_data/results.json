@@ -1,12 +1,12 @@
 {
-  "n_nominal": 500,
+  "n_nominal": 24,
   "n_successful_attacks": 16,
   "n_resisted_attacks": 16,
   "n_seeds": 10,
   "alpha": 0.2,
   "conf_delta": 0.2,
   "mean_n_actions_nominal": 5.291666666666667,
-  "mean_n_actions_successful_attack": 5.291666666666667,
+  "mean_n_actions_successful_attack": 2.625,
   "models": {
     "causal_hash_summed": {
       "aggregate": {
@@ -42,6 +42,10 @@
           "mean": 0.05,
           "std": 0.05796011559684815
         },
+        "pac_observable_rate": {
+          "mean": 0.06666666666666667,
+          "std": 0.07728015412913085
+        },
         "pac_nominal_far": {
           "mean": 0.018095238095238095,
           "std": 0.03625307868699863
@@ -70,6 +74,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.0,
           "pac_attempt_rate": 0.0,
+          "pac_observable_rate": 0.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [],
           "pac_nominal_far": 0.0,
           "ville_detection_rate": 0.0625,
@@ -88,6 +95,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.0,
           "pac_attempt_rate": 0.0,
+          "pac_observable_rate": 0.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [],
           "pac_nominal_far": 0.08571428571428572,
           "ville_detection_rate": 0.0625,
@@ -106,6 +116,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.0,
           "pac_attempt_rate": 0.03125,
+          "pac_observable_rate": 0.041666666666666664,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [],
           "pac_nominal_far": 0.0,
           "ville_detection_rate": 0.0625,
@@ -124,6 +137,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.0625,
           "pac_attempt_rate": 0.03125,
+          "pac_observable_rate": 0.041666666666666664,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             6
           ],
@@ -144,6 +160,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.0625,
           "pac_attempt_rate": 0.03125,
+          "pac_observable_rate": 0.041666666666666664,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             5
           ],
@@ -164,6 +183,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.0,
           "pac_attempt_rate": 0.0,
+          "pac_observable_rate": 0.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [],
           "pac_nominal_far": 0.0,
           "ville_detection_rate": 0.0625,
@@ -182,6 +204,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.0,
           "pac_attempt_rate": 0.0,
+          "pac_observable_rate": 0.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [],
           "pac_nominal_far": 0.0,
           "ville_detection_rate": 0.0625,
@@ -200,6 +225,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.0625,
           "pac_attempt_rate": 0.15625,
+          "pac_observable_rate": 0.20833333333333334,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             4
           ],
@@ -220,6 +248,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.0625,
           "pac_attempt_rate": 0.125,
+          "pac_observable_rate": 0.16666666666666666,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             4
           ],
@@ -240,6 +271,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.0625,
           "pac_attempt_rate": 0.125,
+          "pac_observable_rate": 0.16666666666666666,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             4
           ],
@@ -285,6 +319,10 @@
         },
         "pac_attempt_rate": {
           "mean": 0.8125,
+          "std": 0.0
+        },
+        "pac_observable_rate": {
+          "mean": 1.0,
           "std": 0.0
         },
         "pac_nominal_far": {
@@ -407,6 +445,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             1,
             1,
@@ -445,6 +486,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             1,
             1,
@@ -483,6 +527,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             1,
             1,
@@ -521,6 +568,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             1,
             1,
@@ -559,6 +609,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             0,
             0,
@@ -597,6 +650,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             1,
             1,
@@ -635,6 +691,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             1,
             1,
@@ -673,6 +732,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             1,
             0,
@@ -713,6 +775,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             0,
             0,
@@ -751,6 +816,9 @@
           "pac_saturated": true,
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
+          "n_observable": 24,
+          "n_attempts": 32,
           "pac_delays": [
             1,
             0,
@@ -785,35 +853,35 @@
     "bigram_novelty_evalue_mixture": {
       "aggregate": {
         "auroc_max": {
-          "mean": 0.98,
+          "mean": 0.618125,
           "std": 0.046304866104978644
         },
         "auroc_attempt_max": {
-          "mean": 0.98,
+          "mean": 0.7940625,
           "std": 0.0512052014569809
         },
         "ville_detection_rate": {
-          "mean": 0.94,
+          "mean": 0.13125,
           "std": 0.12005857945186592
         },
         "ville_attempt_rate": {
-          "mean": 0.94,
+          "mean": 0.1875,
           "std": 0.1288470508005519
         },
         "ville_nominal_far": {
-          "mean": 0.01,
+          "mean": 0.0,
           "std": 0.0
         },
         "pac_detection_rate": {
-          "mean": 0.94,
+          "mean": 0.525,
           "std": 0.10897247358851683
         },
         "pac_attempt_rate": {
-          "mean": 0.94,
+          "mean": 0.746875,
           "std": 0.08082823222735977
         },
         "pac_nominal_far": {
-          "mean": 0.01,
+          "mean": 0.06225755248335894,
           "std": 0.05604447449132553
         }
       },
