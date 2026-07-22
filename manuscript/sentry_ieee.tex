@@ -1144,28 +1144,10 @@ multiply-add per mixture component. The total per-step work is \(O(K)\) for a
 GPU, no access to model internals, and---unlike LLM-judge or
 re-execution defenses---no additional model call, so the monitor's latency is
 dominated by the regular-expression scan of one tool output, orders of
-magnitude below the latency of the agent's own LLM call it runs alongside
-(Table~\ref{tab:cost}).
-
-\begin{table}[!t]
-\centering
-\caption{Per-action cost profile. The monitor adds negligible latency
-relative to the agent's own LLM inference, and needs no accelerator or extra
-model call.}\label{tab:cost}
-\begin{tabular}{@{}lll@{}}
-\toprule
-Component & Work per action & Requires \\
-\midrule
-Tool-transition surprise & dict lookup, \(O(1)\) & nominal bigram table \\
-Argument novelty & set membership, \(O(|a_t|)\) & per-tool vocabulary \\
-Instruction-likeness & regex scan of \(o_{t-1}\) & fixed lexicon \\
-Increment + SR update & \(O(K)\) multiply-adds & --- \\
-\midrule
-LLM-judge baseline & one extra LLM call & GPU / API \\
-Re-execution baseline~\cite{zhu2025melon} & full agent re-run & GPU / API \\
-\botrule
-\end{tabular}
-\end{table}
+magnitude below the latency of the agent's own LLM call it runs alongside.
+By contrast, LLM-judge detectors add a full model call per step and
+re-execution defenses~\cite{zhu2025melon} re-run the entire agent, both
+requiring a GPU or API that SENTRY does not.
 
 \paragraph{Deployment and interpretability.} SENTRY's output is
 actionable and auditable: an alarm time, and---in the e-value-mixture
@@ -1177,16 +1159,13 @@ transition). An operator can therefore route alarms differently by cause, tune
 conservative e-value-mixture operating point when the formal guarantee matters
 more than raw recall.
 
-\paragraph{Responsible use.} A monitor is a mitigation, not a guarantee of
-safety: an adaptive adversary aware of SENTRY could try to phrase an injection
-to minimise instruction-likeness or to reuse nominal-looking argument values,
-and the general lesson that defenses must be evaluated against adaptive
-attacks~\cite{nasr2025attackersecond} applies here too. SENTRY is best
-deployed in depth---alongside provenance-based prevention
-\cite{debenedetti2025camel} and output sanitisation
-\cite{das2025commandsans}---where its role is to add a statistically
-controlled, model-agnostic tripwire rather than to be the sole line of
-defense.
+\paragraph{Responsible use.} A monitor is a mitigation, not a guarantee: an
+adaptive adversary could phrase an injection to minimise instruction-likeness,
+and defenses must be evaluated against such adaptive
+attacks~\cite{nasr2025attackersecond}. SENTRY is best deployed in
+depth---alongside provenance-based prevention~\cite{debenedetti2025camel} and
+output sanitisation~\cite{das2025commandsans}---as a statistically controlled,
+model-agnostic tripwire rather than the sole line of defense.
 
 \subsection{Future work}\label{sec:future}
 
