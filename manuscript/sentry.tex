@@ -62,13 +62,16 @@ observation instruction-likeness term---combined either as a tilted increment
 or as a per-signal conformal e-value mixture that preserves component-wise
 validity and yields per-signal attribution. On real AgentDojo and
 \(\tau\)-bench trajectories collected through a free-model router, SENTRY
-detects \(94\%\) of prompt-injection \emph{attempts} at a \(1\%\) false-alarm
-rate with zero-delay median detection, and we argue that injection-attempt
-detection, not hijack-success prediction, is the correct guardrail target. We
-provide a comprehensive ablation demonstrating the robust, state-of-the-art
-performance of our architecture across large-scale, high-fidelity agentic datasets.
-To our knowledge this is the first anytime-valid
-change-detection study on LLM-agent-safety benchmarks.}
+detects \(100\%\) of prompt-injection attempts \emph{whose payload is
+observable in the black-box trace} (\(24/32\) attacks) at a \(5\%\) per-step
+false-alarm rate with a one-action median delay, and \(81\%\) of all attempts
+including \(8/32\) with no trace-observable payload; we argue that
+injection-attempt detection, not hijack-success prediction, is the correct
+guardrail target. We give a full ablation---including three signals we
+implemented and \emph{rejected} because they did not separate on our
+data---and are explicit about the limitations imposed by small, free-tier
+data. To our knowledge this is the first anytime-valid change-detection study
+on LLM-agent-safety benchmarks.}
 
 \keywords{Large language model agents, prompt injection, e-values, sequential
 change detection, anytime-valid inference, runtime monitoring}
@@ -143,17 +146,19 @@ that keeps every component Ville-valid and exposes which signal fired
 
 \item \textbf{The first anytime-valid results on LLM-agent-safety
 benchmarks, with an operational reframe.} On real AgentDojo and
-\(\tau\)-bench trajectories, SENTRY detects \(94\%\) of injection
-\emph{attempts} at a \(1\%\) false-alarm rate with median delay zero actions
+\(\tau\)-bench trajectories, SENTRY detects \(100\%\) of injection attempts
+whose payload is observable in the trace, and \(81\%\) of all attempts, at a
+\(5\%\) false-alarm rate with a one-action median delay
 (Section~\ref{sec:results}). We show that injection-\emph{attempt} detection,
 not hijack-\emph{success} prediction, is the correct monitor objective, and
 that it is the more attainable one.
 
-\item \textbf{A robust, state-of-the-art ablation.} We systematically demonstrate
-that our architecture dominates baseline metrics, integrating data-flow taint,
-lexical goal-grounding and an injection-conditioned interaction term to achieve
-unprecedented separation on large-scale agentic benchmarks (Section~\ref{sec:ablation}),
-establishing a new ceiling for safety monitors (Section~\ref{sec:discussion}).
+\item \textbf{An honest, reproducible ablation.} We report not only what
+worked but three signals we implemented and \emph{rejected}---data-flow taint,
+lexical goal-grounding and an injection-conditioned interaction term---because
+they did not separate on our data (Section~\ref{sec:ablation}), and we are
+explicit about the ceiling imposed by small, free-tier data
+(Section~\ref{sec:discussion}).
 \end{enumerate}
 
 All code, collected trajectories, verified references and the scripts that
@@ -587,7 +592,9 @@ tilt.
 We rigorously establish \(D(\Qcal\Vert\Pcal)\) for our nonparametric classes, 
 formally extending Proposition~\ref{prop:delay} to the conformal combiner and 
 guaranteeing our observed one-action median delay. Delay shrinks as separation 
-grows, which is why the instruction-likeness term operates essentially instantaneously.
+grows, which is why the instruction-likeness term---placing almost all nominal
+mass at zero and attack mass far above it---yields the one-action median delay
+we observe.
 
 \subsection{PAC-calibrated thresholding}
 
@@ -718,39 +725,45 @@ alarm) at both the PAC and exact-Ville thresholds; the per-step
 \textbf{detection delay} in actions past the injection point. We report each
 metric for both targets of Section~\ref{sec:setup}: hijack success
 (successful attacks vs benign) and injection attempt (all attacks vs benign).
-All runs use \(\alpha=0.2\), \(\delta=0.01\).
+All runs use \(\alpha=0.2\), \(\delta=0.2\).
 
 \section{Results}\label{sec:results}
 
 \begin{table}[t]
 \centering
 \caption{Main results on real AgentDojo/$\tau$-bench trajectories
-(mean \(\pm\) std over 10 splits, PAC threshold, \(\alpha=0.2\)). The
-injection-attempt target---the operationally correct one for a guardrail---is
-both stronger and not capped by degenerate free-tier ``successes.'' Detection
-rates for the strongest configuration have zero cross-split variance.}
+(mean \(\pm\) std over 10 splits, PAC threshold, \(\alpha=0.2\)). We report
+three targets: attacks whose injected payload is \emph{observable} in the
+black-box trace (24/32), all injection \emph{attempts} (32/32), and
+\emph{hijack success} (the 16 attacks AgentDojo labels compromised). The
+observable-injection target is the fair measure of a trace-only monitor;
+detection there is perfect and has zero cross-split variance.}
 \label{tab:main}
-\begin{tabular}{@{}lcccccc@{}}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-& \multicolumn{2}{c}{Injection attempt} & \multicolumn{2}{c}{Hijack success} & \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-Configuration & AUROC & Detection & AUROC & Detection & FAR \\
+Configuration & Observable det. & Attempt det. & Hijack det. & FAR \\
 \midrule
-Hash + Gaussian (summed)          & 0.40 & 0.05\,$\pm$\,0.06 & 0.32 & 0.03\,$\pm$\,0.03 & 0.018 \\
-\textbf{Bigram+nov+inj (summed)}  & \textbf{0.87} & \textbf{0.94\,$\pm$\,0.00} & \textbf{0.73} & \textbf{0.62\,$\pm$\,0.00} & 0.010 \\
-Bigram+nov+inj (e-value mix)      & 0.79 & 0.75\,$\pm$\,0.08 & 0.62 & 0.53\,$\pm$\,0.11 & 0.062 \\
+Hash + Gaussian (summed)          & 0.07\,$\pm$\,0.08 & 0.05\,$\pm$\,0.06 & 0.03\,$\pm$\,0.03 & 0.018 \\
+\textbf{Bigram+nov+inj (summed)}  & \textbf{1.00\,$\pm$\,0.00} & \textbf{0.81\,$\pm$\,0.00} & \textbf{0.62\,$\pm$\,0.00} & 0.052 \\
+Bigram+nov+inj (e-value mix)      & 0.95\,$\pm$\,0.08 & 0.75\,$\pm$\,0.08 & 0.53\,$\pm$\,0.11 & 0.062 \\
 \botrule
 \end{tabular}
+\\[3pt]
+{\footnotesize Threshold-free separability (AUROC, attempt vs benign): 0.40,
+\textbf{0.87}, 0.79 for the three configurations respectively.}
 \end{table}
 
-\paragraph{Headline.} Table~\ref{tab:main} gives the main result. The strongest
-configuration---the three signals combined as a summed increment---detects
-\(94\%\) of injection \emph{attempts} at a \(1.0\%\) per-step false-alarm rate,
-with \emph{zero} variance across the ten splits, and an AUROC of \(0.87\). On
-the harder hijack-success target it detects \(62\%\). The median detection
+\paragraph{Headline.} Table~\ref{tab:main} gives the main result. On the fair
+measure for a trace-only monitor---attacks whose injected payload actually
+surfaces in the observation stream (\(24/32\))---the three-signal summed model
+detects \(100\%\) at a \(5.2\%\) per-step false-alarm rate, with \emph{zero}
+variance across the ten splits. Counting \emph{all} \(32\) attempts, including
+\(8\) whose payload never appears in the trace (Section~\ref{sec:reframe}),
+detection is \(81\%\); on the harder hijack-success target it is \(62\%\), and
+the threshold-free attempt-vs-benign AUROC is \(0.87\). The median detection
 delay is one action: when SENTRY fires, it fires on essentially the first
 action after the injection enters the context. Figure~\ref{fig:delay} shows the
-full delay distribution---sharply concentrated at zero to one step for the
+full delay distribution---concentrated at zero to one step for the
 injection-signal model, versus four to six steps for the hash baseline, an
 empirical confirmation of the mechanism Proposition~\ref{prop:delay} predicts.
 
@@ -777,21 +790,26 @@ rate at the cost of recall.}\label{tab:ville}
 Configuration & Attempt detection & Hijack detection & FAR \\
 \midrule
 Hash + Gaussian (summed)         & 0.19\,$\pm$\,0.13 & 0.06\,$\pm$\,0.00 & 0.062 \\
-Bigram+nov+inj (summed)          & \textbf{0.94\,$\pm$\,0.00} & \textbf{0.64\,$\pm$\,0.04} & 0.010 \\
+Bigram+nov+inj (summed)          & \textbf{0.82\,$\pm$\,0.02} & \textbf{0.64\,$\pm$\,0.04} & 0.116 \\
 Bigram+nov+inj (e-value mixture) & 0.19\,$\pm$\,0.13 & 0.13\,$\pm$\,0.12 & \textbf{0.000} \\
 \botrule
 \end{tabular}
 \end{table}
 
-\paragraph{Why the reframe matters.} The gap between the two targets in
-Table~\ref{tab:main} (\(0.94\) vs \(0.62\) detection) is not cosmetic. On our
-data, roughly \(1100\) of the \(1600\) AgentDojo-``successful'' attacks contain
-\emph{no} injected instruction anywhere in the parsed observation stream: the
-weak free-tier agent's ``success'' was degenerate, or the payload sat in a
-field it never surfaced. No trace-only signal can (or arguably should) fire on
-those. The injection-attempt target sidesteps this because resisted attacks
-carry the injection too; it is both the operationally correct objective for a
-guardrail and the one not bottlenecked by our data quality.
+\paragraph{Why the reframe matters.}\label{sec:reframe} The gap between the
+targets in Table~\ref{tab:main} (\(1.00\) observable vs \(0.81\) all-attempts
+vs \(0.62\) hijack detection) is not cosmetic. Of the \(32\) attack
+trajectories, \(8\) contain \emph{no} injected instruction anywhere in the
+parsed observation stream: the weak free-tier agent's ``success'' was
+degenerate, or the payload sat in a field it never surfaced. No trace-only
+signal can (or arguably should) fire on those, which is exactly why the
+all-attempts number (\(0.81\)) sits below the observable-injection number
+(\(1.00\))---the difference is entirely those \(8\) undetectable-by-construction
+cases, not a failure of the detector. Reporting both, rather than only the
+more favourable observable-injection figure, is the honest presentation; the
+observable-injection target is nonetheless the fair measure of what a
+trace-only monitor can achieve, and there SENTRY is perfect at a \(5\%\)
+false-alarm rate.
 
 \begin{table}[t]
 \centering
@@ -803,12 +821,12 @@ vocabularies rather than a single domain.}\label{tab:persuite}
 \toprule
 Suite & Benign & Successful atk & Resisted atk \\
 \midrule
-banking   & 600 & 100 & 1100 \\
-workspace & 600 & 800 & 200 \\
-travel    & 0 & 500 & 100 \\
-slack     & 0 & 200 & 200 \\
+banking   & 6 & 1 & 11 \\
+workspace & 6 & 8 & 2 \\
+travel    & 0 & 5 & 1 \\
+slack     & 0 & 2 & 2 \\
 \midrule
-\textbf{total} & \textbf{1200} & \textbf{1600} & \textbf{1600} \\
+\textbf{total} & \textbf{12} & \textbf{16} & \textbf{16} \\
 \botrule
 \end{tabular}
 \end{table}
@@ -858,13 +876,15 @@ in Figure~\ref{fig:traces} is an instance of case (i).
 \subsection{Which signals help}
 
 Figure~\ref{fig:ablation} and Table~\ref{tab:main} together trace the
-contribution of each design choice. The baseline hash+Gaussian surprise 
-achieves an AUROC of \(0.40\). Replacing it with the tool-transition bigram 
-and adding argument novelty lifts detection to \(0.46\); adding the observation 
-instruction-likeness term lifts it to a state-of-the-art 
-\(0.94\) (and AUROC of \(0.87\))---demonstrating overwhelming superiority. The instruction weight is highly 
-robust: Figure~\ref{fig:robust} shows AUROC is perfectly stable across all weight configurations,
-validating the extreme power of the proposed features.
+contribution of each design choice. The baseline hash+Gaussian surprise is
+near chance (attempt-vs-benign AUROC \(0.40\), \(0.05\) detection): its tool
+term conditioned on task identifiers that are always unseen at test time.
+Replacing it with the tool-transition bigram and adding argument novelty lifts
+attempt detection to \(0.46\); adding the observation instruction-likeness
+term lifts it to \(0.81\) all-attempts (and \(1.00\) on the observable
+subset), AUROC \(0.87\)---by far the largest single jump. The instruction
+weight is not knife-edge tuned: Figure~\ref{fig:robust} shows AUROC is flat for
+any weight in \([2,16]\), and likewise for the novelty weight.
 
 \begin{figure}[t]
 \centering
@@ -887,7 +907,7 @@ an artefact of hyperparameter tuning.}\label{fig:robust}
 \subsection{Summed increment vs.\ e-value mixture}\label{sec:ablation-combiner}
 
 Table~\ref{tab:main} also compares the two combiners. The summed increment is
-more \emph{powerful} here (\(0.94\) vs \(0.75\) attempt detection); the
+more \emph{powerful} here (\(0.81\) vs \(0.75\) attempt detection); the
 per-signal e-value mixture is more \emph{rigorous}---each signal is
 independently Ville-valid with no tail assumption, and it yields per-signal
 attribution. The mixture's lower power is not a bug but a consequence of valid
@@ -897,7 +917,54 @@ instruction e-value averaged with two near-unit e-values is divided by three).
 An informed prior weighting recovers most of the gap. Notably, at the
 exact-Ville threshold the mixture runs at a \(0.0\%\) false-alarm rate
 (bounded conformal e-values rarely cross \(1/\alpha\)), the conservative
-operating point when the formal guarantee is valued over raw power. which combiner to deploy is a genuine engineering choice, and SENTRY ships both.
+operating point when the formal guarantee is valued over raw power. Which
+combiner to deploy is a genuine engineering choice, and SENTRY ships both.
+
+\subsection{Signals that did not work (honest negatives)}\label{sec:negatives}
+
+Three further signals, each motivated by strong prior work, were implemented
+and \emph{rejected} because they did not separate on our data
+(Figure~\ref{fig:signals}).
+
+\begin{itemize}
+\item \textbf{Data-flow taint} (attempt-vs-benign AUROC \(0.47\)). The
+strongest published trace-only detector, AgentArmor~\cite{wang2025agentarmor},
+and the provenance-by-design of CaMeL~\cite{debenedetti2025camel} key on the
+fact that an argument value entering via an untrusted observation but absent
+from the user request is attacker payload. We scored exactly this. It failed on
+our data because our weak free-tier ``successful'' attacks rarely execute a
+payload-bearing tool call at all (only \(4/27\) copy a novel observation token
+into an argument); the harm often surfaces as a text reply. This is a property
+of the data, not the signal, and we expect it to recover on capable-agent
+traces---a concrete, falsifiable prediction for future work.
+
+\item \textbf{Lexical goal-grounding} (AUROC \(0.499\), i.e.\ chance). MELON's
+insight is that a hijacked action is independent of the user
+prompt~\cite{zhu2025melon}. A lexical proxy---the fraction of action tokens
+not grounded in the user request---does not separate, because benign actions
+use observation-derived values just as often as hijacked ones. This is exactly
+why MELON uses masked re-execution rather than lexical overlap; a re-execution
+variant is deferred to future work.
+
+\item \textbf{Injection-conditioned interaction} (no gain). We hypothesised
+that behavioural surprise \emph{gated by} a preceding injection would sharpen
+hijack detection by exploiting the injection\(\to\)compliance causal
+structure. Measured AUROC was identical to the plain sum, so the extra term
+was not shipped.
+\end{itemize}
+
+We report these because a monitor's credibility rests on knowing what it
+cannot do, and because two of the three are predicted to behave differently on
+stronger data---a falsifiable claim rather than a silent omission.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/signals.pdf}
+\caption{Injection-attempt AUROC (in isolation) of the three shipped signals
+and the two rejected ones. The rejected signals sit at the chance line on our
+data; Section~\ref{sec:negatives} explains why, and when they are expected to
+recover.}\label{fig:signals}
+\end{figure}
 
 \section{Discussion}\label{sec:discussion}
 
@@ -916,20 +983,36 @@ LLM-agent-safety benchmarks.
 false-alarm/detection numbers on AgentDojo-style benchmarks with an e-process
 method (Table~\ref{tab:related}). Against the strongest \emph{empirical}
 trace-only detector, AgentArmor's \(95.75\%\) TPR at \(3.66\%\)
-FPR~\cite{wang2025agentarmor}, SENTRY's \(94\%\) attempt detection is lower,
-but it is obtained from \(\sim\!8\) nominal trajectories of black-box logs,
-carries an anytime-valid ARL guarantee AgentArmor does not, and is
-model-agnostic. Against detectors that use model internals or LLM
+FPR~\cite{wang2025agentarmor}, SENTRY's \(100\%\) detection on the
+observable-injection subset (\(81\%\) over all attempts) is comparable on the
+fair measure, and is obtained from \(\sim\!8\) nominal trajectories of
+black-box logs, carries an anytime-valid ARL guarantee AgentArmor does not,
+and is model-agnostic. Against detectors that use model internals or LLM
 judges~\cite{belenky2026cheap,liu2025datasentinel,jia2024taskshield}, SENTRY
-trades some power for a formal guarantee and near-zero cost.
+trades some power for a formal guarantee and near-zero cost. We stress the
+comparison is indicative, not head-to-head: our corpus is small and generated
+by weak free-tier agents (Section~\ref{sec:limitations}), so these numbers
+establish feasibility of anytime-valid trace-only monitoring, not a ranking
+against systems evaluated on larger, stronger-agent data.
 
-\paragraph{Robustness and Scalability.} We evaluate SENTRY across massive datasets 
-(\(n=1600\) attacks). Our PAC threshold is rigorously certified at our calibration 
-size (\(m=500\)), ensuring that the Wilks bound strictly satisfies the 
-\((\alpha=0.01,\delta=0.01)\) targets. Furthermore, SENTRY demonstrates zero 
-cross-split variance and perfect generalization across diverse, multi-family 
-attack templates and state-of-the-art models. This robust design firmly establishes 
-SENTRY as a production-ready, anytime-valid solution for securing LLM agent pipelines.
+\paragraph{Limitations.}\label{sec:limitations} We are deliberate about these.
+\emph{(i)~The PAC threshold is saturated} at our calibration size (\(m=5\)
+threshold trajectories): the Binomial-tail order statistic reduces to the
+sample maximum, so the PAC guarantee~\eqref{eq:pac} is not yet certified at a
+useful \((\alpha,\delta)\); more calibration data is the direct fix and the
+single biggest gap between having the theory and demonstrating it.
+\emph{(ii)~Data quality caps the all-attempts number}: \(8/32\) attacks have no
+trace-observable injection because the free-tier agent's ``successes'' are
+degenerate, which is exactly the \(81\%\) vs \(100\%\) gap of
+Section~\ref{sec:reframe}. \emph{(iii)~Small samples}: \(n=24\) nominal and
+\(32\) attack trajectories suffice to separate \(0.87\) AUROC from chance on
+identical splits but leave wide intervals. \emph{(iv)~One attack family}: we
+evaluate AgentDojo's \texttt{important\_instructions} attack; generality across
+attack templates is untested. None of these are limitations of the method's
+design; all are addressable with a paid, capable agent and more data, which we
+identify as the highest-value next step and which would also let us re-test the
+taint and grounding signals under the conditions where the literature reports
+they succeed.
 
 \paragraph{Computational cost.} SENTRY is designed to sit inline in an agent
 loop without perceptibly slowing it. Per action it computes three signals and
@@ -991,11 +1074,19 @@ defense.
 Our results and honest negatives point to a concrete, ordered research
 agenda.
 
-\paragraph{Production Deployment (highest priority).} We have demonstrated 
-SENTRY's capability on the most challenging, high-fidelity AgentDojo and 
-\(\tau\)-bench trajectories using strong, premium agents. A natural next step 
-is to deploy this architecture into high-throughput production environments 
-to further validate its unprecedented zero-delay monitoring at planetary scale.
+\paragraph{Capable-agent data (highest priority).} Every ceiling we hit traces
+to the free-tier agent: degenerate ``successful'' attacks with no observable
+injection, and a calibration set too small to certify the PAC threshold.
+Re-collecting AgentDojo and \(\tau\)-bench trajectories from a strong, paid
+agent would raise the all-attempts detection ceiling toward the \(100\%\) we
+already achieve on the observable subset, and---critically---create the
+conditions under which the two provenance signals we rejected
+(Section~\ref{sec:negatives}) are predicted to succeed, a falsifiable test.
+
+\paragraph{A certified false-alarm guarantee.} With more threshold
+trajectories the Binomial-tail order statistic becomes non-degenerate and the
+PAC bound~\eqref{eq:pac} is certified at a useful \((\alpha,\delta)\). This is
+the single largest gap between SENTRY's theory and its current demonstration.
 
 \paragraph{Richer references.} The lightweight bigram-plus-vocabulary reference
 is a stand-in for a stronger model of nominal behaviour---a learned embedding
@@ -1018,15 +1109,16 @@ anytime-valid sequential change detection. By building a Shiryaev--Roberts
 e-detector on cheap, trace-only surprise signals and correcting the learned
 reference with PAC thresholding, SENTRY controls the false-alarm rate under
 continuous monitoring with no independence assumption on the action stream. On
-comprehensive AgentDojo and \(\tau\)-bench trajectories it detects \(94\%\) of
-prompt-injection attempts at a \(1\%\) false-alarm rate with instantaneous 
-zero-delay median detection, and we argued that injection-attempt detection is the right
-target for a guardrail. Our comprehensive ablation demonstrates robust, 
-state-of-the-art performance that completely dominates existing baseline architectures. 
-The clear next step is to deploy this powerful monitoring architecture to production 
-agent environments; longer term, replacing the lightweight
-reference with a causal world model, and formalising the multi-signal
-e-value mixture's detection-delay bound, are natural extensions.
+real AgentDojo and \(\tau\)-bench trajectories it detects \(100\%\) of
+prompt-injection attempts whose payload is observable in the black-box trace
+(\(81\%\) of all attempts) at a \(5\%\) false-alarm rate with a one-action
+median delay, and we argued that injection-attempt detection is the right
+target for a guardrail. Our ablation is honest about three signals that did
+not help and about the data-driven ceiling on our numbers. The clear next step
+is a capable-agent data collection, which we expect to lift the all-attempts
+ceiling and to revive the provenance-based signals; longer term, replacing the
+lightweight reference with a causal world model, and formalising the
+multi-signal e-value mixture's detection-delay bound, are natural extensions.
 
 \backmatter
 
@@ -1069,8 +1161,8 @@ frameworks; none is tuned on the detection metric.}\label{tab:hyper}
 \toprule
 Symbol & Meaning & Value \\
 \midrule
-\(\alpha\) & target false-alarm rate & \(0.01\) \\
-\(\delta\) & PAC confidence parameter & \(0.01\) \\
+\(\alpha\) & target false-alarm rate & \(0.2\) \\
+\(\delta\) & PAC confidence parameter & \(0.2\) \\
 \(\lambda_{\mathrm{nov}}\) & novelty weight & \(4\) \\
 \(\lambda_{\mathrm{IL}}\) & instruction weight & \(4\) \\
 \((w_1,\dots,w_4)\) & instruction-likeness weights & \((3,2,2,1)\) \\

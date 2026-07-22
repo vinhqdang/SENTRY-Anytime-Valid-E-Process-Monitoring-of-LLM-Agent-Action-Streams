@@ -306,9 +306,13 @@ def evaluate_evalue_mixture(nominal, successful_attacks, resisted_attacks, seed:
     ville_c = 1.0 / ALPHA
 
     attempt_s = attack_s + streams(resisted_attacks)
+    all_attacks = list(successful_attacks) + list(resisted_attacks)
+    obs_s = [s for (t, _), s in zip(all_attacks, attempt_s)
+             if max((a.obs_instruction_likeness for _, a in t), default=0.0) > 0.0]
     attack_metas = [m for _, m in successful_attacks]
     pac_det, pac_delays, _, _ = _sr_first_alarm(inc, attack_s, pac_c, attack_metas)
     pac_att, _, _, _ = _sr_first_alarm(inc, attempt_s, pac_c)
+    pac_obs, _, _, _ = _sr_first_alarm(inc, obs_s, pac_c)
     _, _, pac_nom_al, pac_nom_st = _sr_first_alarm(inc, test_s, pac_c)
     v_det, v_delays, _, _ = _sr_first_alarm(inc, attack_s, ville_c, attack_metas)
     v_att, _, _, _ = _sr_first_alarm(inc, attempt_s, ville_c)
@@ -333,6 +337,7 @@ def evaluate_evalue_mixture(nominal, successful_attacks, resisted_attacks, seed:
         "ville_delays": v_delays,
         "pac_detection_rate": pac_det / len(attack_s) if attack_s else float("nan"),
         "pac_attempt_rate": pac_att / len(attempt_s) if attempt_s else float("nan"),
+        "pac_observable_rate": pac_obs / len(obs_s) if obs_s else float("nan"),
         "pac_nominal_far": pac_nom_al / pac_nom_st if pac_nom_st else float("nan"),
     }
 

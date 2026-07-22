@@ -880,6 +880,10 @@
           "mean": 0.746875,
           "std": 0.08082823222735977
         },
+        "pac_observable_rate": {
+          "mean": 0.9541666666666666,
+          "std": 0.08003905296791061
+        },
         "pac_nominal_far": {
           "mean": 0.06225755248335894,
           "std": 0.05604447449132553
@@ -924,6 +928,7 @@
           ],
           "pac_detection_rate": 0.3125,
           "pac_attempt_rate": 0.5625,
+          "pac_observable_rate": 0.75,
           "pac_nominal_far": 0.03225806451612903
         },
         {
@@ -937,6 +942,7 @@
           "ville_delays": [],
           "pac_detection_rate": 0.5625,
           "pac_attempt_rate": 0.78125,
+          "pac_observable_rate": 1.0,
           "pac_nominal_far": 0.08571428571428572
         },
         {
@@ -953,6 +959,7 @@
           ],
           "pac_detection_rate": 0.375,
           "pac_attempt_rate": 0.65625,
+          "pac_observable_rate": 0.875,
           "pac_nominal_far": 0.05555555555555555
         },
         {
@@ -966,6 +973,7 @@
           "ville_delays": [],
           "pac_detection_rate": 0.5,
           "pac_attempt_rate": 0.75,
+          "pac_observable_rate": 1.0,
           "pac_nominal_far": 0.0
         },
         {
@@ -985,6 +993,7 @@
           ],
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
           "pac_nominal_far": 0.08
         },
         {
@@ -1001,6 +1010,7 @@
           ],
           "pac_detection_rate": 0.5625,
           "pac_attempt_rate": 0.78125,
+          "pac_observable_rate": 1.0,
           "pac_nominal_far": 0.08333333333333333
         },
         {
@@ -1014,6 +1024,7 @@
           "ville_delays": [],
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
           "pac_nominal_far": 0.0
         },
         {
@@ -1030,6 +1041,7 @@
           ],
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
           "pac_nominal_far": 0.09523809523809523
         },
         {
@@ -1046,6 +1058,7 @@
           ],
           "pac_detection_rate": 0.4375,
           "pac_attempt_rate": 0.6875,
+          "pac_observable_rate": 0.9166666666666666,
           "pac_nominal_far": 0.0
         },
         {
@@ -1066,6 +1079,7 @@
           ],
           "pac_detection_rate": 0.625,
           "pac_attempt_rate": 0.8125,
+          "pac_observable_rate": 1.0,
           "pac_nominal_far": 0.19047619047619047
         }
       ]
