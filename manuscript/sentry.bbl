@@ -45,35 +45,41 @@
 
 %%% 1
 \bibitem[\protect\citeauthoryear{Zhan et~al.}{2024}]{zhan2024injecagent}
-\begin{barticle}
+\begin{bchapter}
 \bauthor{\bsnm{Zhan}, \binits{Q.}},
 \bauthor{\bsnm{Liang}, \binits{Z.}},
 \bauthor{\bsnm{Ying}, \binits{Z.}},
 \bauthor{\bsnm{Kang}, \binits{D.}}:
-\batitle{Injecagent: Benchmarking indirect prompt injections in tool-integrated
+\bctitle{Injecagent: Benchmarking indirect prompt injections in tool-integrated
   large language model agents}.
-\bjtitle{arXiv preprint arXiv:2403.02691}
-(\byear{2024})
-\doiurl{10.48550/arXiv.2403.02691}
-\end{barticle}
+In: \bbtitle{Findings of the Association for Computational Linguistics: ACL
+  2024},
+pp. \bfpage{10471}--\blpage{10506}.
+\bpublisher{Association for Computational Linguistics},
+\blocation{Bangkok, Thailand}
+(\byear{2024}).
+\doiurl{10.18653/v1/2024.findings-acl.624} .
+\burl{https://aclanthology.org/2024.findings-acl.624/}
+\end{bchapter}
 \endbibitem
 
 %%% 2
 \bibitem[\protect\citeauthoryear{Debenedetti
   et~al.}{2024}]{debenedetti2024agentdojo}
-\begin{barticle}
+\begin{bchapter}
 \bauthor{\bsnm{Debenedetti}, \binits{E.}},
 \bauthor{\bsnm{Zhang}, \binits{J.}},
 \bauthor{\bsnm{Balunović}, \binits{M.}},
 \bauthor{\bsnm{Beurer-Kellner}, \binits{L.}},
 \bauthor{\bsnm{Fischer}, \binits{M.}},
 \bauthor{\bsnm{Tramèr}, \binits{F.}}:
-\batitle{Agentdojo: A dynamic environment to evaluate prompt injection attacks
+\bctitle{Agentdojo: A dynamic environment to evaluate prompt injection attacks
   and defenses for llm agents}.
-\bjtitle{arXiv preprint arXiv:2406.13352}
-(\byear{2024})
-\doiurl{10.48550/arXiv.2406.13352}
-\end{barticle}
+In: \bbtitle{Advances in Neural Information Processing Systems 37 (NeurIPS
+  2024) Datasets and Benchmarks Track}
+(\byear{2024}).
+\burl{https://proceedings.neurips.cc/paper_files/paper/2024/hash/97091a5177d8dc64b1da8bf3e1f6fb54-Abstract-Datasets_and_Benchmarks_Track.html}
+\end{bchapter}
 \endbibitem
 
 %%% 3
@@ -139,32 +145,41 @@
 
 %%% 7
 \bibitem[\protect\citeauthoryear{Liu et~al.}{2025}]{liu2025datasentinel}
-\begin{barticle}
+\begin{bchapter}
 \bauthor{\bsnm{Liu}, \binits{Y.}},
 \bauthor{\bsnm{Jia}, \binits{Y.}},
 \bauthor{\bsnm{Jia}, \binits{J.}},
 \bauthor{\bsnm{Song}, \binits{D.}},
 \bauthor{\bsnm{Gong}, \binits{N.Z.}}:
-\batitle{Datasentinel: A game-theoretic detection of prompt injection attacks}.
-\bjtitle{arXiv preprint arXiv:2504.11358}
-(\byear{2025})
-\doiurl{10.48550/arXiv.2504.11358}
-\end{barticle}
+\bctitle{Datasentinel: A game-theoretic detection of prompt injection attacks}.
+In: \bbtitle{2025 IEEE Symposium on Security and Privacy (SP)},
+pp. \bfpage{2190}--\blpage{2208}.
+\bpublisher{IEEE},
+\blocation{San Francisco, CA, USA}
+(\byear{2025}).
+\doiurl{10.1109/SP61157.2025.00250} .
+\burl{https://doi.org/10.1109/SP61157.2025.00250}
+\end{bchapter}
 \endbibitem
 
 %%% 8
-\bibitem[\protect\citeauthoryear{Jia et~al.}{2024}]{jia2024taskshield}
-\begin{barticle}
+\bibitem[\protect\citeauthoryear{Jia et~al.}{2025}]{jia2024taskshield}
+\begin{bchapter}
 \bauthor{\bsnm{Jia}, \binits{F.}},
 \bauthor{\bsnm{Wu}, \binits{T.}},
 \bauthor{\bsnm{Qin}, \binits{X.}},
 \bauthor{\bsnm{Squicciarini}, \binits{A.}}:
-\batitle{The task shield: Enforcing task alignment to defend against indirect
+\bctitle{The task shield: Enforcing task alignment to defend against indirect
   prompt injection in llm agents}.
-\bjtitle{arXiv preprint arXiv:2412.16682}
-(\byear{2024})
-\doiurl{10.48550/arXiv.2412.16682}
-\end{barticle}
+In: \bbtitle{Proceedings of the 63rd Annual Meeting of the Association for
+  Computational Linguistics (Volume 1: Long Papers)},
+pp. \bfpage{29680}--\blpage{29697}.
+\bpublisher{Association for Computational Linguistics},
+\blocation{Vienna, Austria}
+(\byear{2025}).
+\doiurl{10.18653/v1/2025.acl-long.1435} .
+\burl{https://aclanthology.org/2025.acl-long.1435/}
+\end{bchapter}
 \endbibitem
 
 %%% 9
@@ -272,7 +287,8 @@
 \bauthor{\bsnm{Shafer}, \binits{G.}}:
 \bbtitle{Algorithmic Learning in a Random World},
 \bedition{2nd} edn.
-\bpublisher{Springer}, \blocation{???}
+\bpublisher{Springer},
+\blocation{Cham, Switzerland}
 (\byear{2022}).
 \doiurl{10.1007/978-3-031-06649-8}
 \end{bbook}
@@ -305,8 +321,8 @@
 \endbibitem
 
 %%% 18
-\bibitem[\protect\citeauthoryear{Zhou et~al.}{2023}]{zhou2023webarena}
-\begin{barticle}
+\bibitem[\protect\citeauthoryear{Zhou et~al.}{2024}]{zhou2023webarena}
+\begin{bchapter}
 \bauthor{\bsnm{Zhou}, \binits{S.}},
 \bauthor{\bsnm{Xu}, \binits{F.F.}},
 \bauthor{\bsnm{Zhu}, \binits{H.}},
@@ -319,26 +335,28 @@
 \bauthor{\bsnm{Fried}, \binits{D.}},
 \bauthor{\bsnm{Alon}, \binits{U.}},
 \bauthor{\bsnm{Neubig}, \binits{G.}}:
-\batitle{Webarena: A realistic web environment for building autonomous agents}.
-\bjtitle{arXiv preprint arXiv:2307.13854}
-(\byear{2023})
-\doiurl{10.48550/arXiv.2307.13854}
-\end{barticle}
+\bctitle{Webarena: A realistic web environment for building autonomous agents}.
+In: \bbtitle{The Twelfth International Conference on Learning Representations
+  (ICLR)}
+(\byear{2024}).
+\burl{https://openreview.net/forum?id=oKn9c6ytLx}
+\end{bchapter}
 \endbibitem
 
 %%% 19
-\bibitem[\protect\citeauthoryear{Yao et~al.}{2024}]{yao2024taubench}
-\begin{barticle}
+\bibitem[\protect\citeauthoryear{Yao et~al.}{2025}]{yao2024taubench}
+\begin{bchapter}
 \bauthor{\bsnm{Yao}, \binits{S.}},
 \bauthor{\bsnm{Shinn}, \binits{N.}},
 \bauthor{\bsnm{Razavi}, \binits{P.}},
 \bauthor{\bsnm{Narasimhan}, \binits{K.}}:
-\batitle{$\tau$-bench: A benchmark for tool-agent-user interaction in
+\bctitle{$\tau$-bench: A benchmark for tool-agent-user interaction in
   real-world domains}.
-\bjtitle{arXiv preprint arXiv:2406.12045}
-(\byear{2024})
-\doiurl{10.48550/arXiv.2406.12045}
-\end{barticle}
+In: \bbtitle{The Thirteenth International Conference on Learning
+  Representations (ICLR)}
+(\byear{2025}).
+\burl{https://iclr.cc/virtual/2025/poster/28170}
+\end{bchapter}
 \endbibitem
 
 %%% 20
@@ -396,18 +414,24 @@
 
 %%% 23
 \bibitem[\protect\citeauthoryear{Zhu et~al.}{2025}]{zhu2025melon}
-\begin{barticle}
+\begin{bchapter}
 \bauthor{\bsnm{Zhu}, \binits{K.}},
 \bauthor{\bsnm{Yang}, \binits{X.}},
 \bauthor{\bsnm{Wang}, \binits{J.}},
 \bauthor{\bsnm{Guo}, \binits{W.}},
 \bauthor{\bsnm{Wang}, \binits{W.Y.}}:
-\batitle{Melon: Provable defense against indirect prompt injection attacks in
+\bctitle{Melon: Provable defense against indirect prompt injection attacks in
   ai agents}.
-\bjtitle{arXiv preprint arXiv:2502.05174}
-(\byear{2025})
-\doiurl{10.48550/arXiv.2502.05174}
-\end{barticle}
+In: \bbtitle{Proceedings of the 42nd International Conference on Machine
+  Learning (ICML)}.
+\bsertitle{Proceedings of Machine Learning Research},
+vol. \bseriesno{267},
+pp. \bfpage{80310}--\blpage{80329}.
+\bpublisher{PMLR},
+\blocation{Vancouver, Canada}
+(\byear{2025}).
+\burl{https://proceedings.mlr.press/v267/zhu25z.html}
+\end{bchapter}
 \endbibitem
 
 %%% 24
