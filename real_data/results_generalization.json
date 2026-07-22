@@ -1,0 +1,83 @@
+{
+  "A_baseline_deepseek_important": {
+    "n_nominal": 121,
+    "n_successful": 180,
+    "n_resisted": 18,
+    "n_observable": 128,
+    "n_attempts": 198,
+    "pac_observable_rate": {
+      "mean": 0.9859375,
+      "std": 0.003125
+    },
+    "pac_attempt_rate": {
+      "mean": 0.6575757575757575,
+      "std": 0.012121212121212113
+    },
+    "pac_detection_rate": {
+      "mean": 0.6399999999999999,
+      "std": 0.01160034056545617
+    },
+    "pac_nominal_far": {
+      "mean": 0.020279093535275003,
+      "std": 0.016441675152849913
+    },
+    "auroc_attempt_max": {
+      "mean": 0.7687451437451437,
+      "std": 0.01939517910014802
+    }
+  },
+  "B_newattack_deepseek_injecagent": {
+    "n_nominal": 121,
+    "n_successful": 42,
+    "n_resisted": 0,
+    "n_observable": 25,
+    "n_attempts": 42,
+    "pac_observable_rate": {
+      "mean": 0.096,
+      "std": 0.057131427428342804
+    },
+    "pac_attempt_rate": {
+      "mean": 0.08333333333333333,
+      "std": 0.04548803136795904
+    },
+    "pac_detection_rate": {
+      "mean": 0.08333333333333333,
+      "std": 0.04548803136795904
+    },
+    "pac_nominal_far": {
+      "mean": 0.020279093535275003,
+      "std": 0.016441675152849913
+    },
+    "auroc_attempt_max": {
+      "mean": 0.4678113553113553,
+      "std": 0.0730752734443421
+    }
+  },
+  "C_newagent_gpt4omini_important": {
+    "n_nominal": 70,
+    "n_successful": 81,
+    "n_resisted": 72,
+    "n_observable": 111,
+    "n_attempts": 153,
+    "pac_observable_rate": {
+      "mean": 1.0,
+      "std": 0.0
+    },
+    "pac_attempt_rate": {
+      "mean": 0.7673202614379084,
+      "std": 0.023052538677841045
+    },
+    "pac_detection_rate": {
+      "mean": 0.5901234567901235,
+      "std": 0.03483144686337254
+    },
+    "pac_nominal_far": {
+      "mean": 0.04642050605971456,
+      "std": 0.04755707248150112
+    },
+    "auroc_attempt_max": {
+      "mean": 0.8235511982570806,
+      "std": 0.020384159931330397
+    }
+  }
+}
