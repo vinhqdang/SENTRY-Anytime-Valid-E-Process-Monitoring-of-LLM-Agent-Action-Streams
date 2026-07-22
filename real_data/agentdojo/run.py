@@ -39,6 +39,11 @@ MODEL_NAME = os.environ.get("SENTRY_MODEL_NAME", "deepseek-v4-flash-local")
 # Fresh directory per agent so trajectories from different agents are never
 # mixed (that would confound the nominal-vs-attack comparison).
 LOGDIR = Path(__file__).parent / os.environ.get("SENTRY_LOGDIR", "logs_deepseek")
+# Attack family. Default is AgentDojo's strongest baseline
+# ("important_instructions"); set SENTRY_ATTACK=injecagent for the
+# InjecAgent-style data-integration attack (a distinct template used to test
+# cross-attack generalisation).
+ATTACK = os.environ.get("SENTRY_ATTACK", "important_instructions")
 
 FULL_CONFIG = {
     "banking": {"n_benign": 10, "n_attack_user_tasks": 4, "n_injection_tasks": 2},
@@ -104,7 +109,7 @@ def run_suite(suite_name: str, cfg: dict, pipeline: AgentPipeline) -> None:
         except Exception as e:  # noqa: BLE001 - real free-tier models fail unpredictably
             print(f"  benign {tid}: FAILED ({type(e).__name__}: {e})")
 
-    attack = load_attack("important_instructions", suite, pipeline)
+    attack = load_attack(ATTACK, suite, pipeline)
     attack_user_task_ids = list(suite.user_tasks.keys())[: cfg["n_attack_user_tasks"]]
     injection_task_ids = list(suite.injection_tasks.keys())[: cfg["n_injection_tasks"]]
     print(f"[{suite_name}] attack: {len(attack_user_task_ids)} user tasks x {len(injection_task_ids)} injections")

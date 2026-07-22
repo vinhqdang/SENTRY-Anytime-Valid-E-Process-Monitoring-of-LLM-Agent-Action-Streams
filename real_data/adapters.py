@@ -143,6 +143,7 @@ def agentdojo_log_to_trajectory(log: dict, task_key: Any) -> tuple[Trajectory, d
     meta = {
         "source": "agentdojo",
         "is_attack": log.get("attack_type") not in (None, "none"),
+        "attack_type": log.get("attack_type"),
         "security": log.get("security"),
         "utility": log.get("utility"),
         "drift_index": drift_index,
