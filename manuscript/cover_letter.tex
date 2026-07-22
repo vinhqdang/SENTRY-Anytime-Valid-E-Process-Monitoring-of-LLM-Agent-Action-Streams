@@ -1,0 +1,80 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=0.85in]{geometry}
+\usepackage{parskip}
+\usepackage{hyperref}
+\hypersetup{hidelinks}
+\pagestyle{empty}
+
+\begin{document}
+
+\noindent
+Quang-Vinh Dang\\
+British University Vietnam\\
+Hung Yen, Vietnam\\
+\href{mailto:vinh.dq4@buv.edu.vn}{vinh.dq4@buv.edu.vn}
+
+\vspace{1em}
+\noindent 22 July 2026
+
+\vspace{1em}
+\noindent
+To the Guest Editors of the Special Issue on\\
+\emph{Safety, Alignment, and Responsibility of Large Language Models}\\
+(Prof.\ Shuo Shang, Prof.\ Bin Yang, Prof.\ Christian S.\ Jensen, Prof.\ Panos Kalnis)\\
+IEEE Transactions on Dependable and Secure Computing
+
+\vspace{1.2em}
+\noindent Dear Guest Editors,
+
+\vspace{0.6em}
+I am pleased to submit my manuscript, \textbf{``SENTRY: Anytime-Valid E-Process
+Monitoring of LLM Agent Action Streams,''} for consideration in the Special
+Issue on Safety, Alignment, and Responsibility of Large Language Models.
+
+Large language model agents that call external tools are increasingly deployed
+with authority to move money, send messages, and act on a user's behalf, yet
+the prevailing runtime defenses threshold heuristic scores at a hand-picked
+cut-off and offer \emph{no} statistical guarantee on how often they fire on
+benign behavior. This paper addresses that gap directly. SENTRY casts runtime
+agent monitoring as sequential change detection and builds an e-process
+monitored by an e-detector over per-action surprise signals, controlling the
+average run length to false alarm \emph{with no independence assumption} on the
+highly dependent action stream---and correcting the learned reference with a
+distribution-free PAC threshold so the guarantee holds with finite trusted
+data.
+
+The contribution is both methodological and empirical. On real trajectories
+collected from a capable agent (DeepSeek-V4-Flash) on the AgentDojo and
+$\tau$-bench benchmarks, SENTRY detects $99\%$ of prompt-injection attempts
+whose payload is observable in the black-box trace ($128/198$) at a $2\%$
+per-step false-alarm rate with a one-action median detection delay, using only
+three cheap, model-agnostic signals and no access to model internals. The study
+also reframes the guardrail objective from hijack-\emph{success} prediction to
+injection-\emph{attempt} detection, reports a full ablation---including three
+signals I implemented and rejected---and is explicit about its limitations. To
+my knowledge this is the first anytime-valid change-detection study on
+LLM-agent-safety benchmarks.
+
+The work fits squarely within the Special Issue's scope, in particular
+\emph{safety mechanisms in autonomous systems} and \emph{adversarial robustness
+and attacks}: it provides a statistically controlled, model-agnostic runtime
+tripwire for autonomous LLM agents under indirect prompt injection, together
+with a reproducible evaluation on public benchmarks.
+
+I confirm that this manuscript is original, has not been published previously,
+and is not under consideration for publication elsewhere. There are no conflicts
+of interest to declare, and no external funding was received. All code, the
+collected trajectory corpus, and the scripts that regenerate every reported
+number and figure are released with the project repository to support full
+reproducibility. As sole author, I am responsible for all aspects of the work.
+
+Thank you for your time and consideration. I look forward to the reviewers'
+feedback.
+
+\vspace{0.8em}
+\noindent Sincerely,
+
+\vspace{0.4em}
+\noindent Quang-Vinh Dang
+
+\end{document}
