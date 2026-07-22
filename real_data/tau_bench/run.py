@@ -33,7 +33,7 @@ def main() -> None:
     parser.add_argument("--pilot", action="store_true", help="tiny smoke-test run")
     args = parser.parse_args()
 
-    end_index = 2 if args.pilot else 15
+    end_index = 2 if args.pilot else 50
 
     config = RunConfig(
         model_provider="openrouter",

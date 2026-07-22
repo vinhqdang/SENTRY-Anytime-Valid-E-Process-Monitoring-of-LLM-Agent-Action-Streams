@@ -53,6 +53,16 @@ ATTACK_EXPANSION_CONFIG = {
     "travel": {"n_benign": 0, "n_attack_user_tasks": 3, "n_injection_tasks": 2},
     "slack": {"n_benign": 0, "n_attack_user_tasks": 3, "n_injection_tasks": 2},
 }
+# Larger collection to grow both the nominal calibration set (fixes the PAC
+# threshold saturation) and attack coverage across all four suites. Sized to
+# the available user tasks per suite; already-run (task, injection) combos are
+# skipped via force_rerun=False, so re-running only pays for new coverage.
+MAX_CONFIG = {
+    "banking": {"n_benign": 16, "n_attack_user_tasks": 12, "n_injection_tasks": 4},
+    "workspace": {"n_benign": 30, "n_attack_user_tasks": 20, "n_injection_tasks": 4},
+    "travel": {"n_benign": 18, "n_attack_user_tasks": 14, "n_injection_tasks": 3},
+    "slack": {"n_benign": 18, "n_attack_user_tasks": 15, "n_injection_tasks": 3},
+}
 
 
 def build_pipeline() -> AgentPipeline:
@@ -119,12 +129,19 @@ def main() -> None:
         action="store_true",
         help="widen attack-trajectory coverage across all 4 suites; skips already-run combos",
     )
+    parser.add_argument(
+        "--max",
+        action="store_true",
+        help="large collection: grow nominal calibration set + attacks across all 4 suites",
+    )
     args = parser.parse_args()
 
     LOGDIR.mkdir(parents=True, exist_ok=True)
     pipeline = build_pipeline()
     if args.pilot:
         config = PILOT_CONFIG
+    elif args.max:
+        config = MAX_CONFIG
     elif args.attack_expansion:
         config = ATTACK_EXPANSION_CONFIG
     else:
