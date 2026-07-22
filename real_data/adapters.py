@@ -216,7 +216,9 @@ def load_taubench_logs(logdir: Path) -> list[tuple[Trajectory, dict]]:
     """Load every tau-bench checkpoint JSON (a list of EnvRunResult dicts)
     under logdir."""
     results = []
-    for path in sorted(Path(logdir).glob("*.json")):
+    # rglob (not glob): tau-bench may write the checkpoint into a subdirectory
+    # when the model id contains a slash, so search recursively.
+    for path in sorted(Path(logdir).rglob("*.json")):
         with path.open() as f:
             entries = json.load(f)
         for entry in entries:
