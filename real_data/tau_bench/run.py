@@ -29,6 +29,10 @@ import os  # noqa: E402
 
 MODEL = os.environ.get("SENTRY_MODEL", "deepseek/deepseek-v4-flash")
 LOGDIR = Path(__file__).parent / os.environ.get("SENTRY_LOGDIR", "logs_deepseek")
+# tau-bench domain: "retail" (default) or "airline". Airline is a second,
+# distinct customer-service domain used to test cross-domain nominal
+# behaviour and false-alarm control.
+ENV = os.environ.get("SENTRY_TAUBENCH_ENV", "retail")
 
 
 def main() -> None:
@@ -44,7 +48,7 @@ def main() -> None:
         model=MODEL,
         user_model=MODEL,
         num_trials=1,
-        env="retail",
+        env=ENV,
         agent_strategy="tool-calling",
         temperature=0.0,
         task_split="test",
