@@ -25,6 +25,24 @@ pytest                                   # unit + end-to-end synthetic validatio
 python examples/run_synthetic_validation.py   # ARL/FAR + detection-delay plots
 ```
 
+### Reproducing the paper
+
+The real agent trajectories are committed under `real_data/`, and the
+evaluation is deterministic (seed-stable hashing, fixed seeds 0–9), so every
+number and figure in the manuscript reproduces **without any API key or
+network access**:
+
+```bash
+./reproduce.sh          # tests + real-data eval + generalisation + figures + report
+```
+
+This writes `real_data/results.json` and `real_data/results_generalization.json`,
+regenerates `manuscript/figures/*.pdf`, and prints the manuscript's headline
+numbers next to the paper's values (`python -m real_data.report`). To also
+re-collect the trajectories from OpenRouter first (needs `OPENROUTER_API_KEY`
+in `.env`; costs money; LLM sampling is not bit-reproducible), run
+`./reproduce.sh --collect`.
+
 Minimal usage:
 
 ```python
