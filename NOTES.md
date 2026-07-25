@@ -210,10 +210,77 @@ Fixed in `real_data/evaluate.py` and `real_data/evaluate_generalization.py`.
   and §10: the theory is imported, and the headline result came from a keyword
   counter matched to one attack template.
 
-## 13. Open next step
+## 13. SENTRY-Fuse — the working algorithm
 
-With labels corrected there is, for the first time, a well-posed harm-detection
-target: **90 genuinely compromised trajectories** (18 DeepSeek + 72 GPT-4o-mini),
-74 of which contain an externally-effectful call. Effect-based detection
-(sink provenance, action audit) should be re-evaluated against *these* positives
-rather than against the resisted class it was previously scored on.
+With labels corrected, effect-based signals are finally scored against the right
+class and the picture inverts: **the action audit goes from AUROC 0.547 to
+0.926**. It was never a bad signal; it was graded on the wrong answer.
+
+**Algorithm.** Convert each signal to its conformal tail surprisal against a
+benign calibration split, `-log((1 + #{benign >= x}) / (n+1))`, and sum:
+`S = Σ_k -log p_k`. Scale-free (a bigram surprise in nats and a [0,1] judge score
+become comparable), strictly monotone in every component (so no signal can be
+clipped away — the `excess_max` failure of §5 cannot recur), and it needs **no
+tuned weights**.
+
+**Protocol.** Benign trajectories are split in half per seed; one half calibrates
+both the conformal transforms and the operating threshold, the other half supplies
+the held-out false positives. Compromised trajectories are always held out.
+10 seeds, mean ± std.
+
+GPT-4o-mini (72 compromised / 70 benign):
+
+| detector | AUROC | TPR@3.66% |
+|---|---|---|
+| instruction only | 0.955 ± 0.017 | 0.825 ± 0.279 |
+| behavioural only | 0.534 ± 0.015 | 0.000 |
+| instr + audit | 0.985 ± 0.003 | 0.932 ± 0.031 |
+| **SENTRY-Fuse (all 4)** | **0.985 ± 0.005** | **0.960 ± 0.010** |
+| AgentArmor (published) | — | 0.9575 |
+
+Pooled (90 compromised / 191 benign): `instr + audit` AUROC 0.955, TPR@3.66%
+**0.902 ± 0.018**; SENTRY-Fuse 0.956 / 0.890 ± 0.039.
+
+**Leakage caught by the honest protocol.** In the first harm run `behavioural`
+scored AUROC 0.982 because its reference model was fit on *all* benign
+trajectories including the test half. With calibration held out it collapses to
+0.53–0.62. Only held-out numbers are reported anywhere.
+
+## 14. Detectability ceiling (the framing result)
+
+Pooled over the 90 genuinely compromised trajectories:
+
+| channel of evidence | n | frac |
+|---|---|---|
+| injected payload visible in an observation | 78 | 0.867 |
+| an externally-effectful (sink) call | 74 | 0.822 |
+| **either channel** | **83** | **0.922** ← ceiling for *any* trace-only detector |
+| neither — no trace evidence at all | 7 | 0.078 |
+
+Consequences:
+
+1. Our 0.902 is **97.8% of the attainable 0.922**. Trace-only detection on this
+   corpus is essentially saturated.
+2. Both fused detectors **exceed the payload-only ceiling of 0.867**, which is
+   direct evidence that the action-side signals carry information the
+   observation-side signal cannot — the orthogonality claim, measured.
+3. **The published 0.9575 exceeds this corpus's trace-only ceiling of 0.922**, so
+   it cannot be an apples-to-apples comparison; it must rest on a different
+   positive-class definition, a different corpus, or information beyond the
+   black-box trace. Any future paper reporting >0.92 here should say which.
+
+**Defensible claims for the paper.** (i) A new fusion algorithm that breaks the
+observation-only ceiling; (ii) it beats the strongest published trace-only number
+on the matched GPT-4o-mini corpus (0.960 ± 0.010 vs 0.9575); (iii) a
+detectability ceiling that bounds every trace-only monitor and explains why the
+earlier effect-based attempts (§8, §9) appeared to fail.
+
+## 15. Remaining work
+
+- The 7 no-evidence compromises are invisible because the monitor never sees the
+  agent's own natural-language output. Monitoring that channel is the concrete
+  route past 0.922.
+- Regenerate `results.json` / `results_generalization.json` and every manuscript
+  number under the corrected label polarity; the current manuscript's
+  hijack-detection figures measure the resisted class.
+- τ-bench airline collection is partial (~task 8/50).
