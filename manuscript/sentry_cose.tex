@@ -175,14 +175,28 @@ Everything in the paper is reproducible from committed data with no API access:
 
 Direct prompt injection manipulates the user-supplied prompt; \emph{indirect}
 prompt injection is the more dangerous variant for agents, because the adversary
-never talks to the agent at all. Instead they plant text in a resource---a web
-page, a shared document, an email body, a calendar invitation---that the agent
-will retrieve while pursuing a legitimate task. When the retrieved content enters
-the context window, the model has no reliable mechanism for distinguishing
-"data I was asked to process" from "instructions I should follow", and it may
-execute the planted directive~\citep{zhan2024injecagent}. The consequences scale
-with the agent's privileges: an agent that can send email can exfiltrate; an
-agent that can move money can steal.
+never talks to the agent at all. \citet{greshake2023notwhat} introduced the
+threat and gave the first systematic treatment of it. Their central observation
+is the one this entire literature rests on: once an LLM is augmented with
+retrieval, \emph{processing} untrusted retrieved data becomes analogous to
+\emph{executing} arbitrary code, because the boundary between data and
+instructions is not represented anywhere in the model's input. They derive a
+taxonomy of resulting threats---information gathering, fraud, intrusion, malware
+(including prompts that propagate as worms), manipulated content, and
+availability attacks---and a taxonomy of delivery methods, distinguishing
+\emph{passive} injection (planting content that retrieval will find),
+\emph{active} injection (sending content, e.g.\ by email, that the agent will
+process), \emph{user-driven} injection (tricking the user into pasting it), and
+\emph{hidden} injection (multi-stage or encoded payloads). They demonstrate
+feasibility against real deployed systems including Bing Chat and GitHub Copilot.
+Our threat model (Section~\ref{sec:setup}) is the passive/active case, and the
+compromises we detect fall predominantly into their information-gathering and
+fraud categories.
+
+The consequences scale with the agent's privileges: an agent that can send email
+can exfiltrate; an agent that can move money can steal.
+\citet{zhan2024injecagent} systematise this for tool-integrated agents
+specifically.
 
 \citet{wallace2024instructionhierarchy} argue that the root cause is the absence
 of a privilege ordering over instruction sources, and train models to respect an
@@ -216,23 +230,91 @@ multi-turn tool-use trajectories in customer-service domains; it has no attack
 suite, so we use it purely to enlarge and diversify the benign reference.
 \textbf{WebArena}~\citep{zhou2023webarena} provides realistic web environments
 and is complementary but not injection-focused.
+
+\textbf{AgentHarm}~\citep{andriushchenko2025agentharm} deserves separate mention
+because it is easy to mistake for our setting. It comprises $110$ base (and $440$
+augmented) explicitly malicious agent behaviours across $11$ harm categories over
+$104$ tools, and it scores whether an agent both refuses \emph{and} retains
+capability. Its threat model, however, is agent \emph{misuse}: the harmful request
+comes from the user directly. Ours is indirect injection, where the user is benign
+and the harm arrives through third-party content---a distinction the AgentHarm
+authors themselves draw when contrasting their benchmark with AgentDojo. The two
+are complementary and a complete guardrail needs both; we evaluate only the
+injection case, which Section~\ref{sec:limitations} records as a scope
+limitation.
+
 \citet{li2026taxonomy} survey the space and note substantial inconsistency in
 how safety benchmarks define and measure success---a concern our
 Sections~\ref{sec:polarity} and~\ref{sec:ceiling} substantiate concretely.
 
 \subsection{Defences: prevention}
 
-\emph{Prevention} redesigns the agent so injected instructions cannot influence
-control flow. \textbf{CaMeL}~\citep{debenedetti2025camel} is the most thorough
-instance: it extracts the control flow from the trusted user query, tracks data
-provenance through a capability system, and refuses tool calls whose arguments
-carry untrusted taint into sensitive positions. This is strong but invasive---it
+\emph{Prevention} redesigns the agent, or retrains the model, so that injected
+instructions cannot influence control flow. It is worth separating three
+mechanisms, because each fails differently and each leaves a different residual
+role for monitoring.
+
+\paragraph{Marking provenance in the prompt.}
+\textbf{Spotlighting}~\citep{hines2024spotlighting} observes that an LLM receives
+multiple input sources concatenated into one token stream with no signal of which
+span came from where, and supplies that signal by transforming untrusted spans:
+delimiting them with explicit markers, \emph{datamarking} them by interleaving a
+reserved token throughout the untrusted text, or encoding them (e.g.\ base64) so
+that the model can still read them but their instruction-like surface form is
+disrupted. On GPT-family models this reduces attack success from above $50\%$ to
+below $2\%$ with little utility loss. The approach is attractively cheap---it is
+prompt engineering, requiring no training---but it relies on the model honouring
+the marking, which is a behavioural rather than an architectural guarantee.
+
+\paragraph{Changing the interface.}
+\textbf{StruQ}~\citep{chen2025struq} makes the sharpest conceptual argument in
+this literature. Prompt injection, they observe, is the latest instance of a
+recurring vulnerability class in which control and data share one channel:
+exactly as SQL injection arises because a query string mixes control with data,
+and cross-site scripting because an HTML page does, prompt injection arises
+because the LLM API is \emph{unsafe by design}, expecting developers to
+concatenate the prompt and the data. Their remedy is the analogue of prepared
+statements: a \emph{structured query} presenting instruction and data as two
+separate inputs, implemented by a filtering front-end using reserved delimiter
+tokens together with \emph{structured instruction tuning}, which fine-tunes the
+model on examples where instructions appear in the data portion and must be
+ignored. This drives manually-crafted attacks below $2\%$ and substantially
+weakens optimisation-based ones (TAP $97\% \to 9\%$).
+
+\paragraph{Aligning against the injection.}
+\textbf{SecAlign}~\citep{chen2025secalign} identifies the weakness of the
+fine-tuning approach: training only to \emph{prefer} the correct response
+underspecifies what an incorrect response looks like, so security does not
+generalise to unseen attacks---StruQ, they report, still exceeds $50\%$ attack
+success under an attack that optimises the injection. SecAlign therefore builds a
+preference dataset of (injected input, secure response, insecure response) triples
+and applies preference optimisation, so the model is explicitly steered
+\emph{away} from the injected response. This yields near-$0\%$ success against
+optimisation-free attacks and below $10\%$ against optimisation-based ones,
+improving on StruQ by more than a factor of four.
+
+\paragraph{Sanitising the content.}
+\textbf{CommandSans}~\citep{das2025commandsans} strips imperative content from
+tool outputs before the agent reads them, a lighter-weight route that requires no
+retraining.
+
+\paragraph{Enforcing provenance at the system level.}
+\textbf{CaMeL}~\citep{debenedetti2025camel} extracts the control flow from the
+trusted user query, tracks data provenance through a capability system, and
+refuses tool calls that carry untrusted taint into sensitive argument positions.
+This is the strongest guarantee of the group and the most invasive, since it
 requires rebuilding the agent around the defence.
-\textbf{CommandSans}~\citep{das2025commandsans} takes a lighter-weight route,
-sanitising tool outputs to strip imperative content before the agent reads them.
-Prevention and monitoring are complementary: prevention reduces the attack
-surface, monitoring provides an independent tripwire when prevention is absent or
-incomplete.
+
+\paragraph{Why monitoring remains necessary.}
+Every mechanism above modifies the agent or the model. That is often impossible:
+deployments frequently wrap a third-party model behind an API, cannot retrain it,
+and cannot re-architect a vendor's agent loop. Notably, \citet{chen2025secalign}
+explicitly scope their contribution to prevention and set detection-based defences
+aside; the two lines of work are therefore complementary rather than competing.
+Prevention narrows the attack surface; monitoring supplies an independent tripwire
+where prevention is absent, partial, or itself circumvented---and, unlike
+prevention, it produces an auditable record of what happened, which is what
+incident response needs.
 
 \subsection{Defences: detection}
 

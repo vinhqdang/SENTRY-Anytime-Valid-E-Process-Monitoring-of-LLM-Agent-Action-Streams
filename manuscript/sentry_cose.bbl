@@ -1,4 +1,4 @@
-\begin{thebibliography}{29}
+\begin{thebibliography}{34}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 \providecommand{\url}[1]{\texttt{#1}}
 \providecommand{\href}[2]{#2}
@@ -11,6 +11,22 @@
 \providecommand{\Pubmed}[1]{\href{pmid:#1}{\path{#1}}}
 \providecommand{\bibinfo}[2]{#2}
 \ifx\xfnm\relax \def\xfnm[#1]{\unskip,\space#1}\fi
+%Type = Inproceedings
+\bibitem[{Andriushchenko et~al.(2025)Andriushchenko, Souly, Dziemian, Duenas,
+  Lin, Wang, Hendrycks, Zou, Kolter, Fredrikson, Winsor, Wynne, Gal and
+  Davies}]{andriushchenko2025agentharm}
+\bibinfo{author}{Andriushchenko, M.}, \bibinfo{author}{Souly, A.},
+  \bibinfo{author}{Dziemian, M.}, \bibinfo{author}{Duenas, D.},
+  \bibinfo{author}{Lin, M.}, \bibinfo{author}{Wang, J.},
+  \bibinfo{author}{Hendrycks, D.}, \bibinfo{author}{Zou, A.},
+  \bibinfo{author}{Kolter, Z.}, \bibinfo{author}{Fredrikson, M.},
+  \bibinfo{author}{Winsor, E.}, \bibinfo{author}{Wynne, J.},
+  \bibinfo{author}{Gal, Y.}, \bibinfo{author}{Davies, X.},
+  \bibinfo{year}{2025}.
+\newblock \bibinfo{title}{Agentharm: A benchmark for measuring harmfulness of
+  llm agents}, in: \bibinfo{booktitle}{The Thirteenth International Conference
+  on Learning Representations (ICLR)}.
+\newblock \URLprefix \url{https://openreview.net/forum?id=AC5n7xHuR1}.
 %Type = Article
 \bibitem[{Belenky et~al.(2026)Belenky, Itria and Johns}]{belenky2026cheap}
 \bibinfo{author}{Belenky, I.}, \bibinfo{author}{Itria, J.},
@@ -19,6 +35,29 @@
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2606.08893} \URLprefix
   \url{https://arxiv.org/abs/2606.08893},
   \DOIprefix\doi{10.48550/arXiv.2606.08893}.
+%Type = Inproceedings
+\bibitem[{Chen et~al.(2025a)Chen, Piet, Sitawarin and Wagner}]{chen2025struq}
+\bibinfo{author}{Chen, S.}, \bibinfo{author}{Piet, J.},
+  \bibinfo{author}{Sitawarin, C.}, \bibinfo{author}{Wagner, D.},
+  \bibinfo{year}{2025}a.
+\newblock \bibinfo{title}{Struq: Defending against prompt injection with
+  structured queries}, in: \bibinfo{booktitle}{34th USENIX Security Symposium
+  (USENIX Security '25)}, \bibinfo{publisher}{USENIX Association}.
+\newblock \URLprefix
+  \url{https://www.usenix.org/conference/usenixsecurity25/presentation/chen-sizhe}.
+%Type = Inproceedings
+\bibitem[{Chen et~al.(2025b)Chen, Zharmagambetov, Mahloujifar, Chaudhuri,
+  Wagner and Guo}]{chen2025secalign}
+\bibinfo{author}{Chen, S.}, \bibinfo{author}{Zharmagambetov, A.},
+  \bibinfo{author}{Mahloujifar, S.}, \bibinfo{author}{Chaudhuri, K.},
+  \bibinfo{author}{Wagner, D.}, \bibinfo{author}{Guo, C.},
+  \bibinfo{year}{2025}b.
+\newblock \bibinfo{title}{Secalign: Defending against prompt injection with
+  preference optimization}, in: \bibinfo{booktitle}{Proceedings of the 2025 ACM
+  SIGSAC Conference on Computer and Communications Security (CCS '25)},
+  \bibinfo{publisher}{Association for Computing Machinery},
+  \bibinfo{address}{Taipei, Taiwan}.
+\newblock \DOIprefix\doi{10.1145/3719027.3744836}.
 %Type = Article
 \bibitem[{Das et~al.(2025)Das, Beurer-Kellner, Fischer and
   Baader}]{das2025commandsans}
@@ -76,6 +115,20 @@
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2601.05427} \URLprefix
   \url{https://arxiv.org/abs/2601.05427},
   \DOIprefix\doi{10.48550/arXiv.2601.05427}.
+%Type = Inproceedings
+\bibitem[{Greshake et~al.(2023)Greshake, Abdelnabi, Mishra, Endres, Holz and
+  Fritz}]{greshake2023notwhat}
+\bibinfo{author}{Greshake, K.}, \bibinfo{author}{Abdelnabi, S.},
+  \bibinfo{author}{Mishra, S.}, \bibinfo{author}{Endres, C.},
+  \bibinfo{author}{Holz, T.}, \bibinfo{author}{Fritz, M.},
+  \bibinfo{year}{2023}.
+\newblock \bibinfo{title}{Not what you've signed up for: Compromising
+  real-world llm-integrated applications with indirect prompt injection}, in:
+  \bibinfo{booktitle}{Proceedings of the 16th ACM Workshop on Artificial
+  Intelligence and Security (AISec '23)}, \bibinfo{publisher}{Association for
+  Computing Machinery}, \bibinfo{address}{Copenhagen, Denmark}. pp.
+  \bibinfo{pages}{79--90}.
+\newblock \DOIprefix\doi{10.1145/3605764.3623985}.
 %Type = Article
 \bibitem[{Gr\"unwald et~al.(2024)Gr\"unwald, de~Heide and
   Koolen}]{grunwald2024safetesting}
@@ -85,6 +138,18 @@
 \newblock \bibinfo{journal}{Journal of the Royal Statistical Society Series B:
   Statistical Methodology} \bibinfo{volume}{86}, \bibinfo{pages}{1091--1128}.
 \newblock \DOIprefix\doi{10.1093/jrsssb/qkae011}.
+%Type = Article
+\bibitem[{Hines et~al.(2024)Hines, Lopez, Hall, Zarfati, Zunger and
+  K{\i}c{\i}man}]{hines2024spotlighting}
+\bibinfo{author}{Hines, K.}, \bibinfo{author}{Lopez, G.},
+  \bibinfo{author}{Hall, M.}, \bibinfo{author}{Zarfati, F.},
+  \bibinfo{author}{Zunger, Y.}, \bibinfo{author}{K{\i}c{\i}man, E.},
+  \bibinfo{year}{2024}.
+\newblock \bibinfo{title}{Defending against indirect prompt injection attacks
+  with spotlighting}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2403.14720} \URLprefix
+  \url{https://arxiv.org/abs/2403.14720},
+  \DOIprefix\doi{10.48550/arXiv.2403.14720}.
 %Type = Inproceedings
 \bibitem[{Jia et~al.(2025)Jia, Wu, Qin and Squicciarini}]{jia2024taskshield}
 \bibinfo{author}{Jia, F.}, \bibinfo{author}{Wu, T.}, \bibinfo{author}{Qin, X.},
