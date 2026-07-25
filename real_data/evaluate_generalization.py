@@ -46,8 +46,10 @@ def _agentdojo(logdir: str):
     rows = [(t, m) for t, m in load_agentdojo_logs(ROOT / "agentdojo" / logdir) if len(t) >= MIN_ACTIONS]
     nominal = [(t, m) for t, m in rows if not m["is_attack"] and m.get("utility") is not None]
     attacks = [(t, m) for t, m in rows if m["is_attack"] and m.get("security") is not None]
-    succ = [x for x in attacks if x[1]["security"] is False]
-    resisted = [x for x in attacks if x[1]["security"] is True]
+    # security=True means the injection succeeded (agent compromised); see the
+    # note in real_data/evaluate.py.
+    succ = [x for x in attacks if x[1]["security"] is True]
+    resisted = [x for x in attacks if x[1]["security"] is False]
     return nominal, succ, resisted
 
 

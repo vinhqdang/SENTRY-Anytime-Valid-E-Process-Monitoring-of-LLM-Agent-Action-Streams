@@ -75,8 +75,13 @@ def load_all():
 
     nominal_agentdojo = [(t, m) for t, m in agentdojo if not m["is_attack"] and _complete(m)]
     attacks = [(t, m) for t, m in agentdojo if m["is_attack"] and m.get("security") is not None]
-    successful_attacks = [(t, m) for t, m in attacks if m["security"] is False]
-    resisted_attacks = [(t, m) for t, m in attacks if m["security"] is True]
+    # AgentDojo's `security` flag is the INJECTION task's success: True means the
+    # injection's goal was achieved, i.e. the agent WAS compromised. Verified
+    # empirically -- in the banking suite the only trajectories that actually
+    # wired money to the attacker's IBAN are exactly those with security=True
+    # (2/2), while all 46 that refused have security=False.
+    successful_attacks = [(t, m) for t, m in attacks if m["security"] is True]
+    resisted_attacks = [(t, m) for t, m in attacks if m["security"] is False]
 
     nominal = nominal_agentdojo + taubench
     return nominal, successful_attacks, resisted_attacks
