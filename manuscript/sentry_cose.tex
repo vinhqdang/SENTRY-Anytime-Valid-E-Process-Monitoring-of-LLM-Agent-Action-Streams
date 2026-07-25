@@ -165,8 +165,9 @@ the finding that a hand-picked threshold dominates the anytime-valid e-detector
 we started from, which we report rather than omit.
 \end{enumerate}
 
-Everything in the paper is reproducible from committed data with no API access:
-\texttt{./reproduce.sh} regenerates every number and figure.
+Every number and figure reported here is reproducible from the released corpora
+without any model API access, since all trajectories and cached judge scores are
+published alongside the code.
 
 %======================================================================
 \section{Background and Related Work}\label{sec:related}
@@ -428,20 +429,44 @@ ourselves, as Section~\ref{sec:polarity} describes.
 %======================================================================
 \section{Method}\label{sec:method}
 
+Figure~\ref{fig:overview} summarises the monitor. Each action of the live trace is
+scored by four signals drawn from two distinct evidence channels; each raw score
+is converted to a conformal tail surprisal against a benign calibration split; the
+surprisals are summed and compared against a threshold; and when the monitor
+fires, the dominant term names the reason. The remainder of this section defines
+each stage.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/overview.pdf}
+\caption{Overview of SENTRY-Fuse. Four signals are computed per action from two
+distinct evidence channels: the \emph{observation} channel (S1, S2) asks whether
+untrusted content is behaving like an instruction, while the \emph{action} channel
+(S3, S4) asks whether the agent's behaviour serves the user's request. Each raw
+score is mapped to a conformal tail surprisal against a benign calibration split,
+which makes the heterogeneous signals commensurable and---unlike the
+excess-over-maximum alternative of Proposition~\ref{prop:clip}---cannot annihilate
+a component. The surprisals are summed and thresholded; on an alarm the largest
+term, $\arg\max_k \psi_k$, names the signal that fired, which gives the operator an
+actionable reason rather than a bare alert.}
+\label{fig:overview}
+\end{figure}
+
 \subsection{Signals}
 
-We compute four per-action signals. Two score the observation stream, asking
-whether untrusted content is behaving like an instruction; two score the action
-stream, asking whether the agent's behaviour serves the user.
+We compute four per-action signals. Signals S1 and S2 score the
+\emph{observation} stream, asking whether untrusted content is behaving like an
+instruction; S3 and S4 score the \emph{action} stream, asking whether the agent's
+behaviour serves the user.
 
-\paragraph{S1: tool-transition surprise (observation side, behavioural).}
+\paragraph{S1: tool-transition surprise.}
 A Laplace-smoothed bigram model over consecutive tool names, fitted on benign
 traces, gives
 \begin{equation}
-s^{\mathrm{tr}}_t = -\log \hat{P}(\text{tool}(a_t) \mid \text{tool}(a_{t-1})).
+s^{\mathrm{tr}}_t = -\log \hat{P}\big(\mathrm{tool}(a_t) \mid \mathrm{tool}(a_{t-1})\big).
 \end{equation}
 
-\paragraph{S2: instruction-likeness of the observation.}
+\paragraph{S2: observation instruction-likeness.}
 Let $\mathrm{IL}(o)$ score how strongly a tool output reads as a directive
 addressed to the agent. We evaluate two instantiations. The \emph{lexicon}
 variant is a weighted per-word density of imperative verbs, second-person
@@ -450,7 +475,7 @@ small LLM with the observation alone and takes a normalised integer rating.
 Section~\ref{sec:ablation} compares them; the judge generalises better across
 attack templates, at the price of one cached model call per distinct observation.
 
-\paragraph{S3: action-justification audit (action side).}
+\paragraph{S3: action-justification audit.}
 Given only the user request $u$, the tool name and its arguments---and
 \emph{never} the observations---an LLM judge rates how far the call fails to
 serve $u$:
@@ -461,7 +486,7 @@ Withholding the observations is a deliberate design choice: it prevents the audi
 from simply re-detecting the injected text, so S3 is not a restatement of S2 and
 the two may be fused without circularity.
 
-\paragraph{S4: sensitive-sink provenance (action side).}
+\paragraph{S4: sensitive-sink provenance.}
 A conjunctive, per-value rule that fires when the agent performs an
 externally-effectful call whose critical argument traces to untrusted prose:
 \begin{equation}
@@ -655,16 +680,19 @@ independently of everything else.
 \centering
 \caption{Trajectory corpora, with the \emph{corrected} label polarity of
 Section~\ref{sec:polarity}: \emph{compromised} means the injection task
-succeeded. Counts are after a two-action minimum filter.}
+succeeded. Counts are after a two-action minimum filter. ``imp.\ instr.''\ is
+AgentDojo's \texttt{important\_instructions} template; the DeepSeek agent is
+DeepSeek-V4-Flash.}
 \label{tab:corpus}
+\small
 \begin{tabular}{@{}llrrrr@{}}
 \toprule
-Agent & Attack family & Benign & Attacks & Compromised & Resisted \\
+Agent & Attack family & Benign & Attacks & Comp. & Resist. \\
 \midrule
-DeepSeek-V4-Flash & \texttt{important\_instructions} & 71 & 198 & 18 (9\%) & 180 \\
-DeepSeek-V4-Flash & InjecAgent & --- & 42 & \textbf{0 (0\%)} & 42 \\
-GPT-4o-mini & \texttt{important\_instructions} & 70 & 153 & 72 (47\%) & 81 \\
-$\tau$-bench retail (DeepSeek) & none & 50 & --- & --- & --- \\
+DeepSeek & imp.\ instr. & 71 & 198 & 18 (9\%) & 180 \\
+DeepSeek & InjecAgent & --- & 42 & \textbf{0 (0\%)} & 42 \\
+GPT-4o-mini & imp.\ instr. & 70 & 153 & 72 (47\%) & 81 \\
+$\tau$-bench retail & none & 50 & --- & --- & --- \\
 \midrule
 \multicolumn{2}{@{}l}{\textbf{Total}} & \textbf{191} & \textbf{393} & \textbf{90} & \textbf{303} \\
 \bottomrule
@@ -808,9 +836,11 @@ detector.
 \caption{Compromise detection, ten seeds, mean $\pm$ std, with calibration and
 threshold fitted on a held-out benign half. Best fused row in bold.}
 \label{tab:fused}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}lccc@{}}
 \toprule
-Detector & AUROC & TPR @ $3.66\%$ FPR & TPR @ $5\%$ FPR \\
+Detector & AUROC & TPR@$3.66\%$ & TPR@$5\%$ \\
 \midrule
 \multicolumn{4}{@{}l}{\emph{GPT-4o-mini: 72 compromised / 70 benign}} \\
 S2 instruction only          & $0.955 \pm 0.017$ & $0.825 \pm 0.279$ & $0.825 \pm 0.279$ \\
@@ -879,13 +909,14 @@ compromised.
 labels. ``---'' marks a cell with no compromised trajectories, where compromise
 detection is undefined.}
 \label{tab:generalisation}
+\small
 \begin{tabular}{@{}llrrcc@{}}
 \toprule
-Agent & Attack family & Comp. & Resisted & Attempt det. & Attempt AUROC \\
+Agent & Attack family & Comp. & Resist. & Att.\ det. & Att.\ AUROC \\
 \midrule
-DeepSeek & \texttt{important\_instructions} & 18 & 180 & $0.65$ & $0.76$ \\
-DeepSeek & InjecAgent                       & 0  & 42  & $0.52$ & $0.71$ \\
-GPT-4o-mini & \texttt{important\_instructions} & 72 & 81 & $0.74$ & $0.82$ \\
+DeepSeek & imp.\ instr. & 18 & 180 & $0.65$ & $0.76$ \\
+DeepSeek & InjecAgent   & 0  & 42  & $0.52$ & $0.71$ \\
+GPT-4o-mini & imp.\ instr. & 72 & 81 & $0.74$ & $0.82$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -909,6 +940,7 @@ invert the ranking of scorers.
 seeds. The conformal transform is required for the semantic judge to be usable at
 all.}
 \label{tab:normablation}
+\small
 \begin{tabular}{@{}llcc@{}}
 \toprule
 Scorer & Normalisation & \texttt{important\_instr.} & InjecAgent \\
@@ -965,9 +997,9 @@ output $o_t$ that the monitor sees.
 whose arguments reflect the adversary's goal.
 \end{itemize}
 
-If a compromise leaves evidence in neither channel, its trace is---by
-construction---indistinguishable from that of a benign trajectory performing the
-same reads.
+If a compromise leaves evidence in neither channel, then by construction its
+trace cannot be told apart from that of a benign trajectory performing the same
+reads.
 
 \begin{assumption}[Trace indistinguishability]\label{ass:indist}
 For every compromised trajectory whose trace exhibits neither channel, there
@@ -1096,6 +1128,7 @@ and swept each rule's knob (Table~\ref{tab:longhorizon}).
 \caption{Long-horizon false alarms on $1000$-action benign streams, ten seeds,
 identical signal. A hand-picked threshold dominates the e-detector on both axes.}
 \label{tab:longhorizon}
+\small
 \begin{tabular}{@{}lrrr@{}}
 \toprule
 Decision rule & False alarms / 1k & ARL to first & Attack det. \\
@@ -1240,10 +1273,13 @@ sees.
 %======================================================================
 \section*{Data availability}
 
-All code, the collected trajectory corpora, cached judge scores, and scripts that
-regenerate every number and figure are available at
-\url{https://github.com/vinhqdang/SENTRY-Anytime-Valid-E-Process-Monitoring-of-LLM-Agent-Action-Streams}.
-\texttt{./reproduce.sh} reproduces the paper offline from committed data.
+All code, the collected trajectory corpora, the cached judge scores and the
+analysis scripts that regenerate every number, table and figure in this paper are
+publicly available in the project's GitHub repository, under the account
+\texttt{vinhqdang}.\footnote{\raggedright
+\url{https://github.com/vinhqdang/SENTRY-Anytime-Valid-E-Process-Monitoring-of-LLM-Agent-Action-Streams}}
+Because the trajectories and the judge scores are released together with the code,
+the complete evaluation reproduces offline, without access to any model API.
 
 \section*{Declaration of competing interest}
 
