@@ -46,6 +46,31 @@ from sentry.scores import Action, Context, Trajectory, instruction_likeness
 #                          the cache, so a partial cache degrades gracefully.
 IL_MODE = os.environ.get("SENTRY_IL_MODE", "lexicon")
 _LLM_CACHE: dict[str, float] | None = None
+# Action-justification audit (sentry.llm_judge.score_actions). Enabled with
+# SENTRY_JUSTIFY=1; reads the committed cache, so it needs no API at eval time.
+JUSTIFY_ON = os.environ.get("SENTRY_JUSTIFY", "0") == "1"
+_JUSTIFY_CACHE: dict[str, float] | None = None
+
+
+def _action_unjustified(user_task: str, tool: str, args) -> float:
+    if not JUSTIFY_ON:
+        return 0.0
+    global _JUSTIFY_CACHE
+    if _JUSTIFY_CACHE is None:
+        from sentry.llm_judge import JUSTIFY_CACHE
+
+        _JUSTIFY_CACHE = json.loads(JUSTIFY_CACHE.read_text()) if JUSTIFY_CACHE.exists() else {}
+    from sentry.llm_judge import justify_key
+
+    args_json = args if isinstance(args, str) else json.dumps(args, sort_keys=True, default=str)
+    return _JUSTIFY_CACHE.get(justify_key(user_task, tool, args_json[:400]), 0.0)
+
+
+def _first_user_text(messages) -> str:
+    for m in messages:
+        if m.get("role") == "user":
+            return " ".join(str(_content_text(m.get("content"))).split())[:600]
+    return ""
 
 
 def _obs_instruction_score(text: str) -> float:
@@ -132,6 +157,7 @@ def agentdojo_log_to_trajectory(log: dict, task_key: Any) -> tuple[Trajectory, d
     # embeds one as a field value), which re-wraps/re-indents its newlines.
     # Whitespace-normalize both sides so the substring match survives that.
     injected_strings = [_alnum(v) for v in injections.values() if isinstance(v, str) and v.strip()]
+    user_task = _first_user_text(log["messages"])
 
     tools_seen: set[str] = set()
     actions: list[tuple[str, Any, str]] = []
@@ -162,6 +188,7 @@ def agentdojo_log_to_trajectory(log: dict, task_key: Any) -> tuple[Trajectory, d
                 features=_hash_features(a, obs),
                 tokens=_arg_tokens(a),
                 obs_instruction_likeness=_obs_instruction_score(obs),
+                unjustified=_action_unjustified(user_task, n, a),
             ),
         )
         for n, a, obs in actions
@@ -201,6 +228,7 @@ def taubench_entry_to_trajectory(entry: dict, task_key: Any) -> tuple[Trajectory
     tools_seen: set[str] = set()
     actions: list[tuple[str, Any, str]] = []
     last_observation = ""
+    user_task = _first_user_text(entry.get("traj", []))
     for m in entry.get("traj", []):
         if m.get("role") == "tool":
             last_observation = str(m.get("content") or "")
@@ -226,6 +254,7 @@ def taubench_entry_to_trajectory(entry: dict, task_key: Any) -> tuple[Trajectory
                 features=_hash_features(a, obs),
                 tokens=_arg_tokens(a),
                 obs_instruction_likeness=_obs_instruction_score(obs),
+                unjustified=_action_unjustified(user_task, n, a),
             ),
         )
         for n, a, obs in actions

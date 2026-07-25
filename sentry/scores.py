@@ -100,6 +100,13 @@ class Action:
     """instruction_likeness() of the tool observation immediately preceding
     this action -- the injection signal, computed by the log adapter which
     owns the raw observation text (algorithm.md §2's H_{t-1} conditioning)."""
+    unjustified: float = 0.0
+    """How much this action fails to serve the user's stated request, in
+    [0, 1], from the action-justification audit (sentry.llm_judge). Whereas
+    obs_instruction_likeness scores the *observation* (is untrusted text trying
+    to instruct?), this scores the *action* (did the user ask for this?) and so
+    keys on the attack's effect rather than its wording. Zero when no audit is
+    available."""
 
 
 Trajectory = Sequence[tuple[Context, Action]]
@@ -232,10 +239,12 @@ class SequentialWorldModel:
         novelty_weight: float = 4.0,
         instruction_weight: float = 4.0,
         instruction_transform: str = "conformal",
+        unjustified_weight: float = 4.0,
     ) -> None:
         self.laplace_alpha = laplace_alpha
         self.novelty_weight = novelty_weight
         self.instruction_weight = instruction_weight
+        self.unjustified_weight = unjustified_weight
         # How the raw observation instruction-likeness is turned into an
         # anomaly score. "excess_max" subtracts the largest value seen in
         # nominal training data; that is many-to-one below the ceiling, so a
@@ -316,19 +325,25 @@ class SequentialWorldModel:
         n_ge = n - int(np.searchsorted(self._instr_nominal, x, side="left"))
         return float(-math.log((1.0 + n_ge) / (n + 1.0)))
 
-    SIGNALS = ("transition", "novelty", "instruction")
+    SIGNALS = ("transition", "novelty", "instruction", "unjustified")
 
     def signal_vector(self, context: Context, history: Trajectory, action: Action) -> dict[str, float]:
-        """The three anomaly signals for this action, unweighted and
-        un-summed -- the input to a per-signal e-value mixture
+        """The anomaly signals for this action, unweighted and un-summed --
+        the input to a per-signal e-value mixture
         (sentry.baseline.MultiSignalConformalIncrement), where each signal
         becomes its own Ville-valid e-detector component with independent
-        attribution. Higher = more anomalous for every signal."""
+        attribution. Higher = more anomalous for every signal.
+
+        Three signals score the *observation stream* (was untrusted content
+        anomalous or directive?); ``unjustified`` scores the *action* against
+        the user's stated task, which keys on an injection's effect rather than
+        its wording and is therefore the attack-template-agnostic term."""
         prev = history[-1][1].tool if history else _START_TOOL
         return {
             "transition": -self.tool_log_prob(prev, action.tool),
             "novelty": self.novelty_fraction(action),
             "instruction": self.instruction_excess(action),
+            "unjustified": float(action.unjustified),
         }
 
     def surprise(self, context: Context, history: Trajectory, action: Action) -> float:
@@ -341,6 +356,7 @@ class SequentialWorldModel:
             v["transition"]
             + self.novelty_weight * v["novelty"]
             + self.instruction_weight * v["instruction"]
+            + self.unjustified_weight * v["unjustified"]
         )
         return float(min(s, _MAX_SURPRISE))
 
