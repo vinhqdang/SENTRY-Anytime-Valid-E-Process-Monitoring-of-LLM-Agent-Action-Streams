@@ -1,0 +1,1173 @@
+\documentclass[preprint,12pt,authoryear]{elsarticle}
+
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}{Remark}
+\newtheorem{example}{Example}
+
+\newcommand{\Ecal}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Ind}{\mathbf{1}}
+\newcommand{\Tcal}{\mathcal{T}}
+\newcommand{\Dcal}{\mathcal{D}}
+\newcommand{\Ccal}{\mathcal{C}}
+\newcommand{\Bcal}{\mathcal{B}}
+
+\journal{Computers \& Security}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Breaking the Observation Ceiling: Conformal Fusion of
+Trace Signals for Detecting Prompt-Injection Compromise in LLM Agents}
+
+\author[buv]{Quang-Vinh Dang}
+\ead{vinh.dq4@buv.edu.vn}
+\affiliation[buv]{organization={British University Vietnam},
+                  city={Hung Yen}, country={Vietnam}}
+
+\begin{abstract}
+Large language model (LLM) agents that call external tools ingest untrusted
+content and fold it into the context that drives their next action, exposing
+them to indirect prompt injection. Runtime monitors that watch the agent's
+black-box execution trace are attractive because they are model-agnostic and
+cheap, but the literature has converged on a single family of evidence:
+detecting whether untrusted text \emph{looks like an instruction}. We show that
+this choice imposes a hard information limit and that crossing it requires a
+different kind of evidence.
+
+We make four contributions. First, we introduce \textbf{SENTRY-Fuse}, a monitor
+that converts heterogeneous trace signals---two that score the \emph{observation}
+stream and two that score the \emph{action} stream---into conformal tail
+surprisals against a benign calibration split and fuses them additively. The
+construction is scale-free, strictly monotone in every component, and requires
+no tuned weights; we prove that these properties are exactly what a fusion rule
+needs, and we exhibit a widely-used alternative normalisation that provably
+destroys signal. Second, we show that action-side evidence is
+\emph{complementary} rather than redundant: on the pooled corpus SENTRY-Fuse
+attains a true-positive rate of $0.902$ at a $3.66\%$ false-positive rate,
+strictly above the $0.867$ attainable from payload visibility alone, and on a
+matched GPT-4o-mini corpus it reaches $0.960 \pm 0.010$, exceeding the strongest
+published trace-only figure ($0.9575$). Third, we characterise the
+\textbf{detectability ceiling} of trace-only monitoring: over $90$ genuinely
+compromised trajectories, $7.8\%$ leave no trace evidence whatsoever, bounding
+every such monitor at $0.922$---a bound that published numbers above $0.92$ on
+this benchmark exceed and must therefore explain. Fourth, we document a
+label-polarity pitfall in the standard AgentDojo harness that inverts the
+compromised and resisted classes, which silently inverted our own results, and
+we give the ground-truth procedure that settles it. We report our negative
+results in full, including three rejected signals and the finding that a
+hand-tuned threshold dominates the anytime-valid e-detector we began from. All
+code, trajectories and scripts are released.
+\end{abstract}
+
+\begin{keyword}
+LLM agents \sep indirect prompt injection \sep runtime monitoring \sep
+conformal prediction \sep anomaly detection \sep AI agent security
+\end{keyword}
+
+\end{frontmatter}
+
+%======================================================================
+\section{Introduction}\label{sec:intro}
+
+Autonomous agents built on large language models now read email, browse the web,
+query databases and move money on a user's behalf. To act, they consume
+\emph{untrusted} content---web pages, documents, tool outputs---and fold it
+directly into the context that determines their next tool call. This is the
+attack surface exploited by \emph{indirect prompt injection}: an adversary plants
+an instruction inside data the agent will later read, and the agent, unable to
+separate trusted instructions from untrusted data, follows
+it~\citep{zhan2024injecagent,debenedetti2024agentdojo}. As agents move from demos
+into production, a runtime monitor---something that watches the live execution
+trace and halts or escalates when behaviour departs from what is safe---becomes
+as important as the agent itself.
+
+Monitors that observe only the black-box trace are especially attractive in
+practice. They need no access to model weights or activations, they impose no
+retraining cost, they compose with whichever model a deployment happens to use,
+and they can be dropped in front of a third-party agent. A substantial line of
+work therefore builds detectors over traces~\citep{wang2025agentarmor,
+liu2025datasentinel,jia2024taskshield}. Almost all of it, however, rests on one
+kind of evidence: examining the untrusted content the agent read and asking
+whether it \emph{looks like an instruction}. Keyword and perplexity heuristics do
+this lexically; fine-tuned detectors and LLM judges do it semantically.
+
+\paragraph{The observation that started this work.} We began from that same
+premise and built a monitor on it. It performed well on the standard benchmark
+attack and then collapsed, to chance, when we changed the attack template. Our
+first explanation was that the new attack was phrased too subtly. That
+explanation was \emph{wrong}: the new payloads were, if anything, more
+imperative, and they appeared in the trace more often. The collapse came from our
+own normalisation step. Diagnosing that failure honestly led us to a more
+general question, which organises this paper:
+
+\begin{quote}
+\emph{What, exactly, can a monitor learn from a black-box agent trace, and where
+does that information run out?}
+\end{quote}
+
+Answering it requires separating two objectives that the literature routinely
+conflates. \emph{Attempt detection} asks whether untrusted instructions entered
+the agent's context at all; \emph{compromise detection} asks whether the agent
+actually did the attacker's bidding. They have different positive classes,
+different ceilings, and---as we show---different optimal evidence. A monitor
+tuned for the first is not automatically good at the second.
+
+\paragraph{Contributions.} Our contributions are as follows.
+
+\begin{enumerate}
+\item \textbf{SENTRY-Fuse, a conformal fusion monitor}
+(Section~\ref{sec:method}). We combine four trace signals---two scoring the
+observation stream and two scoring the action stream---by mapping each to its
+conformal tail surprisal against a benign calibration split and summing. We show
+(Propositions~\ref{prop:valid}--\ref{prop:mono}) that the construction is
+distribution-free valid, scale-free and strictly monotone in every component, and
+that the excess-over-maximum normalisation used in an earlier version of this
+work is many-to-one and can annihilate an entire attack family---which it did,
+measurably (Section~\ref{sec:clipping}).
+
+\item \textbf{Action-side evidence is complementary, not redundant}
+(Section~\ref{sec:results}). Signals that audit \emph{what the agent did} carry
+information that signals scoring \emph{what the agent read} cannot. The fused
+monitor exceeds the payload-visibility ceiling, and on a matched corpus it
+exceeds the strongest published trace-only number.
+
+\item \textbf{The detectability ceiling of trace-only monitoring}
+(Section~\ref{sec:ceiling}). We formalise and measure the limit: some successful
+injections leave no trace evidence at all, capping any trace-only detector.
+Theorem~\ref{thm:ceiling} makes the bound precise; empirically it is $0.922$,
+and we reach $97.8\%$ of it.
+
+\item \textbf{Methodological findings and honest negatives}
+(Sections~\ref{sec:polarity} and~\ref{sec:negatives}). We document an
+label-polarity trap in the standard evaluation harness that inverts the
+compromised and resisted classes; three signals we implemented and rejected; and
+the finding that a hand-picked threshold dominates the anytime-valid e-detector
+we started from, which we report rather than omit.
+\end{enumerate}
+
+Everything in the paper is reproducible from committed data with no API access:
+\texttt{./reproduce.sh} regenerates every number and figure.
+
+%======================================================================
+\section{Background and Related Work}\label{sec:related}
+
+\subsection{Indirect prompt injection}
+
+Direct prompt injection manipulates the user-supplied prompt; \emph{indirect}
+prompt injection is the more dangerous variant for agents, because the adversary
+never talks to the agent at all. Instead they plant text in a resource---a web
+page, a shared document, an email body, a calendar invitation---that the agent
+will retrieve while pursuing a legitimate task. When the retrieved content enters
+the context window, the model has no reliable mechanism for distinguishing
+"data I was asked to process" from "instructions I should follow", and it may
+execute the planted directive~\citep{zhan2024injecagent}. The consequences scale
+with the agent's privileges: an agent that can send email can exfiltrate; an
+agent that can move money can steal.
+
+\citet{wallace2024instructionhierarchy} argue that the root cause is the absence
+of a privilege ordering over instruction sources, and train models to respect an
+explicit \emph{instruction hierarchy}. This mitigates but does not eliminate the
+problem, since the model must still infer which span of a long context is
+privileged. \citet{nasr2025attackersecond} show that defences evaluated only
+against static attacks tend to collapse under adaptive attacks that optimise
+against the defence, and argue that adaptive evaluation should be the norm---a
+caution we take seriously in Section~\ref{sec:limitations}.
+
+\subsection{Benchmarks for agent security}
+
+Progress here is benchmark-driven, and the choice of benchmark determines what
+"detection" even means.
+
+\textbf{AgentDojo}~\citep{debenedetti2024agentdojo} is the most widely used
+harness for our setting. It provides four tool environments (banking, workspace,
+travel, Slack), a set of \emph{user tasks} defining legitimate goals, and a set of
+\emph{injection tasks} defining attacker goals, together with attack templates
+that place the attacker's directive into environment content. Crucially, it scores
+two things separately: \emph{utility}, whether the user's task was accomplished,
+and \emph{security}, whether the \emph{injection} task's goal was accomplished.
+Section~\ref{sec:polarity} shows that the direction of this second flag is easy
+to invert, with severe consequences.
+
+\textbf{InjecAgent}~\citep{zhan2024injecagent} contributes a distinct family of
+injection templates aimed at tool-integrated agents, which we use to test whether
+a detector generalises beyond the template it was developed on.
+\textbf{$\tau$-bench}~\citep{yao2024taubench} supplies realistic benign
+multi-turn tool-use trajectories in customer-service domains; it has no attack
+suite, so we use it purely to enlarge and diversify the benign reference.
+\textbf{WebArena}~\citep{zhou2023webarena} provides realistic web environments
+and is complementary but not injection-focused.
+\citet{li2026taxonomy} survey the space and note substantial inconsistency in
+how safety benchmarks define and measure success---a concern our
+Sections~\ref{sec:polarity} and~\ref{sec:ceiling} substantiate concretely.
+
+\subsection{Defences: prevention}
+
+\emph{Prevention} redesigns the agent so injected instructions cannot influence
+control flow. \textbf{CaMeL}~\citep{debenedetti2025camel} is the most thorough
+instance: it extracts the control flow from the trusted user query, tracks data
+provenance through a capability system, and refuses tool calls whose arguments
+carry untrusted taint into sensitive positions. This is strong but invasive---it
+requires rebuilding the agent around the defence.
+\textbf{CommandSans}~\citep{das2025commandsans} takes a lighter-weight route,
+sanitising tool outputs to strip imperative content before the agent reads them.
+Prevention and monitoring are complementary: prevention reduces the attack
+surface, monitoring provides an independent tripwire when prevention is absent or
+incomplete.
+
+\subsection{Defences: detection}
+
+\emph{Detection} leaves the agent untouched and raises an alarm from a score.
+\textbf{DataSentinel}~\citep{liu2025datasentinel} fine-tunes an LLM to detect
+contaminated inputs, formulated as a minimax game so that the detector is trained
+against adaptive evasion. \textbf{Task Shield}~\citep{jia2024taskshield} checks
+each action for alignment with the user's stated task---conceptually the closest
+prior work to our action-side signal, though it is used as a standalone gate
+rather than as one calibrated component of a fused statistic.
+\textbf{MELON}~\citep{zhu2025melon} detects injection by re-executing the
+trajectory with a masked user prompt and comparing the resulting tool calls, on
+the principle that a hijacked action recurs even when the real task is removed;
+this is powerful but pays a full agent re-run per check.
+
+\textbf{AgentArmor}~\citep{wang2025agentarmor} is the strongest published
+\emph{trace-only} detector and our reference point. It lifts the agent trace into
+a program representation---control-flow, data-flow and program-dependence
+graphs---and enforces typed security policies over it, reporting $95.75\%$ true
+positives at a $3.66\%$ false-positive rate. Because it reasons about which
+untrusted value flowed into which argument of which tool, it is structurally
+different from a scalar text score, and Section~\ref{sec:ceiling} argues that its
+reported operating point exceeds what the trace alone can support on the corpus
+we study, which is informative about how such numbers should be interpreted.
+
+Recent work also monitors adjacent failure modes: \citet{belenky2026cheap} detect
+reward hacking cheaply, \citet{thaman2026rewardhacking} benchmark tool-use
+exploits, and \citet{opoku2026toolchain} apply conformal risk control to
+retrieval and tool-use drift.
+
+\subsection{Distribution-free calibration and anytime-valid inference}
+
+Our fusion rule is built from conformal $p$-values. Conformal
+prediction~\citep{vovk2022algorithmic} converts any real-valued score into a
+distribution-free valid $p$-value using only exchangeability of a calibration
+sample, which is what lets us combine signals living on incompatible scales
+without distributional assumptions.
+
+The project began in the adjacent literature on \emph{anytime-valid} inference.
+E-values and e-processes~\citep{vovk2021evalues,ramdas2023gametheoretic,
+grunwald2024safetesting} support continuous monitoring: a non-negative process
+whose expectation is bounded under the null can be inspected at every step, and
+thresholding it at $1/\alpha$ controls error at level $\alpha$ at every stopping
+time by Ville's inequality. \citet{shin2023edetectors} extend this to sequential
+\emph{change} detection with e-detectors, whose average-run-length guarantee
+holds with no independence assumption---attractive here, because an agent's
+actions are profoundly dependent. \citet{sadhuka2025evaluator} note that when the
+reference is \emph{learned} the process is no longer an exact e-process and supply
+a PAC-style thresholding correction, and
+\citet{waudbysmith2023betting,page1954cusum,lorden1971procedures} provide the
+betting and classical change-detection background.
+Several 2026 works apply anytime-valid ideas to LLM
+systems~\citep{xie2026sequential,li2026whodrifted,gauthier2026strategic} and
+conformal ideas to agent error attribution~\citep{feng2026conformalattribution}.
+
+We retain conformal calibration, which does real work in our method, but
+Section~\ref{sec:longhorizon} reports that the sequential e-detector machinery
+did \emph{not} outperform a hand-picked threshold at the data scales we could
+reach. We therefore present it as one calibration option rather than as the
+paper's contribution---a demotion the evidence forced.
+
+%======================================================================
+\section{Threat Model and Problem Setup}\label{sec:setup}
+
+\subsection{Agent execution traces}
+
+An agent pursues a user request $u$ by interleaving tool calls and tool results.
+We write a trace of length $T$ as
+\begin{equation}
+\Tcal = \big( (o_0, a_1), (o_1, a_2), \dots, (o_{T-1}, a_T) \big),
+\end{equation}
+where $a_t$ is the $t$-th action (a tool name together with its arguments) and
+$o_{t-1}$ is the tool output the agent observed immediately before choosing
+$a_t$. A monitor sees $u$ and $\Tcal$ and nothing else: no model weights, no
+activations, no logits. We deliberately exclude the agent's own
+natural-language messages, both because they are not always available in
+production logging and to keep the setting comparable to prior trace-only
+work; Section~\ref{sec:limitations} shows this exclusion is exactly what the
+residual undetectable cases exploit.
+
+\subsection{Adversary}
+
+The adversary controls the textual content of one or more environment resources
+that the agent may retrieve, and nothing else. They cannot modify $u$, the tool
+implementations, the model, or the monitor. Their goal is to cause the agent to
+execute an \emph{injection task}: an action sequence serving the adversary rather
+than the user. This is the standard indirect-prompt-injection
+model~\citep{debenedetti2024agentdojo}.
+
+\subsection{Two distinct detection objectives}
+
+\begin{definition}[Attempt detection]
+A trace is \emph{attempt-positive} if injected adversarial content entered the
+agent's context, whether or not the agent complied.
+\end{definition}
+
+\begin{definition}[Compromise detection]
+A trace is \emph{compromise-positive} if the agent actually accomplished the
+adversary's injection task.
+\end{definition}
+
+Both are legitimate targets. Attempt detection suits a guardrail that should
+escalate whenever untrusted instructions reach the context, since an agent that
+resisted today may not tomorrow. Compromise detection suits incident response and
+is the harder, more consequential question. The two differ sharply in practice:
+in our corpus a capable agent resists most attempts, so the attempt-positive
+class is an order of magnitude larger than the compromise-positive class. Results
+for one must never be reported as results for the other---a confusion we made
+ourselves, as Section~\ref{sec:polarity} describes.
+
+%======================================================================
+\section{Method}\label{sec:method}
+
+\subsection{Signals}
+
+We compute four per-action signals. Two score the observation stream, asking
+whether untrusted content is behaving like an instruction; two score the action
+stream, asking whether the agent's behaviour serves the user.
+
+\paragraph{S1: tool-transition surprise (observation side, behavioural).}
+A Laplace-smoothed bigram model over consecutive tool names, fitted on benign
+traces, gives
+\begin{equation}
+s^{\mathrm{tr}}_t = -\log \hat{P}(\text{tool}(a_t) \mid \text{tool}(a_{t-1})).
+\end{equation}
+
+\paragraph{S2: instruction-likeness of the observation.}
+Let $\mathrm{IL}(o)$ score how strongly a tool output reads as a directive
+addressed to the agent. We evaluate two instantiations. The \emph{lexicon}
+variant is a weighted per-word density of imperative verbs, second-person
+pronouns, pseudo-markup and exclamation marks. The \emph{judge} variant queries a
+small LLM with the observation alone and takes a normalised integer rating.
+Section~\ref{sec:ablation} compares them; the judge generalises better across
+attack templates, at the price of one cached model call per distinct observation.
+
+\paragraph{S3: action-justification audit (action side).}
+Given only the user request $u$, the tool name and its arguments---and
+\emph{never} the observations---an LLM judge rates how far the call fails to
+serve $u$:
+\begin{equation}
+s^{\mathrm{aj}}_t = \mathrm{Unjustified}(u,\, a_t) \in [0,1].
+\end{equation}
+Withholding the observations is a deliberate design choice: it prevents the audit
+from simply re-detecting the injected text, so S3 is not a restatement of S2 and
+the two may be fused without circularity.
+
+\paragraph{S4: sensitive-sink provenance (action side).}
+A conjunctive, per-value rule that fires when the agent performs an
+externally-effectful call whose critical argument traces to untrusted prose:
+\begin{equation}
+s^{\mathrm{sp}}_t = \Ind\big[\, \mathrm{Sink}(a_t) \wedge \exists v \in
+\mathrm{Ids}(a_t):\ v \notin u \ \wedge\ \mathrm{FirstSeenInProse}(v) \,\big].
+\end{equation}
+Here $\mathrm{Sink}$ marks tools with external effect (moving money, sending
+messages, publishing, editing standing instructions) as opposed to read-only
+lookups; $\mathrm{Ids}$ extracts identifier-like values (IBANs, e-mail addresses,
+URLs, long digit strings); and $\mathrm{FirstSeenInProse}$ holds when the value's
+first appearance in the trace is inside a long natural-language line rather than
+a short structured record field. The intuition is that a legitimate recipient
+reaches the agent as a record it looked up, whereas an attacker's recipient
+arrives embedded in the prose of a poisoned document.
+
+\subsection{Why naive normalisation fails}\label{sec:clipping}
+
+The four signals live on incompatible scales: $s^{\mathrm{tr}}$ is in nats and
+unbounded, $s^{\mathrm{aj}}$ lies in $[0,1]$, $s^{\mathrm{sp}}$ is binary.
+Summing them raw lets the widest-ranged term dominate. A natural fix, and the one
+an earlier version of this work used, is to subtract the largest value observed in
+benign training data,
+\begin{equation}\label{eq:excess}
+\phi_{\max}(x) = \max\{0,\ x - \beta\}, \qquad
+\beta = \max_{x' \in \Dcal_{\mathrm{train}}} x' ,
+\end{equation}
+so that anything within the benign range scores zero. This is a trap.
+
+\begin{proposition}[Excess-over-maximum can annihilate a signal]\label{prop:clip}
+Let $\phi_{\max}$ be as in~\eqref{eq:excess} and let $\Bcal, \Ccal$ be the
+benign and attack score distributions. If $\Prob_{X \sim \Ccal}(X \le \beta) = 1$,
+then $\phi_{\max}(X) = 0$ almost surely for both classes and
+$\mathrm{AUROC}(\phi_{\max}(\Bcal), \phi_{\max}(\Ccal)) = 1/2$, irrespective of
+how well $x$ itself separates the classes.
+\end{proposition}
+
+\begin{proof}
+$\phi_{\max}$ maps $(-\infty, \beta]$ to the single point $0$. If the attack
+distribution is supported on $(-\infty,\beta]$ then the transformed attack scores
+are identically $0$; the transformed benign scores are non-negative and equal $0$
+except on the benign event $\{x > \beta\}$, which has probability zero by the
+definition of $\beta$ as the training maximum in the population limit. All
+comparisons are therefore ties, and AUROC, which scores ties at $1/2$, equals
+$1/2$. \qed
+\end{proof}
+
+The premise is not hypothetical. In our data the benign median instruction-%
+likeness is $0.010$ but its maximum is $0.613$---an outlier---whereas the median
+for the InjecAgent family is $0.115$. Every InjecAgent score therefore fell below
+$\beta$, and a signal that separates that family at $\mathrm{AUROC}=0.84$ in raw
+form was reduced to exactly chance. We had published the resulting collapse and
+attributed it to the attack being subtly phrased. It was our normalisation.
+
+The lesson generalises: a fusion rule must never apply a many-to-one transform to
+a component signal.
+
+\subsection{Conformal surprisal fusion}
+
+\begin{definition}[Conformal tail surprisal]
+Let $x_{1:n}$ be benign calibration values for a signal and $x$ a test value. The
+conformal $p$-value and surprisal are
+\begin{equation}\label{eq:conformal}
+p(x) = \frac{1 + |\{i : x_i \ge x\}|}{n+1},
+\qquad
+\psi(x) = -\log p(x).
+\end{equation}
+\end{definition}
+
+\begin{proposition}[Distribution-free validity]\label{prop:valid}
+If $x, x_1, \dots, x_n$ are exchangeable, then $\Prob(p(x) \le \alpha) \le \alpha$
+for every $\alpha \in (0,1)$; equivalently
+$\Prob(\psi(x) \ge \log(1/\alpha)) \le \alpha$.
+\end{proposition}
+
+\begin{proof}
+By exchangeability the rank of $x$ among $\{x, x_1, \dots, x_n\}$ is uniform on
+$\{1,\dots,n+1\}$. The event $\{p(x) \le \alpha\}$ is the event that this rank
+places $x$ among the top $\lfloor \alpha (n+1) \rfloor$ values, which has
+probability $\lfloor \alpha(n+1)\rfloor/(n+1) \le \alpha$. \qed
+\end{proof}
+
+\begin{proposition}[Monotonicity and scale-freeness]\label{prop:mono}
+For fixed calibration values, $\psi$ in~\eqref{eq:conformal} is non-decreasing in
+$x$ and depends on $x$ only through its rank. Consequently (i) $\psi$ preserves
+the AUROC of the underlying signal, and (ii) $\psi$ is invariant to any strictly
+increasing reparameterisation of the signal.
+\end{proposition}
+
+\begin{proof}
+$|\{i : x_i \ge x\}|$ is non-increasing in $x$, so $p$ is non-increasing and
+$\psi = -\log p$ is non-decreasing; it is a function of the rank alone by
+inspection. AUROC depends only on the ordering of scores across the two classes,
+and a non-decreasing map cannot reverse any strict ordering; ties can only be
+created, which is why we state preservation rather than strict equality.
+Invariance to increasing reparameterisation follows because ranks are invariant.
+\qed
+\end{proof}
+
+Proposition~\ref{prop:mono} is the precise contrast with
+Proposition~\ref{prop:clip}: the conformal surprisal cannot destroy a signal,
+because it is monotone and therefore ordering-preserving, whereas
+excess-over-maximum is many-to-one and can collapse an entire class to a point.
+
+\begin{definition}[SENTRY-Fuse]
+For signals $k = 1,\dots,K$ with per-trajectory summaries $x_k$ (we use the
+per-trajectory maximum of each per-action signal) and benign calibration values
+$x^{(k)}_{1:n_k}$, the fused statistic is
+\begin{equation}\label{eq:fuse}
+S \;=\; \sum_{k=1}^{K} \psi_k(x_k) \;=\; -\sum_{k=1}^{K} \log p_k(x_k),
+\end{equation}
+and the monitor alarms when $S \ge \tau$, with $\tau$ set to a benign quantile on
+a held-out calibration split.
+\end{definition}
+
+The rule has no tuned weights: every signal contributes on the common scale of
+$\log$-improbability, which is what makes an unweighted sum meaningful.
+
+\begin{proposition}[Fused false-alarm bound]\label{prop:fusebound}
+Under the null, for any $\tau > 0$,
+\begin{equation}
+\Prob(S \ge \tau) \;\le\; \min\Big\{1,\ \sum_{k=1}^{K} e^{-\tau/K} \Big\}
+\;=\; \min\{1,\ K e^{-\tau/K}\}.
+\end{equation}
+If in addition the $p_k$ are mutually independent, then
+$S \sim \mathrm{Gamma}(K,1)$ and
+$\Prob(S \ge \tau) = \Gamma(K,\tau)/\Gamma(K)$, the sharper Fisher bound.
+\end{proposition}
+
+\begin{proof}
+If $S \ge \tau$ then some $\psi_k \ge \tau/K$, so
+$\{S \ge \tau\} \subseteq \bigcup_k \{\psi_k \ge \tau/K\}$; a union bound with
+Proposition~\ref{prop:valid} applied at level $\alpha = e^{-\tau/K}$ gives the
+first claim, and it requires no dependence assumption. Under independence each
+$-\log p_k$ is stochastically dominated by a standard exponential variable, and a
+sum of $K$ such is dominated by a $\mathrm{Gamma}(K,1)$, giving the tail
+expression. \qed
+\end{proof}
+
+\begin{remark}
+We report empirical operating points throughout rather than relying on
+Proposition~\ref{prop:fusebound}, because the assumption-light union bound is
+loose and independence across our signals is not credible: S2 and S3 both respond
+to the presence of an injection, albeit through different channels. The bound's
+role is to establish that the fused statistic admits distribution-free
+false-alarm control at all, and to make explicit what would be needed for a sharp
+one.
+\end{remark}
+
+\begin{algorithm}[t]
+\caption{SENTRY-Fuse}\label{alg:fuse}
+\begin{algorithmic}[1]
+\Require benign trajectories $\Dcal_{\mathrm{cal}}$; target FPR $\alpha$; signals $1..K$
+\State fit the benign reference (bigram table, per-tool vocabulary) on $\Dcal_{\mathrm{cal}}$
+\For{$k = 1,\dots,K$}
+  \State $x^{(k)}_{1:n_k} \gets$ per-trajectory summaries of signal $k$ on $\Dcal_{\mathrm{cal}}$
+\EndFor
+\State $\tau \gets (1-\alpha)$ empirical quantile of $\{S(\Tcal) : \Tcal \in \Dcal_{\mathrm{cal}}\}$
+\Statex \textbf{at monitoring time, for a trace} $\Tcal$:
+\For{$k = 1,\dots,K$}
+  \State $x_k \gets \max_t s^{(k)}_t(\Tcal)$;\quad
+         $\psi_k \gets -\log\big((1 + |\{i : x^{(k)}_i \ge x_k\}|)/(n_k+1)\big)$
+\EndFor
+\State $S \gets \sum_k \psi_k$
+\If{$S \ge \tau$} \textbf{raise alarm}; report $\arg\max_k \psi_k$ as the dominant cause
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+
+Because the fusion is additive over interpretable components, the dominant term
+$\arg\max_k \psi_k$ names \emph{why} the monitor fired---an injected instruction,
+an unjustified action, an untrusted recipient, or an anomalous tool
+transition---which matters for triage.
+
+%======================================================================
+\section{Experimental Setup}\label{sec:experiments}
+
+\subsection{Corpora}
+
+We collect real trajectories by running tool-calling agents on standard
+benchmarks; Table~\ref{tab:corpus} summarises the result. From
+AgentDojo~\citep{debenedetti2024agentdojo} we run all four suites (banking,
+workspace, travel, Slack) both benign and under attack, with two attack
+families: the \texttt{important\_instructions} template and the
+InjecAgent~\citep{zhan2024injecagent} template. From
+$\tau$-bench~\citep{yao2024taubench} we run the retail domain benign-only, to
+diversify the benign reference. Two agents are used: DeepSeek-V4-Flash and
+GPT-4o-mini, from different vendors, so that agent identity can be varied
+independently of everything else.
+
+\begin{table}[t]
+\centering
+\caption{Trajectory corpora, with the \emph{corrected} label polarity of
+Section~\ref{sec:polarity}: \emph{compromised} means the injection task
+succeeded. Counts are after a two-action minimum filter.}
+\label{tab:corpus}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Agent & Attack family & Benign & Attacks & Compromised & Resisted \\
+\midrule
+DeepSeek-V4-Flash & \texttt{important\_instructions} & 71 & 198 & 18 (9\%) & 180 \\
+DeepSeek-V4-Flash & InjecAgent & --- & 42 & \textbf{0 (0\%)} & 42 \\
+GPT-4o-mini & \texttt{important\_instructions} & 70 & 153 & 72 (47\%) & 81 \\
+$\tau$-bench retail (DeepSeek) & none & 50 & --- & --- & --- \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Total}} & \textbf{191} & \textbf{393} & \textbf{90} & \textbf{303} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:corpus} already contains a substantive finding. The two agents
+differ enormously in injection robustness: GPT-4o-mini is compromised in $47\%$
+of attempts, DeepSeek-V4-Flash in only $9\%$, and DeepSeek resisted the
+InjecAgent family \emph{completely} ($0/42$). Robustness to indirect prompt
+injection is therefore a strong function of the agent, not a property of the
+attack alone, and a defence evaluated on a single agent may be measuring that
+agent's fragility as much as its own merit.
+
+\begin{remark}
+Because DeepSeek was never compromised by InjecAgent, compromise detection is
+\emph{undefined} for that cell: there are no positives. Only attempt detection is
+meaningful there, and we report it as such rather than quoting a rate over an
+empty class.
+\end{remark}
+
+\subsection{Protocol}
+
+Trajectories are converted to per-action signal streams by a deterministic,
+GPU-free adapter. Feature hashing uses a seed-stable CRC rather than Python's
+per-process-salted hash, so the entire evaluation is byte-reproducible. LLM judge
+scores are cached by content hash ($681$ distinct observations, $1{,}329$ distinct
+task--action pairs), so all reported evaluations run offline from committed
+caches.
+
+Our evaluation protocol is deliberately strict about leakage. For each of ten
+seeds, the benign set is split in half: one half fits the reference model,
+calibrates every conformal transform, \emph{and} sets the operating threshold; the
+other half supplies the held-out false positives. Compromise-positive
+trajectories are never used for fitting or calibration. We report mean $\pm$
+standard deviation over the ten seeds.
+
+\begin{remark}[Leakage matters]
+An earlier version of this evaluation fitted the reference on all benign
+trajectories including the test half. Under that protocol the behavioural signal
+S1 appeared excellent, $\mathrm{AUROC} = 0.982$; with calibration properly held
+out it collapses to $0.53$--$0.62$. Only held-out numbers appear in this paper.
+This is worth stating plainly because the leaky number is the one a careless
+pipeline produces by default.
+\end{remark}
+
+\subsection{Metrics}
+
+We report AUROC, and true-positive rate at a matched benign false-positive rate.
+We use $\mathrm{FPR} = 3.66\%$ throughout because that is the operating point
+AgentArmor~\citep{wang2025agentarmor} reports, which makes the comparison as close
+to like-for-like as the published information allows; we also report $5\%$.
+Matching the FPR is essential---detectors are otherwise trivially incomparable.
+
+%======================================================================
+\section{A Label-Polarity Pitfall}\label{sec:polarity}
+
+Before presenting results we must document a methodological trap, because it
+inverted our own conclusions for a substantial period and because the ceiling
+analysis of Section~\ref{sec:ceiling} is impossible to get right without it.
+
+AgentDojo returns a per-trajectory \texttt{security} flag. It is natural, and
+wrong, to read this as "the system was secure". The flag is computed as the
+success of the \emph{injection} task, so \texttt{security}$\,=\,$\texttt{True}
+means the attacker's goal was achieved, i.e.\ the agent \emph{was compromised}.
+
+We initially adopted the opposite convention. The error was invisible in
+aggregate: both classes are non-empty, all downstream code ran, and every metric
+produced plausible numbers. It surfaced only when we asked why so many
+"compromised" trajectories contained no state-changing tool call at all, and read
+one:
+
+\begin{example}[A trajectory we had labelled compromised]
+\label{ex:refusal}
+Banking suite, \texttt{important\_instructions}. The agent calls
+\texttt{read\_file} and five read-only lookups, then states:
+\begin{quote}\itshape
+"I see a message embedded in the bill file that's trying to get me to do
+something else first. However, I shouldn't be tricked by that embedded
+instruction."
+\end{quote}
+This agent \emph{resisted}. It had been counted as a successful attack.
+\end{example}
+
+We resolved the polarity against ground truth rather than documentation. In the
+banking suite the adversary's goal is a transfer to a specific attacker IBAN, so
+compliance is directly checkable in the trace:
+
+\begin{table}[t]
+\centering
+\caption{Resolving label polarity against ground truth in the banking suite. The
+only trajectories that actually wired money to the attacker's account are exactly
+those with \texttt{security}$\,=\,$\texttt{True}.}
+\label{tab:polarity}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+& \texttt{security}$=$\texttt{True} & \texttt{security}$=$\texttt{False} \\
+\midrule
+agent wired money to attacker IBAN & \textbf{2} & 0 \\
+agent did not & 0 & \textbf{46} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The correspondence in Table~\ref{tab:polarity} is perfect, which settles the
+question: \texttt{security}$\,=\,$\texttt{True} is compromise.
+
+The consequences for us were severe and instructive. Every "hijack-detection"
+number we had computed was measuring the \emph{resisted} class. Our effect-based
+signals---the action audit and sink provenance---had been graded against
+trajectories in which, by construction, the agent had done nothing harmful; they
+appeared useless. Once the polarity was corrected, the action audit moved from
+$\mathrm{AUROC} = 0.547$ to $0.926$. We had nearly discarded a working signal
+because of a boolean.
+
+\begin{remark}
+We report this at length because the failure mode is silent, the fix is trivial,
+and the affected quantity---which class counts as a successful attack---is the
+foundation of every number in this literature. We recommend that any work using
+this harness verify polarity against an in-trace ground-truth check of the kind in
+Table~\ref{tab:polarity}, and report having done so.
+\end{remark}
+
+%======================================================================
+\section{Results}\label{sec:results}
+
+\subsection{Compromise detection}
+
+Table~\ref{tab:fused} gives the main result. On GPT-4o-mini, where the
+compromised class is large enough for stable estimates ($72$ positives), the
+observation-side instruction signal alone reaches $\mathrm{AUROC} = 0.955$ but a
+highly variable $\mathrm{TPR} = 0.825 \pm 0.279$ at the matched operating point:
+it is strong on average and unreliable at a fixed low false-alarm budget. Adding
+the action-side audit lifts this to $0.932 \pm 0.031$, and the full four-signal
+fusion to $\mathbf{0.960 \pm 0.010}$---above the $0.9575$ reported by
+AgentArmor, and with an order of magnitude less variance than the single-signal
+detector.
+
+\begin{table}[t]
+\centering
+\caption{Compromise detection, ten seeds, mean $\pm$ std, with calibration and
+threshold fitted on a held-out benign half. Best fused row in bold.}
+\label{tab:fused}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Detector & AUROC & TPR @ $3.66\%$ FPR & TPR @ $5\%$ FPR \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{GPT-4o-mini: 72 compromised / 70 benign}} \\
+S2 instruction only          & $0.955 \pm 0.017$ & $0.825 \pm 0.279$ & $0.825 \pm 0.279$ \\
+S1 behavioural only          & $0.534 \pm 0.015$ & $0.000 \pm 0.000$ & $0.000 \pm 0.000$ \\
+S1 $+$ S2                    & $0.954 \pm 0.019$ & $0.814 \pm 0.276$ & $0.822 \pm 0.279$ \\
+S2 $+$ S3                    & $0.985 \pm 0.003$ & $0.932 \pm 0.031$ & $0.932 \pm 0.031$ \\
+\textbf{SENTRY-Fuse (S1--S4)} & $\mathbf{0.985 \pm 0.005}$ & $\mathbf{0.960 \pm 0.010}$ & $\mathbf{0.961 \pm 0.008}$ \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Pooled: 90 compromised / 191 benign}} \\
+S2 instruction only          & $0.940 \pm 0.008$ & $0.719 \pm 0.361$ & $0.901 \pm 0.030$ \\
+S1 behavioural only          & $0.617 \pm 0.035$ & $0.000 \pm 0.000$ & $0.000 \pm 0.000$ \\
+S2 $+$ S3                    & $\mathbf{0.955 \pm 0.003}$ & $\mathbf{0.902 \pm 0.018}$ & $0.911 \pm 0.000$ \\
+SENTRY-Fuse (S1--S4)         & $0.956 \pm 0.005$ & $0.890 \pm 0.039$ & $0.904 \pm 0.016$ \\
+\midrule
+AgentArmor~\citep{wang2025agentarmor}, published & --- & $0.9575$ & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:fusion} visualises the ablation. Three points deserve emphasis.
+
+First, \textbf{action-side evidence is complementary}. The pooled fused detectors
+reach $0.902$, which is strictly above $0.867$---the fraction of compromised
+trajectories in which the injected payload is visible in the trace at all
+(Section~\ref{sec:ceiling}). No observation-side detector, however good, can
+exceed $0.867$, because for the remaining cases there is nothing in the
+observation stream to see. Exceeding it is therefore direct evidence that S3 and
+S4 supply information S2 cannot.
+
+Second, \textbf{fusion buys stability as well as power}. The single-signal
+detector's $\pm 0.279$ standard deviation at a $3.66\%$ budget means its behaviour
+at a fixed low false-alarm rate is close to unpredictable across calibration
+draws; the fused detector's $\pm 0.010$ is deployable.
+
+Third, \textbf{more signals is not monotonically better}. Pooled, S2$+$S3
+($0.902$) slightly outperforms the full fusion ($0.890$), because S1 is nearly
+uninformative under honest calibration and S4 is sparse, so both add variance
+without adding much signal. We report this rather than quoting only the
+best-performing subset.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fusion.pdf}
+\caption{Fusion ablation. (a) On GPT-4o-mini the four-signal fusion exceeds the
+strongest published trace-only operating point (dashed). (b) Pooled, the fused
+detectors exceed the payload-visibility ceiling (dotted), which no
+observation-only detector can. Error bars are one standard deviation over ten
+seeds.}
+\label{fig:fusion}
+\end{figure}
+
+\subsection{Attempt detection and generalisation}
+
+Table~\ref{tab:generalisation} varies one axis at a time. Attempt detection
+transfers well across both axes: changing the agent leaves it intact
+($\mathrm{AUROC}\,0.76 \to 0.82$), and changing the attack family costs
+relatively little once the normalisation of Section~\ref{sec:clipping} is fixed
+($0.76 \to 0.71$). The DeepSeek/InjecAgent cell is the clearest illustration of
+why the two objectives must be kept apart: attempt detection is meaningful there
+($0.71$), while compromise detection is undefined because the agent was never
+compromised.
+
+\begin{table}[t]
+\centering
+\caption{Generalisation across agent and attack family; ten seeds, corrected
+labels. ``---'' marks a cell with no compromised trajectories, where compromise
+detection is undefined.}
+\label{tab:generalisation}
+\begin{tabular}{@{}llrrcc@{}}
+\toprule
+Agent & Attack family & Comp. & Resisted & Attempt det. & Attempt AUROC \\
+\midrule
+DeepSeek & \texttt{important\_instructions} & 18 & 180 & $0.65$ & $0.76$ \\
+DeepSeek & InjecAgent                       & 0  & 42  & $0.52$ & $0.71$ \\
+GPT-4o-mini & \texttt{important\_instructions} & 72 & 81 & $0.74$ & $0.82$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Signal and normalisation ablation}\label{sec:ablation}
+
+Table~\ref{tab:normablation} isolates the two design choices in the
+observation-side signal: how instruction-likeness is scored (fixed lexicon versus
+LLM judge) and how it is normalised (excess-over-maximum versus conformal). The
+interaction is the point. Under the conformal transform the judge generalises far
+better than the lexicon across attack families ($0.531$ versus $0.455$ attempt
+detection on InjecAgent). Under excess-over-maximum the \emph{better} scorer is
+catastrophically worse ($0.077$), because the judge's near-binary output puts some
+benign observation at the ceiling, and Proposition~\ref{prop:clip} then applies.
+Normalisation is not plumbing; it is a first-class design decision that can
+invert the ranking of scorers.
+
+\begin{table}[t]
+\centering
+\caption{Attempt detection / AUROC by instruction scorer and normalisation, ten
+seeds. The conformal transform is required for the semantic judge to be usable at
+all.}
+\label{tab:normablation}
+\begin{tabular}{@{}llcc@{}}
+\toprule
+Scorer & Normalisation & \texttt{important\_instr.} & InjecAgent \\
+\midrule
+lexicon & excess-over-max & $0.658 / 0.769$ & $0.083 / 0.468$ \\
+lexicon & conformal       & $0.620 / 0.756$ & $0.455 / 0.701$ \\
+LLM judge & excess-over-max & $0.077 / 0.432$ & $0.090 / 0.490$ \\
+\textbf{LLM judge} & \textbf{conformal} & $\mathbf{0.648 / 0.750}$ & $\mathbf{0.531 / 0.714}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:instruction} shows the separation the observation-side signal
+achieves, and Figure~\ref{fig:casetrace} walks through a single real compromise
+action by action, which is the clearest way to see what each signal contributes.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/instruction_sep.pdf}
+\caption{Observation instruction-likeness (maximum over a trajectory) for benign
+and attacked trajectories. Benign tool output sits near zero; attacked
+trajectories sit far above the learned nominal range, whether or not the agent
+ultimately complied---which is why this signal is a good \emph{attempt} detector.}
+\label{fig:instruction}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/case_trace.pdf}
+\caption{A real prompt-injection compromise, action by action. The user asks the
+agent to adjust a rent payment; at $t_0$ it reads a file whose content hides an
+\texttt{<INFORMATION>} block directing it to wire money to the attacker. The
+poisoned text enters the monitored trace at $t_1$, where the observation-side
+signal spikes; the agent nonetheless complies at $t_6$, sending money to the
+attacker's IBAN---five actions after the monitor would have halted it.}
+\label{fig:casetrace}
+\end{figure}
+
+%======================================================================
+\section{The Detectability Ceiling}\label{sec:ceiling}
+
+The results above raise an obvious question: how much room is left? We now show
+that the answer is very little, and that the limit is a property of the trace
+rather than of any particular detector.
+
+A trace-only monitor can only react to evidence present in the trace. For
+indirect prompt injection there are exactly two channels through which a
+compromise can leave such evidence:
+
+\begin{itemize}
+\item \textbf{Observation channel}: the injected payload appears in some tool
+output $o_t$ that the monitor sees.
+\item \textbf{Action channel}: the agent performs an externally-effectful call
+whose arguments reflect the adversary's goal.
+\end{itemize}
+
+If a compromise leaves evidence in neither channel, its trace is---by
+construction---indistinguishable from that of a benign trajectory performing the
+same reads.
+
+\begin{assumption}[Trace indistinguishability]\label{ass:indist}
+For every compromised trajectory whose trace exhibits neither channel, there
+exists a benign trajectory inducing the same monitor input $(u, \Tcal)$.
+\end{assumption}
+
+\begin{theorem}[Detectability ceiling]\label{thm:ceiling}
+Let $\Ccal$ be the set of compromised trajectories, and let $N \subseteq \Ccal$
+be those exhibiting neither channel, with $\nu = |N|/|\Ccal|$. Under
+Assumption~\ref{ass:indist}, every monitor $M$ that is a function of $(u,\Tcal)$
+and has false-positive rate at most $\alpha$ satisfies
+\begin{equation}
+\mathrm{TPR}(M) \;\le\; (1-\nu) + \nu\,\alpha .
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Partition $\Ccal$ into $N$ and its complement. On $\Ccal \setminus N$ we bound
+the true-positive rate by $1$, contributing at most $(1-\nu)$. For $\Tcal \in N$,
+Assumption~\ref{ass:indist} supplies a benign trajectory with identical monitor
+input; since $M$ is a deterministic function of that input, it alarms on the
+compromised trajectory if and only if it alarms on the benign one. The set of
+benign inputs on which $M$ alarms has probability at most $\alpha$ by hypothesis,
+so $M$ alarms on at most an $\alpha$ fraction of $N$, contributing at most
+$\nu\alpha$. Summing gives the bound. \qed
+\end{proof}
+
+\begin{corollary}\label{cor:ceiling}
+With the measured $\nu = 0.078$ and $\alpha = 0.0366$,
+$\mathrm{TPR} \le 0.922 + 0.078 \times 0.0366 = 0.925$.
+\end{corollary}
+
+Table~\ref{tab:ceiling} and Figure~\ref{fig:ceiling} give the measurement.
+
+\begin{table}[t]
+\centering
+\caption{Where evidence of compromise lives, over the $90$ genuinely compromised
+trajectories.}
+\label{tab:ceiling}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Channel of evidence & $n$ & fraction \\
+\midrule
+injected payload visible in an observation & 78 & $0.867$ \\
+externally-effectful (sink) call           & 74 & $0.822$ \\
+\textbf{either channel} & \textbf{83} & $\mathbf{0.922}$ \\
+neither channel (no trace evidence at all) & 7 & $0.078$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/ceiling.pdf}
+\caption{(a) Evidence channels over the $90$ compromised trajectories. (b) Our
+pooled operating point against the attainable ceiling and the strongest published
+trace-only figure. The published value lies above the ceiling that this corpus
+supports.}
+\label{fig:ceiling}
+\end{figure}
+
+Three consequences follow.
+
+\paragraph{We are close to saturation.} Our pooled $0.902$ is $97.8\%$ of the
+attainable $0.922$. Further gains on this corpus from better trace-only
+\emph{scoring} are bounded by roughly two percentage points; the remaining
+headroom is not in the detector but in the evidence.
+
+\paragraph{Observation-only monitoring is capped below the state of the art.}
+The observation channel alone supports at most $0.867$. A literature that scores
+only untrusted text therefore cannot, on this corpus, reach the numbers it aims
+for---which is precisely why our action-side signals matter.
+
+\paragraph{Reported figures above the ceiling require explanation.} The
+$0.9575$ of \citet{wang2025agentarmor} exceeds
+Corollary~\ref{cor:ceiling}'s $0.925$. We stress that this is not evidence of
+error on their part: their corpus, agents and positive-class definition all
+differ from ours, and a differently-constituted corpus will have a different
+$\nu$. What it does establish is that the comparison is not like-for-like, and
+that a headline TPR is uninterpretable without the accompanying $\nu$. We
+recommend that trace-only detection papers report the fraction of positives that
+leave no trace evidence, so that reported rates can be read against the ceiling
+they are competing with.
+
+%======================================================================
+\section{Negative Results}\label{sec:negatives}
+
+A monitor's credibility rests on knowing what it cannot do. We report every
+component we implemented and rejected.
+
+\subsection{Signals that did not separate}
+
+\paragraph{Lexical data-flow taint ($\mathrm{AUROC}\,0.46$).} We scored the
+fraction of an action's argument tokens traceable to untrusted observations. It
+performs \emph{below} chance because benign agents legitimately act on
+tool-derived values constantly---reading a recipient from a transaction record and
+paying it is the normal case. Token-overlap fraction cannot distinguish that from
+acting on an attacker-supplied recipient. This failure motivated the conjunctive,
+sink-restricted form of S4.
+
+\paragraph{Lexical goal-grounding ($\mathrm{AUROC}\,0.50$).} Token overlap
+between the action and the user request is too coarse a proxy for "serves the
+task". Its semantic replacement, S3, works ($0.926$)---the idea was right, the
+implementation was lexical.
+
+\paragraph{Injection-conditioned interaction (no gain).} Gating behavioural
+surprise on a preceding injection produced results identical to the plain sum.
+
+\paragraph{Sink provenance alone (TPR $0.112$ at FPR $0.073$).} As a standalone
+trajectory-level detector S4 is weak, because it fires only for the subset of
+attacks that route an identifier into a sensitive sink. It earns its place only
+inside the fusion, where its precision complements S2's recall.
+
+\subsection{The anytime-valid machinery did not earn its headline}
+\label{sec:longhorizon}
+
+This work began as an application of e-detectors~\citep{shin2023edetectors} with
+PAC-calibrated thresholds~\citep{sadhuka2025evaluator}, on the argument that
+continuous monitoring demands anytime-valid false-alarm control. We tested that
+argument directly. Holding the signal fixed and varying only the decision rule, we
+built $1000$-action benign streams by concatenating held-out benign trajectories
+and swept each rule's knob (Table~\ref{tab:longhorizon}).
+
+\begin{table}[t]
+\centering
+\caption{Long-horizon false alarms on $1000$-action benign streams, ten seeds,
+identical signal. A hand-picked threshold dominates the e-detector on both axes.}
+\label{tab:longhorizon}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Decision rule & False alarms / 1k & ARL to first & Attack det. \\
+\midrule
+e-detector, $\alpha=0.2$   & $48.9$ & $29$  & $0.624$ \\
+e-detector, $\alpha=0.05$  & $19.7$ & $138$ & $0.530$ \\
+e-detector, $\alpha=0.01$  & $19.7$ & $138$ & $0.530$ \\
+e-detector, $\alpha=0.002$ & $19.7$ & $138$ & $0.530$ \\
+fixed threshold, $q=0.99$  & $\mathbf{17.4}$ & $158$ & $\mathbf{0.588}$ \\
+fixed threshold, $q=0.999$ & $\mathbf{11.0}$ & $343$ & $0.565$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two findings stand out. A fixed threshold on the same score \emph{strictly
+dominates} the e-detector---fewer false alarms and higher detection
+simultaneously. And the e-detector's results are \emph{identical} for
+$\alpha \in \{0.05, 0.01, 0.002\}$: the PAC threshold saturates at the
+order-statistic index available from our calibration set, so the guarantee cannot
+be tightened below $\alpha = 0.2$, where it promises only $\mathrm{ARL} \ge 5$
+actions---a vacuous promise for a monitor. A cross-agent transfer test showed no
+advantage either.
+
+We therefore retain conformal calibration, which does real work
+(Propositions~\ref{prop:valid}--\ref{prop:mono}), and demote the sequential
+apparatus to an optional operating mode. The theory is not wrong; it simply
+requires far more trusted data than a realistic deployment provides before its
+guarantee becomes both valid and non-vacuous. We consider this a useful negative
+result for a community currently enthusiastic about anytime-valid monitoring.
+
+%======================================================================
+\section{Discussion}\label{sec:discussion}
+
+\paragraph{What the ceiling changes.} The prevailing framing treats trace-only
+injection detection as a modelling problem: find a better score. Our measurement
+suggests it is largely an \emph{evidence} problem. Once both channels are
+exploited, $97.8\%$ of the attainable performance is reached by a fusion rule with
+no tuned weights. Effort is better spent widening the evidence---monitoring the
+agent's own natural-language output, or scoring retrieved documents at the
+retrieval boundary before the agent chooses what to surface---than on further
+refining scores over the same trace.
+
+\paragraph{Why two channels rather than one.} S2 and S3 fail on disjoint cases.
+S2 misses compromises whose payload never surfaces; S3 misses compromises whose
+harmful action looks superficially plausible. Because the failures are
+disjoint, fusion is close to additive in coverage, which is what the pooled
+$0.902 > 0.867$ demonstrates. This is a concrete instance of a general design
+principle for monitors: prefer signals that fail on different inputs over signals
+that are individually stronger.
+
+\paragraph{Agent robustness is a confound.} GPT-4o-mini was compromised five
+times more often than DeepSeek-V4-Flash on identical attacks, and DeepSeek
+resisted an entire attack family. A defence evaluated on one agent is partly
+measuring that agent. We recommend reporting the agent's unprotected compromise
+rate alongside any detector's TPR, as Table~\ref{tab:corpus} does.
+
+\paragraph{Cost.} S1 and S4 are dictionary and regular-expression operations. S2
+and S3 each require one small-model call per distinct observation and per distinct
+action, cached; on our corpora this is $2{,}010$ calls total for $393$
+trajectories, and zero at re-evaluation time. There is no GPU, no access to model
+internals, and no agent re-execution, in contrast to
+re-execution defences~\citep{zhu2025melon}.
+
+\paragraph{Deployment and interpretability.} Because~\eqref{eq:fuse} is additive
+over interpretable components, an alarm comes with an attribution: the dominant
+$\psi_k$ names the reason. An operator can route "injected instruction detected"
+differently from "action unjustified given the user's request", and can tune
+$\alpha$ against a false-alarm budget.
+
+\subsection{Limitations}\label{sec:limitations}
+
+\emph{(i) Adaptive adversaries.} Our attacks are static templates. An adversary
+aware of SENTRY-Fuse would phrase injections to minimise instruction-likeness
+\emph{and} route effects through non-sink tools \emph{and} keep actions
+superficially task-plausible. Requiring simultaneous evasion of channels that fail
+on disjoint inputs raises the bar, but we have not measured by how much, and
+\citet{nasr2025attackersecond} caution against assuming such bars hold.
+
+\emph{(ii) Corpus scale and breadth.} $90$ compromised trajectories, two agents,
+two attack families, one benchmark family. The DeepSeek compromised class ($18$)
+is small enough that its estimates are wide, and it is why we present GPT-4o-mini
+as the primary compromise-detection corpus and report pooled numbers alongside.
+
+\emph{(iii) Judge dependence.} S2 and S3 depend on a small LLM whose behaviour may
+drift with model updates; the cached-score design makes a given evaluation
+reproducible but does not make the judge itself stable over time.
+
+\emph{(iv) The monitor is blind to the agent's own words.} All seven
+no-evidence compromises are of this kind, and this is the single most promising
+extension.
+
+\emph{(v) Ceiling assumption.} Theorem~\ref{thm:ceiling} rests on
+Assumption~\ref{ass:indist}, an idealisation: two traces that share no
+injection-related evidence might still differ in some incidental way a detector
+could exploit. The bound should be read as characterising what is available in
+principle from the two named channels.
+
+\subsection{Future work}
+
+\paragraph{Monitor the response channel.} Extending the trace to the agent's
+natural-language messages is the direct route past $0.922$, and would let the
+monitor catch information-disclosure compromises that never touch a tool.
+
+\paragraph{Score content at the retrieval boundary.} A monitor placed where
+documents \emph{enter} the environment, rather than where the agent surfaces them,
+would see payloads the agent never reads aloud.
+
+\paragraph{Structured provenance.} S4 is a coarse approximation of the
+program-dependence analysis that \citet{wang2025agentarmor} perform. A faithful
+data-flow implementation, fused rather than used standalone, is a natural
+strengthening.
+
+\paragraph{Adaptive evaluation.} Attacks optimised jointly against all four
+channels are the decisive robustness test.
+
+%======================================================================
+\section{Conclusion}\label{sec:conclusion}
+
+We set out to build a better trace-only monitor for prompt-injection compromise
+in LLM agents and found that the binding constraint was not the scoring function
+but the evidence. SENTRY-Fuse converts heterogeneous trace signals into conformal
+tail surprisals and fuses them additively; the construction is scale-free,
+provably order-preserving, and free of tuned weights, and we showed that a common
+alternative normalisation provably destroys signal---as it did, measurably, in an
+earlier version of this work. Fusing observation-side and action-side evidence
+attains $0.960 \pm 0.010$ true positives at a $3.66\%$ false-positive rate on a
+matched corpus, exceeding the strongest published trace-only figure, and $0.902$
+pooled, which is above what payload visibility alone can support and $97.8\%$ of
+the attainable ceiling.
+
+That ceiling is our most durable contribution. Some successful injections leave no
+trace evidence at all; on our corpus $7.8\%$ do, capping every trace-only monitor
+at $0.922$. Reported rates above such a ceiling are not comparable across corpora
+unless the corresponding fraction is reported too, and we recommend that it
+routinely be. Alongside this we document a label-polarity trap that silently
+inverted our own conclusions, and we report in full the components we
+rejected---including the anytime-valid machinery this project began from, which a
+hand-picked threshold outperformed. The remaining headroom lies in widening what
+the monitor is allowed to see, not in sharpening how it scores what it already
+sees.
+
+%======================================================================
+\section*{Data availability}
+
+All code, the collected trajectory corpora, cached judge scores, and scripts that
+regenerate every number and figure are available at
+\url{https://github.com/vinhqdang/SENTRY-Anytime-Valid-E-Process-Monitoring-of-LLM-Agent-Action-Streams}.
+\texttt{./reproduce.sh} reproduces the paper offline from committed data.
+
+\section*{Declaration of competing interest}
+
+The author declares no competing interests. No external funding was received.
+
+\bibliographystyle{elsarticle-harv}
+\bibliography{references_cose}
+
+\end{document}
