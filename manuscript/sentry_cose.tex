@@ -211,7 +211,7 @@ caution we take seriously in Section~\ref{sec:limitations}.
 \subsection{Benchmarks for agent security}
 
 Progress here is benchmark-driven, and the choice of benchmark determines what
-"detection" even means.
+``detection'' even means.
 
 \textbf{AgentDojo}~\citep{debenedetti2024agentdojo} is the most widely used
 harness for our setting. It provides four tool environments (banking, workspace,
@@ -360,7 +360,7 @@ grunwald2024safetesting} support continuous monitoring: a non-negative process
 whose expectation is bounded under the null can be inspected at every step, and
 thresholding it at $1/\alpha$ controls error at level $\alpha$ at every stopping
 time by Ville's inequality. \citet{shin2023edetectors} extend this to sequential
-\emph{change} detection with e-detectors, whose average-run-length guarantee
+\emph{change} detection with e-detectors, whose average-run-length (ARL) guarantee
 holds with no independence assumption---attractive here, because an agent's
 actions are profoundly dependent. \citet{sadhuka2025evaluator} note that when the
 reference is \emph{learned} the process is no longer an exact e-process and supply
@@ -515,6 +515,10 @@ benign training data,
 \end{equation}
 so that anything within the benign range scores zero. This is a trap.
 
+Throughout, $\mathrm{AUROC}$ denotes the area under the receiver operating
+characteristic curve: the probability that a randomly drawn positive scores above
+a randomly drawn negative, counting ties as one half.
+
 \begin{proposition}[Excess-over-maximum can annihilate a signal]\label{prop:clip}
 Let $\phi_{\max}$ be as in~\eqref{eq:excess} and let $\Bcal, \Ccal$ be the
 benign and attack score distributions. If $\Prob_{X \sim \Ccal}(X \le \beta) = 1$,
@@ -638,7 +642,7 @@ one.
 \begin{algorithm}[t]
 \caption{SENTRY-Fuse}\label{alg:fuse}
 \begin{algorithmic}[1]
-\Require benign trajectories $\Dcal_{\mathrm{cal}}$; target FPR $\alpha$; signals $1..K$
+\Require benign trajectories $\Dcal_{\mathrm{cal}}$; target false-alarm rate $\alpha$; signals $1,\dots,K$
 \State fit the benign reference (bigram table, per-tool vocabulary) on $\Dcal_{\mathrm{cal}}$
 \For{$k = 1,\dots,K$}
   \State $x^{(k)}_{1:n_k} \gets$ per-trajectory summaries of signal $k$ on $\Dcal_{\mathrm{cal}}$
@@ -741,7 +745,8 @@ pipeline produces by default.
 
 \subsection{Metrics}
 
-We report AUROC, and true-positive rate at a matched benign false-positive rate.
+We report AUROC, and the true-positive rate (TPR) at a matched benign
+false-positive rate (FPR).
 We use $\mathrm{FPR} = 3.66\%$ throughout because that is the operating point
 AgentArmor~\citep{wang2025agentarmor} reports, which makes the comparison as close
 to like-for-like as the published information allows; we also report $5\%$.
@@ -755,14 +760,14 @@ inverted our own conclusions for a substantial period and because the ceiling
 analysis of Section~\ref{sec:ceiling} is impossible to get right without it.
 
 AgentDojo returns a per-trajectory \texttt{security} flag. It is natural, and
-wrong, to read this as "the system was secure". The flag is computed as the
+wrong, to read this as ``the system was secure''. The flag is computed as the
 success of the \emph{injection} task, so \texttt{security}$\,=\,$\texttt{True}
 means the attacker's goal was achieved, i.e.\ the agent \emph{was compromised}.
 
 We initially adopted the opposite convention. The error was invisible in
 aggregate: both classes are non-empty, all downstream code ran, and every metric
 produced plausible numbers. It surfaced only when we asked why so many
-"compromised" trajectories contained no state-changing tool call at all, and read
+``compromised'' trajectories contained no state-changing tool call at all, and read
 one:
 
 \begin{example}[A trajectory we had labelled compromised]
@@ -770,9 +775,9 @@ one:
 Banking suite, \texttt{important\_instructions}. The agent calls
 \texttt{read\_file} and five read-only lookups, then states:
 \begin{quote}\itshape
-"I see a message embedded in the bill file that's trying to get me to do
+``I see a message embedded in the bill file that's trying to get me to do
 something else first. However, I shouldn't be tricked by that embedded
-instruction."
+instruction.''
 \end{quote}
 This agent \emph{resisted}. It had been counted as a successful attack.
 \end{example}
@@ -800,7 +805,7 @@ agent did not & 0 & \textbf{46} \\
 The correspondence in Table~\ref{tab:polarity} is perfect, which settles the
 question: \texttt{security}$\,=\,$\texttt{True} is compromise.
 
-The consequences for us were severe and instructive. Every "hijack-detection"
+The consequences for us were severe and instructive. Every ``hijack-detection''
 number we had computed was measuring the \emph{resisted} class. Our effect-based
 signals---the action audit and sink provenance---had been graded against
 trajectories in which, by construction, the agent had done nothing harmful; they
@@ -1101,8 +1106,8 @@ acting on an attacker-supplied recipient. This failure motivated the conjunctive
 sink-restricted form of S4.
 
 \paragraph{Lexical goal-grounding ($\mathrm{AUROC}\,0.50$)} Token overlap
-between the action and the user request is too coarse a proxy for "serves the
-task". Its semantic replacement, S3, works ($0.926$)---the idea was right, the
+between the action and the user request is too coarse a proxy for ``serves the
+task''. Its semantic replacement, S3, works ($0.926$)---the idea was right, the
 implementation was lexical.
 
 \paragraph{Injection-conditioned interaction (no gain)} Gating behavioural
@@ -1194,8 +1199,8 @@ re-execution defences~\citep{zhu2025melon}.
 
 \paragraph{Deployment and interpretability} Because~\eqref{eq:fuse} is additive
 over interpretable components, an alarm comes with an attribution: the dominant
-$\psi_k$ names the reason. An operator can route "injected instruction detected"
-differently from "action unjustified given the user's request", and can tune
+$\psi_k$ names the reason. An operator can route ``injected instruction detected''
+differently from ``action unjustified given the user's request'', and can tune
 $\alpha$ against a false-alarm budget.
 
 \subsection{Limitations}\label{sec:limitations}
