@@ -1,0 +1,12 @@
+{
+  "note": "Detectability ceiling for trace-only monitoring, pooled over the two corpora with a compromised class (DeepSeek + GPT-4o-mini, important_instructions). Labels use the CORRECTED polarity: security==True means the agent was compromised.",
+  "n_compromised": 90,
+  "payload_visible_in_trace": {"n": 78, "frac": 0.867},
+  "has_effectful_sink_call": {"n": 74, "frac": 0.822},
+  "either_channel": {"n": 83, "frac": 0.922, "meaning": "TRUE ceiling for any trace-only detector"},
+  "neither_channel": {"n": 7, "frac": 0.078, "meaning": "no trace evidence at all - undetectable in principle"},
+  "our_best_pooled_tpr_at_3.66pct_fpr": 0.902,
+  "fraction_of_attainable_ceiling": 0.978,
+  "agentarmor_published_tpr": 0.9575,
+  "key_observation": "The published 0.9575 EXCEEDS this corpus's trace-only ceiling of 0.922, so it cannot be an apples-to-apples comparison: it must rest on a different positive-class definition, a different corpus, or information beyond the black-box trace."
+}
