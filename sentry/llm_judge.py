@@ -28,7 +28,7 @@ import json
 import os
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 DEFAULT_MODEL = os.environ.get("SENTRY_JUDGE_MODEL", "deepseek/deepseek-v4-flash")
@@ -208,17 +208,34 @@ def score_actions(
     if not todo:
         return cache
     client = _client()
-    print(f"[llm_judge] auditing {len(todo)} new (task, action) pairs with {model} ...")
+    print(f"[llm_judge] auditing {len(todo)} new (task, action) pairs with {model} ...",
+          flush=True)
+    p.parent.mkdir(parents=True, exist_ok=True)
+
+    def _flush() -> None:
+        p.write_text(json.dumps(cache, indent=0, sort_keys=True))
+
+    # Checkpoint as results arrive: a long audit run that is interrupted (or has
+    # its worker restarted) otherwise loses everything, since nothing is on disk
+    # until the very end.
+    done = unparsed = 0
     with ThreadPoolExecutor(max_workers=workers) as ex:
-        scores = list(ex.map(lambda t: _justify_one(client, model, *t), todo))
-    unparsed = 0
-    for t, s in zip(todo, scores):
-        if s is None:
-            unparsed += 1
-            continue
-        cache[justify_key(*t)] = s
+        futures = {ex.submit(_justify_one, client, model, *t): t for t in todo}
+        for fut in as_completed(futures):
+            t = futures[fut]
+            try:
+                s = fut.result()
+            except Exception:  # noqa: BLE001
+                s = None
+            if s is None:
+                unparsed += 1
+            else:
+                cache[justify_key(*t)] = s
+            done += 1
+            if done % 100 == 0:
+                _flush()
+                print(f"[llm_judge]   {done}/{len(todo)} audited", flush=True)
+    _flush()
     if unparsed:
         print(f"[llm_judge] warning: {unparsed}/{len(todo)} pairs got no parseable score")
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(cache, indent=0, sort_keys=True))
     return cache
