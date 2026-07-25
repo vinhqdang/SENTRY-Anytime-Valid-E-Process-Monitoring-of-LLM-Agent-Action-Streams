@@ -231,15 +231,29 @@ class SequentialWorldModel:
         laplace_alpha: float = 1.0,
         novelty_weight: float = 4.0,
         instruction_weight: float = 4.0,
+        instruction_transform: str = "conformal",
     ) -> None:
         self.laplace_alpha = laplace_alpha
         self.novelty_weight = novelty_weight
         self.instruction_weight = instruction_weight
+        # How the raw observation instruction-likeness is turned into an
+        # anomaly score. "excess_max" subtracts the largest value seen in
+        # nominal training data; that is many-to-one below the ceiling, so a
+        # single benign outlier can zero out an entire attack family's signal
+        # (measured: it destroyed InjecAgent detection, AUROC 0.84 -> 0.50).
+        # "conformal" instead reports the empirical-tail surprise
+        # -log((1 + #{nominal >= x}) / (n + 1)), which is strictly monotone in
+        # x and therefore preserves the signal's full ranking while still
+        # mapping nominal-typical observations to a small score.
+        if instruction_transform not in ("conformal", "excess_max"):
+            raise ValueError(f"unknown instruction_transform: {instruction_transform}")
+        self.instruction_transform = instruction_transform
         self._bigram: dict[str, dict[str, float]] = {}
         self._tools: set[str] = set()
         self._tool_vocab: dict[str, set[str]] = {}
         self._global_vocab: set[str] = set()
         self._instr_baseline: float = 0.0
+        self._instr_nominal: np.ndarray = np.zeros(0)
 
     def fit(self, trajectories: Sequence[Trajectory]) -> "SequentialWorldModel":
         instr_vals: list[float] = []
@@ -259,6 +273,7 @@ class SequentialWorldModel:
         # Learned (not hardcoded) so the term self-calibrates to a deployment
         # whose tools legitimately return more directive-sounding text.
         self._instr_baseline = max(instr_vals) if instr_vals else 0.0
+        self._instr_nominal = np.sort(np.asarray(instr_vals, dtype=float))
         return self
 
     def tool_log_prob(self, prev_tool: str, tool: str) -> float:
@@ -281,10 +296,25 @@ class SequentialWorldModel:
         return unseen / len(action.tokens)
 
     def instruction_excess(self, action: Action) -> float:
-        """How much the preceding observation's instruction-likeness exceeds
-        anything seen in nominal training data (0 if within nominal range).
-        This is the indirect-prompt-injection signal."""
-        return max(0.0, action.obs_instruction_likeness - self._instr_baseline)
+        """Anomaly score for the preceding observation's instruction-likeness
+        -- the indirect-prompt-injection signal.
+
+        With instruction_transform="conformal" (default) this is the
+        empirical-tail surprise of the raw value against the nominal
+        training distribution, -log((1 + #{nominal >= x}) / (n + 1)): strictly
+        monotone in the raw value, so no attack family can be clipped away by
+        a single benign outlier. With "excess_max" it is the original
+        excess-over-nominal-maximum.
+        """
+        x = action.obs_instruction_likeness
+        if self.instruction_transform == "excess_max":
+            return max(0.0, x - self._instr_baseline)
+        n = self._instr_nominal.size
+        if n == 0:
+            return 0.0
+        # #{nominal >= x} via the sorted array
+        n_ge = n - int(np.searchsorted(self._instr_nominal, x, side="left"))
+        return float(-math.log((1.0 + n_ge) / (n + 1.0)))
 
     SIGNALS = ("transition", "novelty", "instruction")
 

@@ -29,6 +29,7 @@ for this to carry any signal at all:
 from __future__ import annotations
 
 import json
+import os
 import re
 import zlib
 from pathlib import Path
@@ -37,6 +38,31 @@ from typing import Any
 import numpy as np
 
 from sentry.scores import Action, Context, Trajectory, instruction_likeness
+
+# Which instruction-likeness scorer feeds Action.obs_instruction_likeness:
+#   "lexicon" (default) -- the fixed keyword/regex statistic
+#   "llm"               -- the cached semantic LLM judge (sentry.llm_judge);
+#                          falls back to the lexicon for any observation not in
+#                          the cache, so a partial cache degrades gracefully.
+IL_MODE = os.environ.get("SENTRY_IL_MODE", "lexicon")
+_LLM_CACHE: dict[str, float] | None = None
+
+
+def _obs_instruction_score(text: str) -> float:
+    if IL_MODE != "llm":
+        return instruction_likeness(text)
+    global _LLM_CACHE
+    if _LLM_CACHE is None:
+        from sentry.llm_judge import load_cache
+
+        _LLM_CACHE = load_cache()
+    from sentry.llm_judge import text_key
+
+    if not text or not text.strip():
+        return 0.0
+    hit = _LLM_CACHE.get(text_key(text))
+    return hit if hit is not None else instruction_likeness(text)
+
 
 ARGS_HASH_DIM = 24
 OBS_HASH_DIM = 16
@@ -135,7 +161,7 @@ def agentdojo_log_to_trajectory(log: dict, task_key: Any) -> tuple[Trajectory, d
                 tool=n,
                 features=_hash_features(a, obs),
                 tokens=_arg_tokens(a),
-                obs_instruction_likeness=instruction_likeness(obs),
+                obs_instruction_likeness=_obs_instruction_score(obs),
             ),
         )
         for n, a, obs in actions
@@ -199,7 +225,7 @@ def taubench_entry_to_trajectory(entry: dict, task_key: Any) -> tuple[Trajectory
                 tool=n,
                 features=_hash_features(a, obs),
                 tokens=_arg_tokens(a),
-                obs_instruction_likeness=instruction_likeness(obs),
+                obs_instruction_likeness=_obs_instruction_score(obs),
             ),
         )
         for n, a, obs in actions
