@@ -219,3 +219,10 @@ __marimo__/
 
 # Generated validation plots
 examples/output/
+
+# LaTeX build artifacts
+*.spl
+*.aux
+*.out
+*.blg
+*.synctex.gz
