@@ -378,7 +378,7 @@ reach. We therefore present it as one calibration option rather than as the
 paper's contribution---a demotion the evidence forced.
 
 %======================================================================
-\section{Threat Model and Problem Setup}\label{sec:setup}
+\section{Threat Model and Method}\label{sec:setup}
 
 \subsection{Agent execution traces}
 
@@ -426,15 +426,14 @@ class is an order of magnitude larger than the compromise-positive class. Result
 for one must never be reported as results for the other---a confusion we made
 ourselves, as Section~\ref{sec:polarity} describes.
 
-%======================================================================
-\section{Method}\label{sec:method}
+\subsection{Overview of SENTRY-Fuse}\label{sec:method}
 
 Figure~\ref{fig:overview} summarises the monitor. Each action of the live trace is
 scored by four signals drawn from two distinct evidence channels; each raw score
 is converted to a conformal tail surprisal against a benign calibration split; the
 surprisals are summed and compared against a threshold; and when the monitor
-fires, the dominant term names the reason. The remainder of this section defines
-each stage.
+fires, the dominant term names the reason. The subsections below define each
+stage.
 
 \begin{figure}[t]
 \centering
@@ -752,8 +751,7 @@ AgentArmor~\citep{wang2025agentarmor} reports, which makes the comparison as clo
 to like-for-like as the published information allows; we also report $5\%$.
 Matching the FPR is essential---detectors are otherwise trivially incomparable.
 
-%======================================================================
-\section{A Label-Polarity Pitfall}\label{sec:polarity}
+\subsection{A label-polarity pitfall}\label{sec:polarity}
 
 Before presenting results we must document a methodological trap, because it
 inverted our own conclusions for a substantial period and because the ceiling
@@ -984,8 +982,7 @@ attacker's IBAN---five actions after the monitor would have halted it.}
 \label{fig:casetrace}
 \end{figure}
 
-%======================================================================
-\section{The Detectability Ceiling}\label{sec:ceiling}
+\subsection{The detectability ceiling}\label{sec:ceiling}
 
 The results above raise an obvious question: how much room is left? We now show
 that the answer is very little, and that the limit is a property of the trace
@@ -1089,13 +1086,12 @@ recommend that trace-only detection papers report the fraction of positives that
 leave no trace evidence, so that reported rates can be read against the ceiling
 they are competing with.
 
-%======================================================================
-\section{Negative Results}\label{sec:negatives}
+\subsection{Negative results}\label{sec:negatives}
 
 A monitor's credibility rests on knowing what it cannot do. We report every
 component we implemented and rejected.
 
-\subsection{Signals that did not separate}
+\subsubsection{Signals that did not separate}
 
 \paragraph{Lexical data-flow taint ($\mathrm{AUROC}\,0.46$)} We scored the
 fraction of an action's argument tokens traceable to untrusted observations. It
@@ -1118,7 +1114,7 @@ trajectory-level detector S4 is weak, because it fires only for the subset of
 attacks that route an identifier into a sensitive sink. It earns its place only
 inside the fusion, where its precision complements S2's recall.
 
-\subsection{The anytime-valid machinery did not earn its headline}
+\subsubsection{The anytime-valid machinery did not earn its headline}
 \label{sec:longhorizon}
 
 This work began as an application of e-detectors~\citep{shin2023edetectors} with
@@ -1165,7 +1161,7 @@ guarantee becomes both valid and non-vacuous. We consider this a useful negative
 result for a community currently enthusiastic about anytime-valid monitoring.
 
 %======================================================================
-\section{Discussion}\label{sec:discussion}
+\section{Discussion and Conclusion}\label{sec:discussion}
 
 \paragraph{What the ceiling changes} The prevailing framing treats trace-only
 injection detection as a modelling problem: find a better score. Our measurement
@@ -1249,8 +1245,7 @@ strengthening.
 \paragraph{Adaptive evaluation} Attacks optimised jointly against all four
 channels are the decisive robustness test.
 
-%======================================================================
-\section{Conclusion}\label{sec:conclusion}
+\subsection{Conclusion}\label{sec:conclusion}
 
 We set out to build a better trace-only monitor for prompt-injection compromise
 in LLM agents and found that the binding constraint was not the scoring function
