@@ -111,7 +111,7 @@ kind of evidence: examining the untrusted content the agent read and asking
 whether it \emph{looks like an instruction}. Keyword and perplexity heuristics do
 this lexically; fine-tuned detectors and LLM judges do it semantically.
 
-\paragraph{The observation that started this work.} We began from that same
+\paragraph{The observation that started this work} We began from that same
 premise and built a monitor on it. It performed well on the standard benchmark
 attack and then collapsed, to chance, when we changed the attack template. Our
 first explanation was that the new attack was phrased too subtly. That
@@ -132,7 +132,7 @@ actually did the attacker's bidding. They have different positive classes,
 different ceilings, and---as we show---different optimal evidence. A monitor
 tuned for the first is not automatically good at the second.
 
-\paragraph{Contributions.} Our contributions are as follows.
+\paragraph{Contributions} Our contributions are as follows.
 
 \begin{enumerate}
 \item \textbf{SENTRY-Fuse, a conformal fusion monitor}
@@ -255,7 +255,7 @@ instructions cannot influence control flow. It is worth separating three
 mechanisms, because each fails differently and each leaves a different residual
 role for monitoring.
 
-\paragraph{Marking provenance in the prompt.}
+\paragraph{Marking provenance in the prompt}
 \textbf{Spotlighting}~\citep{hines2024spotlighting} observes that an LLM receives
 multiple input sources concatenated into one token stream with no signal of which
 span came from where, and supplies that signal by transforming untrusted spans:
@@ -267,7 +267,7 @@ below $2\%$ with little utility loss. The approach is attractively cheap---it is
 prompt engineering, requiring no training---but it relies on the model honouring
 the marking, which is a behavioural rather than an architectural guarantee.
 
-\paragraph{Changing the interface.}
+\paragraph{Changing the interface}
 \textbf{StruQ}~\citep{chen2025struq} makes the sharpest conceptual argument in
 this literature. Prompt injection, they observe, is the latest instance of a
 recurring vulnerability class in which control and data share one channel:
@@ -282,7 +282,7 @@ model on examples where instructions appear in the data portion and must be
 ignored. This drives manually-crafted attacks below $2\%$ and substantially
 weakens optimisation-based ones (TAP $97\% \to 9\%$).
 
-\paragraph{Aligning against the injection.}
+\paragraph{Aligning against the injection}
 \textbf{SecAlign}~\citep{chen2025secalign} identifies the weakness of the
 fine-tuning approach: training only to \emph{prefer} the correct response
 underspecifies what an incorrect response looks like, so security does not
@@ -294,19 +294,19 @@ and applies preference optimisation, so the model is explicitly steered
 optimisation-free attacks and below $10\%$ against optimisation-based ones,
 improving on StruQ by more than a factor of four.
 
-\paragraph{Sanitising the content.}
+\paragraph{Sanitising the content}
 \textbf{CommandSans}~\citep{das2025commandsans} strips imperative content from
 tool outputs before the agent reads them, a lighter-weight route that requires no
 retraining.
 
-\paragraph{Enforcing provenance at the system level.}
+\paragraph{Enforcing provenance at the system level}
 \textbf{CaMeL}~\citep{debenedetti2025camel} extracts the control flow from the
 trusted user query, tracks data provenance through a capability system, and
 refuses tool calls that carry untrusted taint into sensitive argument positions.
 This is the strongest guarantee of the group and the most invasive, since it
 requires rebuilding the agent around the defence.
 
-\paragraph{Why monitoring remains necessary.}
+\paragraph{Why monitoring remains necessary}
 Every mechanism above modifies the agent or the model. That is often impossible:
 deployments frequently wrap a third-party model behind an API, cannot retrain it,
 and cannot re-architect a vendor's agent loop. Notably, \citet{chen2025secalign}
@@ -459,14 +459,14 @@ We compute four per-action signals. Signals S1 and S2 score the
 instruction; S3 and S4 score the \emph{action} stream, asking whether the agent's
 behaviour serves the user.
 
-\paragraph{S1: tool-transition surprise.}
+\paragraph{S1: tool-transition surprise}
 A Laplace-smoothed bigram model over consecutive tool names, fitted on benign
 traces, gives
 \begin{equation}
 s^{\mathrm{tr}}_t = -\log \hat{P}\big(\mathrm{tool}(a_t) \mid \mathrm{tool}(a_{t-1})\big).
 \end{equation}
 
-\paragraph{S2: observation instruction-likeness.}
+\paragraph{S2: observation instruction-likeness}
 Let $\mathrm{IL}(o)$ score how strongly a tool output reads as a directive
 addressed to the agent. We evaluate two instantiations. The \emph{lexicon}
 variant is a weighted per-word density of imperative verbs, second-person
@@ -475,7 +475,7 @@ small LLM with the observation alone and takes a normalised integer rating.
 Section~\ref{sec:ablation} compares them; the judge generalises better across
 attack templates, at the price of one cached model call per distinct observation.
 
-\paragraph{S3: action-justification audit.}
+\paragraph{S3: action-justification audit}
 Given only the user request $u$, the tool name and its arguments---and
 \emph{never} the observations---an LLM judge rates how far the call fails to
 serve $u$:
@@ -486,7 +486,7 @@ Withholding the observations is a deliberate design choice: it prevents the audi
 from simply re-detecting the injected text, so S3 is not a restatement of S2 and
 the two may be fused without circularity.
 
-\paragraph{S4: sensitive-sink provenance.}
+\paragraph{S4: sensitive-sink provenance}
 A conjunctive, per-value rule that fires when the agent performs an
 externally-effectful call whose critical argument traces to untrusted prose:
 \begin{equation}
@@ -1063,17 +1063,17 @@ supports.}
 
 Three consequences follow.
 
-\paragraph{We are close to saturation.} Our pooled $0.902$ is $97.8\%$ of the
+\paragraph{We are close to saturation} Our pooled $0.902$ is $97.8\%$ of the
 attainable $0.922$. Further gains on this corpus from better trace-only
 \emph{scoring} are bounded by roughly two percentage points; the remaining
 headroom is not in the detector but in the evidence.
 
-\paragraph{Observation-only monitoring is capped below the state of the art.}
+\paragraph{Observation-only monitoring is capped below the state of the art}
 The observation channel alone supports at most $0.867$. A literature that scores
 only untrusted text therefore cannot, on this corpus, reach the numbers it aims
 for---which is precisely why our action-side signals matter.
 
-\paragraph{Reported figures above the ceiling require explanation.} The
+\paragraph{Reported figures above the ceiling require explanation} The
 $0.9575$ of \citet{wang2025agentarmor} exceeds
 Corollary~\ref{cor:ceiling}'s $0.925$. We stress that this is not evidence of
 error on their part: their corpus, agents and positive-class definition all
@@ -1092,7 +1092,7 @@ component we implemented and rejected.
 
 \subsection{Signals that did not separate}
 
-\paragraph{Lexical data-flow taint ($\mathrm{AUROC}\,0.46$).} We scored the
+\paragraph{Lexical data-flow taint ($\mathrm{AUROC}\,0.46$)} We scored the
 fraction of an action's argument tokens traceable to untrusted observations. It
 performs \emph{below} chance because benign agents legitimately act on
 tool-derived values constantly---reading a recipient from a transaction record and
@@ -1100,15 +1100,15 @@ paying it is the normal case. Token-overlap fraction cannot distinguish that fro
 acting on an attacker-supplied recipient. This failure motivated the conjunctive,
 sink-restricted form of S4.
 
-\paragraph{Lexical goal-grounding ($\mathrm{AUROC}\,0.50$).} Token overlap
+\paragraph{Lexical goal-grounding ($\mathrm{AUROC}\,0.50$)} Token overlap
 between the action and the user request is too coarse a proxy for "serves the
 task". Its semantic replacement, S3, works ($0.926$)---the idea was right, the
 implementation was lexical.
 
-\paragraph{Injection-conditioned interaction (no gain).} Gating behavioural
+\paragraph{Injection-conditioned interaction (no gain)} Gating behavioural
 surprise on a preceding injection produced results identical to the plain sum.
 
-\paragraph{Sink provenance alone (TPR $0.112$ at FPR $0.073$).} As a standalone
+\paragraph{Sink provenance alone (TPR $0.112$ at FPR $0.073$)} As a standalone
 trajectory-level detector S4 is weak, because it fires only for the subset of
 attacks that route an identifier into a sensitive sink. It earns its place only
 inside the fusion, where its precision complements S2's recall.
@@ -1162,7 +1162,7 @@ result for a community currently enthusiastic about anytime-valid monitoring.
 %======================================================================
 \section{Discussion}\label{sec:discussion}
 
-\paragraph{What the ceiling changes.} The prevailing framing treats trace-only
+\paragraph{What the ceiling changes} The prevailing framing treats trace-only
 injection detection as a modelling problem: find a better score. Our measurement
 suggests it is largely an \emph{evidence} problem. Once both channels are
 exploited, $97.8\%$ of the attainable performance is reached by a fusion rule with
@@ -1171,7 +1171,7 @@ agent's own natural-language output, or scoring retrieved documents at the
 retrieval boundary before the agent chooses what to surface---than on further
 refining scores over the same trace.
 
-\paragraph{Why two channels rather than one.} S2 and S3 fail on disjoint cases.
+\paragraph{Why two channels rather than one} S2 and S3 fail on disjoint cases.
 S2 misses compromises whose payload never surfaces; S3 misses compromises whose
 harmful action looks superficially plausible. Because the failures are
 disjoint, fusion is close to additive in coverage, which is what the pooled
@@ -1179,20 +1179,20 @@ $0.902 > 0.867$ demonstrates. This is a concrete instance of a general design
 principle for monitors: prefer signals that fail on different inputs over signals
 that are individually stronger.
 
-\paragraph{Agent robustness is a confound.} GPT-4o-mini was compromised five
+\paragraph{Agent robustness is a confound} GPT-4o-mini was compromised five
 times more often than DeepSeek-V4-Flash on identical attacks, and DeepSeek
 resisted an entire attack family. A defence evaluated on one agent is partly
 measuring that agent. We recommend reporting the agent's unprotected compromise
 rate alongside any detector's TPR, as Table~\ref{tab:corpus} does.
 
-\paragraph{Cost.} S1 and S4 are dictionary and regular-expression operations. S2
+\paragraph{Cost} S1 and S4 are dictionary and regular-expression operations. S2
 and S3 each require one small-model call per distinct observation and per distinct
 action, cached; on our corpora this is $2{,}010$ calls total for $393$
 trajectories, and zero at re-evaluation time. There is no GPU, no access to model
 internals, and no agent re-execution, in contrast to
 re-execution defences~\citep{zhu2025melon}.
 
-\paragraph{Deployment and interpretability.} Because~\eqref{eq:fuse} is additive
+\paragraph{Deployment and interpretability} Because~\eqref{eq:fuse} is additive
 over interpretable components, an alarm comes with an attribution: the dominant
 $\psi_k$ names the reason. An operator can route "injected instruction detected"
 differently from "action unjustified given the user's request", and can tune
@@ -1228,20 +1228,20 @@ principle from the two named channels.
 
 \subsection{Future work}
 
-\paragraph{Monitor the response channel.} Extending the trace to the agent's
+\paragraph{Monitor the response channel} Extending the trace to the agent's
 natural-language messages is the direct route past $0.922$, and would let the
 monitor catch information-disclosure compromises that never touch a tool.
 
-\paragraph{Score content at the retrieval boundary.} A monitor placed where
+\paragraph{Score content at the retrieval boundary} A monitor placed where
 documents \emph{enter} the environment, rather than where the agent surfaces them,
 would see payloads the agent never reads aloud.
 
-\paragraph{Structured provenance.} S4 is a coarse approximation of the
+\paragraph{Structured provenance} S4 is a coarse approximation of the
 program-dependence analysis that \citet{wang2025agentarmor} perform. A faithful
 data-flow implementation, fused rather than used standalone, is a natural
 strengthening.
 
-\paragraph{Adaptive evaluation.} Attacks optimised jointly against all four
+\paragraph{Adaptive evaluation} Attacks optimised jointly against all four
 channels are the decisive robustness test.
 
 %======================================================================
