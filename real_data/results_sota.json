@@ -1,0 +1,48 @@
+{
+  "n_nominal": 121,
+  "n_attacks": 240,
+  "sota_reference": {
+    "name": "AgentArmor (published, different corpus)",
+    "tpr": 0.9575,
+    "fpr": 0.0366
+  },
+  "detectors": {
+    "behavioural (bigram+novelty)": {
+      "auroc": 0.7077307162534435,
+      "tpr_at_0.0366": 0.22916666666666666,
+      "tpr_at_0.05": 0.48333333333333334
+    },
+    "keyword lexicon": {
+      "auroc": 0.7867424242424242,
+      "tpr_at_0.0366": 0.5625,
+      "tpr_at_0.05": 0.575
+    },
+    "LLM instruction judge": {
+      "auroc": 0.7867424242424242,
+      "tpr_at_0.0366": 0.5625,
+      "tpr_at_0.05": 0.575,
+      "per_family": {
+        "important_instr": 0.6363636363636364,
+        "injecagent": 0.21428571428571427
+      }
+    },
+    "action audit [NEW]": {
+      "auroc": 0.5466253443526171,
+      "tpr_at_0.0366": 0.0,
+      "tpr_at_0.05": 0.0,
+      "per_family": {
+        "important_instr": 0.0,
+        "injecagent": 0.0
+      }
+    },
+    "combined [NEW]": {
+      "auroc": 0.7663395316804408,
+      "tpr_at_0.0366": 0.55,
+      "tpr_at_0.05": 0.55,
+      "per_family": {
+        "important_instr": 0.6363636363636364,
+        "injecagent": 0.14285714285714285
+      }
+    }
+  }
+}

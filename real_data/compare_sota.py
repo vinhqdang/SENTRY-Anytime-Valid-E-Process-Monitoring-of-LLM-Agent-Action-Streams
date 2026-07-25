@@ -8,8 +8,10 @@ published trace-only detector), and at 5% FPR as a round number.
 
 Detectors:
   behavioural           tool-transition bigram + argument novelty (no content)
-  keyword lexicon       hand-written imperative/pronoun/markup statistic
-  LLM instruction judge semantic "is untrusted text instructing the agent?"
+  instruction signal    scores the observation; which scorer is used depends on
+                        SENTRY_IL_MODE (lexicon = hand-written keyword statistic,
+                        llm = semantic judge). Run the script in both modes to
+                        get both rows.
   action audit          semantic "did the user ask for this tool call?"  [NEW]
   combined              instruction judge + action audit                 [NEW]
 
@@ -88,10 +90,7 @@ def main() -> None:
     detectors = {
         "behavioural (bigram+novelty)": (
             _behavioural_peaks(model, nominal), _behavioural_peaks(model, attacks)),
-        "keyword lexicon": (
-            [max((instruction_likeness_of(t)) for t in [t0]) for t0, _ in nominal],
-            [max((instruction_likeness_of(t)) for t in [t0]) for t0, _ in attacks]),
-        "LLM instruction judge": (
+        "instruction signal": (
             [_peak(t, "obs_instruction_likeness") for t, _ in nominal],
             [_peak(t, "obs_instruction_likeness") for t, _ in attacks]),
         "action audit [NEW]": (
@@ -99,9 +98,9 @@ def main() -> None:
             [_peak(t, "unjustified") for t, _ in attacks]),
     }
     detectors["combined [NEW]"] = (
-        [a + b for a, b in zip(detectors["LLM instruction judge"][0],
+        [a + b for a, b in zip(detectors["instruction signal"][0],
                                detectors["action audit [NEW]"][0])],
-        [a + b for a, b in zip(detectors["LLM instruction judge"][1],
+        [a + b for a, b in zip(detectors["instruction signal"][1],
                                detectors["action audit [NEW]"][1])],
     )
 
@@ -124,14 +123,14 @@ def main() -> None:
     print(f"{'detector':<30}{'important_instr':>17}{'injecagent':>13}")
     print("-" * 60)
     fam = {"important_instr": imp, "injecagent": inj}
-    for name in ["LLM instruction judge", "action audit [NEW]", "combined [NEW]"]:
+    for name in ["instruction signal", "action audit [NEW]", "combined [NEW]"]:
         neg = detectors[name][0]
         line = f"{name:<30}"
         results[name]["per_family"] = {}
         for fname, items in fam.items():
             if name == "action audit [NEW]":
                 pos = [_peak(t, "unjustified") for t, _ in items]
-            elif name == "LLM instruction judge":
+            elif name == "instruction signal":
                 pos = [_peak(t, "obs_instruction_likeness") for t, _ in items]
             else:
                 pos = [_peak(t, "obs_instruction_likeness") + _peak(t, "unjustified")
@@ -145,15 +144,6 @@ def main() -> None:
            "sota_reference": SOTA_REFERENCE, "detectors": results}
     (ROOT / "results_sota.json").write_text(json.dumps(out, indent=2))
     print(f"\nwrote {ROOT / 'results_sota.json'}")
-
-
-def instruction_likeness_of(traj) -> float:
-    """Peak lexicon instruction-likeness recomputed from the trajectory's
-    cached raw observations is unavailable here, so use the lexicon on the
-    stored per-action value when SENTRY_IL_MODE=lexicon; under llm mode this
-    column is reported separately by re-running with SENTRY_IL_MODE=lexicon."""
-    vals = [a.obs_instruction_likeness for _, a in traj]
-    return max(vals) if vals else 0.0
 
 
 if __name__ == "__main__":
