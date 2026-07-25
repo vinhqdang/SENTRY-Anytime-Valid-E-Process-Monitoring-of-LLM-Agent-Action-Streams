@@ -1,0 +1,65 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage[hidelinks]{hyperref}
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+{\large\bfseries Declarations}\\[0.4em]
+\emph{Breaking the Observation Ceiling: Conformal Fusion of Trace Signals for
+Detecting Prompt-Injection Compromise in LLM Agents}\\[0.3em]
+Quang-Vinh Dang, British University Vietnam, Hung Yen, Vietnam
+\end{center}
+
+\vspace{1em}
+
+\section*{Declaration of competing interest}
+
+The author declares that he has no known competing financial interests or personal
+relationships that could have appeared to influence the work reported in this
+paper.
+
+\section*{Funding}
+
+This research did not receive any specific grant from funding agencies in the
+public, commercial, or not-for-profit sectors.
+
+\section*{CRediT authorship contribution statement}
+
+\textbf{Quang-Vinh Dang:} Conceptualization, Methodology, Software, Validation,
+Formal analysis, Investigation, Data curation, Writing -- original draft, Writing
+-- review \& editing, Visualization, Project administration.
+
+\section*{Data availability}
+
+All code, the collected agent trajectory corpora, the cached model-judge scores and
+the analysis scripts that regenerate every number, table and figure reported in
+this paper are publicly available in the project's GitHub
+repository.\footnote{\raggedright
+\url{https://github.com/vinhqdang/SENTRY-Anytime-Valid-E-Process-Monitoring-of-LLM-Agent-Action-Streams}}
+Because the trajectories and the judge scores are released together with the code,
+the complete evaluation reproduces offline, without access to any model API.
+
+\section*{Ethics statement}
+
+This work studies defences against indirect prompt injection in LLM agents. All
+attacks are executed against sandboxed benchmark environments
+(AgentDojo and $\tau$-bench) using their own published attack templates; no live
+system, third-party service, or human subject was targeted or involved at any
+point. No personal data was collected. The attack templates used are already
+public, so the paper introduces no new offensive capability; its contribution is
+defensive, and it additionally reports the limits of the proposed defence so that
+practitioners do not over-rely on it.
+
+\section*{Declaration of generative AI use in the writing process}
+
+During the preparation of this work the author used a large language model as a
+coding and editing assistant, for implementation support, for text editing, and as
+the model-judge component that is itself an object of study in the method
+(Section~4). The author reviewed and edited all content, verified every reported
+number against the released code and data, and takes full responsibility for the
+content of the publication.
+
+\end{document}

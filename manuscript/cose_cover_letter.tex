@@ -1,0 +1,91 @@
+\documentclass[10.5pt]{article}
+\usepackage[a4paper,margin=0.75in]{geometry}
+\usepackage{parskip}
+\usepackage[hidelinks]{hyperref}
+\pagestyle{empty}
+
+\begin{document}
+
+\noindent
+Quang-Vinh Dang\\
+British University Vietnam\\
+Hung Yen, Vietnam\\
+\href{mailto:vinh.dq4@buv.edu.vn}{vinh.dq4@buv.edu.vn}
+
+\vspace{0.7em}
+\noindent 25 July 2026
+
+\vspace{0.7em}
+\noindent
+The Editors\\
+\emph{Computers \& Security}\\
+Elsevier
+
+\vspace{0.8em}
+\noindent Dear Editors,
+
+\vspace{0.6em}
+I am pleased to submit my manuscript, \textbf{``Breaking the Observation Ceiling:
+Conformal Fusion of Trace Signals for Detecting Prompt-Injection Compromise in LLM
+Agents,''} for consideration as a research article in \emph{Computers \&
+Security}.
+
+Large language model agents that call external tools now read email, browse the
+web and move money on a user's behalf. Because they ingest untrusted content and
+fold it into the context that drives their next action, they are exposed to
+indirect prompt injection. Runtime monitors that watch only the agent's black-box
+execution trace are attractive in practice---they need no model access, no
+retraining, and can be placed in front of a third-party agent---but the
+literature has converged almost entirely on a single kind of evidence: deciding
+whether untrusted text \emph{looks like an instruction}. This paper shows that
+this choice imposes a hard information limit, and that crossing it requires a
+different kind of evidence.
+
+The work makes four contributions. First, it introduces \textbf{SENTRY-Fuse}, a
+monitor that converts heterogeneous trace signals---two scoring the observation
+stream, two scoring the action stream---into conformal tail surprisals against a
+benign calibration split and fuses them additively. The construction is
+scale-free, provably order-preserving and free of tuned weights, and the paper
+proves that a widely-used alternative normalisation is many-to-one and can drive
+performance to exactly chance, as it did in an earlier version of this work.
+Second, action-side evidence is shown to be \emph{complementary} rather than
+redundant: the fused monitor exceeds what payload visibility alone can support,
+reaching $0.960 \pm 0.010$ true positives at a $3.66\%$ false-positive rate on a
+matched corpus, above the strongest published trace-only figure. Third, it
+characterises the \textbf{detectability ceiling} of trace-only monitoring: of $90$
+genuinely compromised trajectories, $7.8\%$ leave no trace evidence at all, which
+bounds \emph{every} such monitor and means reported rates above that ceiling are
+not comparable across corpora unless the corresponding fraction is reported too.
+Fourth, it documents a label-polarity pitfall in a widely used evaluation harness
+that inverts the compromised and resisted classes, with the ground-truth procedure
+that resolves it.
+
+I believe the work suits \emph{Computers \& Security} in particular. It is a
+security paper first: it defines a threat model, evaluates a defence against real
+attacks on real agent traces, quantifies what that defence can and cannot achieve,
+and reports its limits rather than only its successes. It also offers two things
+of direct use to others in the area: a measurement that bounds a whole class of
+defences, and a methodological warning that affects how results on a standard
+benchmark should be read. The paper reports its negative results in full,
+including three signals I implemented and rejected and the finding that a
+hand-tuned threshold outperformed the anytime-valid machinery from which the
+project began; these are what allow the positive claims to be interpreted
+correctly.
+
+All code, the trajectory corpora, the cached model-judge scores and the analysis
+scripts that regenerate every number, table and figure are publicly released, and
+the evaluation reproduces offline without access to any model API.
+
+I confirm that this manuscript is original, has not been published previously and
+is not under consideration elsewhere. There are no competing interests and no
+external funding was received; as sole author I am responsible for all aspects of
+the work. Thank you for your consideration, and I look forward to the reviewers'
+comments.
+
+\vspace{0.6em}
+\noindent Sincerely,
+
+\vspace{0.4em}
+\noindent Quang-Vinh Dang
+
+\end{document}
