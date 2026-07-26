@@ -63,8 +63,11 @@ def _load():
     tb = [(t, m) for t, m in load_taubench_logs(ROOT / "real_data" / "tau_bench" / ld) if len(t) >= 2]
     nominal = [(t, m) for t, m in ad if not m["is_attack"] and m.get("utility") is not None] + tb
     attacks = [(t, m) for t, m in ad if m["is_attack"] and m.get("security") is not None]
-    succ = [x for x in attacks if x[1]["security"] is False]
-    resisted = [x for x in attacks if x[1]["security"] is True]
+    # AgentDojo's `security` flag is the INJECTION task's success: True means the
+    # injection's goal was achieved, i.e. the agent WAS compromised. This was
+    # inverted here, which mislabelled the axes of every figure built from it.
+    succ = [x for x in attacks if x[1]["security"] is True]
+    resisted = [x for x in attacks if x[1]["security"] is False]
     return nominal, succ, resisted
 
 
@@ -161,7 +164,7 @@ def fig_ablation_progression():
     ax.bar(x - w / 2, pac_attempt, w, yerr=attempt_err, capsize=3, color=C["attack"],
            label="injection-attempt detection")
     ax.bar(x + w / 2, pac_hijack, w, yerr=hijack_err, capsize=3, color=C["nominal"],
-           label="hijack-success detection")
+           label="compromise detection")
     for xi, v in zip(x - w / 2, pac_attempt):
         ax.text(xi, v + 0.02, f"{v:.2f}", ha="center", fontsize=8)
     for xi, v in zip(x + w / 2, pac_hijack):
@@ -358,7 +361,7 @@ def fig_roc(nominal, succ, resisted):
     targets = {
         "observable injection": [t for t, _ in attempts if observable(t)],
         "all attempts": [t for t, _ in attempts],
-        "hijack success": [t for t, _ in succ],
+        "compromise": [t for t, _ in succ],
     }
     tpr_acc = {k: [] for k in targets}
     auc_acc = {k: [] for k in targets}
@@ -399,7 +402,7 @@ def fig_roc(nominal, succ, resisted):
 
 
 def fig_case_trace(nominal):
-    """Annotated walk-through of a REAL prompt-injection hijack from the
+    """Annotated walk-through of a REAL prompt-injection compromise from the
     collected AgentDojo banking logs: the benign user request, the agent's
     tool calls, the poisoned observation carrying the injected instruction,
     the agent's compliance (a wire to the attacker's account), and SENTRY's
@@ -480,7 +483,7 @@ def fig_case_trace(nominal):
         if note:
             axL.text(0.05, y - 0.17, note, fontsize=7.8, va="center",
                      color=edge)
-    axL.set_title("(a) A real prompt-injection hijack (AgentDojo banking)",
+    axL.set_title("(a) A real prompt-injection compromise (AgentDojo banking)",
                   fontsize=10, loc="left")
 
     # ---- right: SENTRY signal per step ----
@@ -490,7 +493,7 @@ def fig_case_trace(nominal):
              for v in ils], edgecolor="white")
     axR.set_ylim(-0.5, n + 1.5); axR.set_yticks([])
     axR.set_xlabel("obs. instruction-likeness", fontsize=9)
-    axR.set_title("(b) SENTRY signal", fontsize=10, loc="left")
+    axR.set_title("(b) Observation-side signal $s^{\\mathrm{il}}$", fontsize=10, loc="left")
     axR.axvline(0, color=C["muted"], lw=0.8)
     if fired_at is not None:
         yf = n - fired_at
