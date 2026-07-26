@@ -1,6 +1,7 @@
-"""Print the headline numbers reported in the manuscript from the committed
-results JSON, next to the values printed in the paper, so a reproducer can
-check at a glance that a fresh run matches.
+"""Check the reproduced numbers against the values reported in the manuscript.
+
+Every expected value below is the number printed in the paper, so a mismatch
+means either the code changed or the paper is stale. Run after reproduce.sh.
 
     python -m real_data.report
 """
@@ -12,64 +13,121 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 
+# (label, path-into-json, expected-as-printed-in-the-paper, tolerance)
+FUSED_CHECKS = [
+    ("GPT-4o-mini  SENTRY-Fuse AUROC",
+     ("corpora", "GPT-4o-mini", "detectors", "SENTRY-Fuse (S3+S4+S5)", "auroc_mean"),
+     0.985, 0.002),
+    ("GPT-4o-mini  SENTRY-Fuse TPR@5%",
+     ("corpora", "GPT-4o-mini", "detectors", "SENTRY-Fuse (S3+S4+S5)", "tpr_at_0.05_mean"),
+     0.956, 0.003),
+    ("GPT-4o-mini  realised FPR",
+     ("corpora", "GPT-4o-mini", "detectors", "SENTRY-Fuse (S3+S4+S5)", "realised_fpr_at_0.05"),
+     0.029, 0.003),
+    ("GPT-4o-mini  S3 alone AUROC",
+     ("corpora", "GPT-4o-mini", "detectors", "S3 instruction only", "auroc_mean"),
+     0.951, 0.003),
+    ("DeepSeek     SENTRY-Fuse AUROC",
+     ("corpora", "DeepSeek", "detectors", "SENTRY-Fuse (S3+S4+S5)", "auroc_mean"),
+     0.843, 0.003),
+    ("DeepSeek     SENTRY-Fuse TPR@5%",
+     ("corpora", "DeepSeek", "detectors", "SENTRY-Fuse (S3+S4+S5)", "tpr_at_0.05_mean"),
+     0.778, 0.003),
+    ("Pooled       SENTRY-Fuse AUROC",
+     ("pooled", "detectors", "SENTRY-Fuse (S3+S4+S5)", "auroc_mean"),
+     0.957, 0.003),
+    ("Pooled       SENTRY-Fuse TPR@5%",
+     ("pooled", "detectors", "SENTRY-Fuse (S3+S4+S5)", "tpr_at_0.05_mean"),
+     0.919, 0.003),
+    ("Pooled       S1+S2 behavioural AUROC (near chance)",
+     ("pooled", "detectors", "S1 + S2 behavioural", "auroc_mean"),
+     0.561, 0.005),
+]
 
-def _load(name):
-    p = ROOT / name
-    return json.loads(p.read_text()) if p.exists() else None
+CEILING_CHECKS = [
+    ("Compromised trajectories (pooled)", ("pooled", "n_compromised"), 90, 0),
+    ("Payload visible in observations", ("pooled", "payload_visible_in_trace", "frac"),
+     1.000, 0.001),
+    ("Calls an effectful sink", ("pooled", "has_effectful_sink_call", "frac"),
+     0.856, 0.002),
+    ("No trace evidence at all (nu)", ("pooled", "neither_channel", "nu"),
+     0.000, 0.001),
+]
+
+ABLATION_CHECKS = [
+    ("judge + excess-over-max, important_instr  (destroyed)",
+     "llm|excess_max|important_instr", 0.515, 0.01),
+    ("judge + conformal,       important_instr  (works)",
+     "llm|conformal|important_instr", 0.761, 0.01),
+    ("judge + excess-over-max, InjecAgent       (destroyed)",
+     "llm|excess_max|injecagent", 0.531, 0.01),
+    ("judge + conformal,       InjecAgent       (recovered)",
+     "llm|conformal|injecagent", 0.706, 0.01),
+]
+
+
+def _dig(d, path):
+    for k in path:
+        d = d[k]
+    return d
+
+
+def _check(rows, data, getter):
+    bad = 0
+    print(f"\n{'quantity':<52}{'reproduced':>12}{'paper':>9}{'':>4}")
+    print("-" * 77)
+    for label, key, expected, tol in rows:
+        try:
+            got = getter(data, key)
+        except (KeyError, TypeError):
+            print(f"{label:<52}{'MISSING':>12}{expected:>9}   x")
+            bad += 1
+            continue
+        ok = abs(got - expected) <= tol
+        bad += not ok
+        fmt = f"{got:>12.3f}" if isinstance(got, float) else f"{got:>12d}"
+        exp = f"{expected:>9.3f}" if isinstance(expected, float) else f"{expected:>9d}"
+        print(f"{label:<52}{fmt}{exp}{'   ok' if ok else '   MISMATCH'}")
+    return bad
 
 
 def main() -> None:
-    main_r = _load("results.json")
-    gen_r = _load("results_generalization.json")
+    print("=" * 77)
+    print("SENTRY -- reproduced vs. manuscript")
+    print("=" * 77)
+    bad, missing = 0, []
 
-    print("=" * 68)
-    print("SENTRY -- manuscript headline numbers (reproduced vs. paper)")
-    print("=" * 68)
-
-    if main_r:
-        m = main_r["models"]["bigram_novelty_summed"]["aggregate"]
-        mix = main_r["models"]["bigram_novelty_evalue_mixture"]["aggregate"]
-        print(f"\nCorpus: {main_r['n_nominal']} nominal, "
-              f"{main_r['n_successful_attacks']} successful + "
-              f"{main_r['n_resisted_attacks']} resisted attacks  (paper: 121 / 180 / 18)")
-        rows = [
-            ("Observable-injection detection (PAC)", "pac_observable_rate", m, "0.99"),
-            ("All-attempts detection (PAC)",         "pac_attempt_rate",    m, "0.66"),
-            ("Hijack-success detection (PAC)",       "pac_detection_rate",  m, "0.64"),
-            ("Per-step false-alarm rate",            "pac_nominal_far",     m, "0.02"),
-            ("Attempt-vs-benign AUROC",              "auroc_attempt_max",   m, "0.77"),
-            ("Ville attempt detection",              "ville_attempt_rate",  m, "0.71"),
-            ("e-value-mixture attempt (PAC)",        "pac_attempt_rate",    mix, "0.65"),
-            ("e-value-mixture FAR (Ville)",          "ville_nominal_far",   mix, "0.008"),
-        ]
-        print(f"\n{'metric':<40}{'reproduced':>12}{'paper':>8}")
-        print("-" * 60)
-        for label, key, src, paper in rows:
-            v = src.get(key, {}).get("mean", float("nan"))
-            print(f"{label:<40}{v:>12.3f}{paper:>8}")
+    p = ROOT / "results_fused.json"
+    if p.exists():
+        print("\n## Compromise detection (Table: fusion ablation)")
+        bad += _check(FUSED_CHECKS, json.loads(p.read_text()), _dig)
     else:
-        print("\n(real_data/results.json missing -- run `python -m real_data.evaluate`)")
+        missing.append("results_fused.json -- run: python -m real_data.evaluate_fused")
 
-    if gen_r:
-        print("\nGeneralisation (attempt-AUROC / observable detection):")
-        spec = [
-            ("A_baseline_deepseek_important", "baseline (DeepSeek, imp.instr.)", "0.77 / 0.99"),
-            ("C_newagent_gpt4omini_important", "new agent (GPT-4o-mini)", "0.82 / 1.00"),
-            ("B_newattack_deepseek_injecagent", "new attack (InjecAgent)", "0.47 / 0.10"),
-        ]
-        print(f"{'scenario':<34}{'AUROC':>8}{'obs':>7}{'':>4}{'paper':>12}")
-        print("-" * 66)
-        for key, label, paper in spec:
-            r = gen_r.get(key)
-            if not r:
-                continue
-            a = r["auroc_attempt_max"]["mean"]
-            o = r["pac_observable_rate"]["mean"]
-            print(f"{label:<34}{a:>8.2f}{o:>7.2f}{'':>4}{paper:>12}")
+    p = ROOT / "results_ceiling_per_corpus.json"
+    if p.exists():
+        print("\n## Evidence channels (Table: detectability)")
+        bad += _check(CEILING_CHECKS, json.loads(p.read_text()), _dig)
     else:
-        print("\n(results_generalization.json missing -- run "
-              "`python -m real_data.evaluate_generalization`)")
+        missing.append("results_ceiling_per_corpus.json -- run: python -m real_data.ceiling")
+
+    p = ROOT / "results_signal_ablation.json"
+    if p.exists():
+        print("\n## Normalisation ablation, attempt-detection AUROC")
+        data = json.loads(p.read_text())
+        bad += _check(ABLATION_CHECKS, data,
+                      lambda d, k: d[k]["auroc_attempt_max"])
+    else:
+        missing.append("results_signal_ablation.json -- run: "
+                       "python -m real_data.normalisation_ablation")
+
+    for m in missing:
+        print(f"\n  skipped: {m}")
     print()
+    if bad:
+        print(f"{bad} value(s) disagree with the manuscript.")
+        raise SystemExit(1)
+    print("All checked values match the manuscript.")
 
 
 if __name__ == "__main__":
