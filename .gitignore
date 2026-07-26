@@ -226,3 +226,28 @@ examples/output/
 *.out
 *.blg
 *.synctex.gz
+
+# Private working notes: research log and submission checklist. These contain
+# venue and review history that has no place in a public repository referees are
+# pointed at from the paper's data-availability statement.
+NOTES.md
+manuscript/SUBMISSION_CHECKLIST.md
+
+# Superseded manuscripts for earlier target venues. These report the
+# pre-correction numbers measured on the INVERTED label class (see the
+# label-polarity section of the current paper), so they should not be read as
+# results. Retained in git history only.
+manuscript/sentry.tex
+manuscript/sentry.pdf
+manuscript/sentry.bbl
+manuscript/sentry_ieee.*
+manuscript/sentry_TDSC_main.zip
+manuscript/references.bib
+manuscript/references_ieee.bib
+manuscript/appendix.tex
+manuscript/appendix.pdf
+manuscript/cover_letter.tex
+manuscript/cover_letter.pdf
+manuscript/sn-jnl.cls
+manuscript/sn-mathphys-num.bst
+manuscript/bst/
