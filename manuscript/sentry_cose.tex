@@ -789,19 +789,19 @@ one.
 \begin{algorithm}[t]
 \caption{SENTRY-Fuse}\label{alg:fuse}
 \begin{algorithmic}[1]
-\Require disjoint benign splits $\Dcal_{\mathrm{fit}}, \Dcal_{\mathrm{cal}}, \Dcal_{\mathrm{thr}}$; target false-alarm rate $\alpha$; signals $1,\dots,K$
+\Require disjoint benign splits $\Dcal_{\mathrm{fit}}, \Dcal_{\mathrm{cal}}, \Dcal_{\mathrm{test}}$; target false-alarm rate $\alpha$; signals $1,\dots,K$
 \State fit any reference a signal needs (e.g.\ per-tool vocabularies) on $\Dcal_{\mathrm{fit}}$
 \For{$k = 1,\dots,K$}
   \State $x^{(k)}_{1:n_k} \gets$ per-trajectory summaries of signal $k$ on $\Dcal_{\mathrm{cal}}$, scored against the $\Dcal_{\mathrm{fit}}$ reference
 \EndFor
-\State $\tau \gets$ threshold realising a false-alarm rate $\le \alpha$ on $\{S(\Tcal) : \Tcal \in \Dcal_{\mathrm{thr}}\}$ (Section~\ref{sec:metrics})
+\State $\tau \gets$ the $k$-th largest of $\{S(\Tcal) : \Tcal \in \Dcal_{\mathrm{test}}\}$, $k = \lfloor \alpha |\Dcal_{\mathrm{test}}| \rfloor$ \Comment{in sample; Section~\ref{sec:metrics}}
 \Statex \textbf{at monitoring time, for a trace} $\Tcal$:
 \For{$k = 1,\dots,K$}
   \State $x_k \gets \max_t s^{(k)}_t(\Tcal)$;\quad
          $\psi_k \gets -\log\big((1 + |\{i : x^{(k)}_i \ge x_k\}|)/(n_k+1)\big)$
 \EndFor
 \State $S \gets \sum_k \psi_k$
-\If{$S \ge \tau$} \textbf{raise alarm}; report $\arg\max_k \psi_k$ as the dominant cause
+\If{$S > \tau$} \textbf{raise alarm}; report $\arg\max_k \psi_k$ as the dominant cause
 \EndIf
 \end{algorithmic}
 \end{algorithm}
@@ -911,9 +911,20 @@ generally be hit. With $n$ held-out negatives, thresholding a score yields only
 the rates $k/n$ for integer $k$, so the attainable grid has spacing $1/n$: $4.2\%$
 on the $24$ GPT-4o-mini negatives and $1.5\%$ on the $65$ pooled ones. We
 therefore set the threshold at the $k$-th largest negative with
-$k = \lfloor \alpha n \rfloor$, which realises an FPR of $k/n \le \alpha$, and we
-\emph{report the realised rate} in every table alongside the target. We use
-$\alpha = 5\%$ as the target throughout.
+$k = \lfloor \alpha n \rfloor$ and then \emph{measure} the rate it realises, which
+we report in every table alongside the target. We use $\alpha = 5\%$ as the target
+throughout.
+
+Two caveats about this number. First, it is generally strictly below $k/n$, because
+by Proposition~\ref{prop:mono}(iii) the fused statistic takes at most $n_k+1$
+values, so negatives tie at the saturated level and fewer than $k$ of them exceed
+the threshold---which is why the realised rates in Table~\ref{tab:fused} range from
+$0.0\%$ to $4.4\%$ against a $5\%$ target rather than sitting at $k/n$. Second, we
+are reading a point off the empirical ROC curve of the held-out negatives, so the
+reported rate is descriptive of \emph{those} negatives and is not an out-of-sample
+false-alarm guarantee; a deployment would fix $\tau$ on a further split and accept
+the extra variability, and Proposition~\ref{prop:fusebound} is what supplies a
+distribution-free---if loose---a-priori bound.
 
 This is worth being explicit about because interpolating an empirical quantile, as
 is conventional, silently produces a different rate: at a nominal $3.66\%$ on $35$
@@ -1521,12 +1532,28 @@ and at the strictest criterion the bound it would give is violated by our own
 measured true-positive rate. Readers should therefore not treat our numbers as
 close to, or far from, any limit---we do not know where the limit is.
 
-\emph{(vii) Non-exchangeability across domains.} The pooled benign set mixes
-AgentDojo and $\tau$-bench trajectories, which have different tool vocabularies
-and length distributions. Proposition~\ref{prop:valid} assumes exchangeability
-between the calibration values and the test point, and pooling heterogeneous
-domains strains that assumption; the per-corpus rows do not have this problem and
-we report them alongside.
+\emph{(vii) Compromise-detection transfer across attack families is untested.}
+This is the most consequential gap in our evaluation, and it is structural rather
+than presentational. We have InjecAgent data for one agent only, and that agent
+resisted the family completely ($0/42$), so its compromise-positive class is empty.
+Every compromise-detection number in this paper is therefore measured on
+\texttt{important\_instructions} attacks alone; the transfer evidence in
+Table~\ref{tab:generalisation} concerns \emph{attempt} detection, a different and
+easier objective. Closing this requires collecting InjecAgent attacks against an
+agent that actually succumbs to them---a data-collection task, not an analysis
+one---and until that is done a reader should assume our compromise-side results may
+be specific to one attack template.
+
+\emph{(viii) A single benchmark family, and no $\tau$-bench in the compromise
+corpora.} The compromise-detection corpora are AgentDojo only. An earlier version
+pooled in $\tau$-bench retail trajectories as extra benign data; we removed them,
+because they mix tool vocabularies in a way that strains the exchangeability
+Proposition~\ref{prop:valid} assumes and---worse---they were loaded without their
+message list, so S5 was silently fixed at zero for all $50$ rather than measured.
+That inflated S5's apparent standalone recall from $0.000$ to $0.220$. $\tau$-bench
+is still used for attempt detection, where S5 plays no part. The cost of removing
+them is a smaller benign reference ($141$ pooled rather than $191$) and a coarser
+attainable false-positive grid.
 
 \subsection{Future work}
 
