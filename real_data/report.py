@@ -46,12 +46,42 @@ FUSED_CHECKS = [
 
 CEILING_CHECKS = [
     ("Compromised trajectories (pooled)", ("pooled", "n_compromised"), 90, 0),
-    ("Payload visible in observations", ("pooled", "payload_visible_in_trace", "frac"),
-     1.000, 0.001),
+    ("Payload visible, permissive criterion",
+     ("pooled", "payload_visible_in_trace", "frac"), 1.000, 0.001),
+    ("Payload visible, strict criterion",
+     ("pooled", "payload_visible_strict", "frac"), 0.867, 0.002),
     ("Calls an effectful sink", ("pooled", "has_effectful_sink_call", "frac"),
      0.856, 0.002),
-    ("No trace evidence at all (nu)", ("pooled", "neither_channel", "nu"),
-     0.000, 0.001),
+    ("nu, permissive criterion", ("pooled", "primary", "nu"), 0.000, 0.001),
+    ("nu, strict criterion", ("pooled", "strict", "nu"), 0.044, 0.002),
+    ("Distinctive directive visible for >= 5 words",
+     ("pooled", "distinctive_core_visible", "5"), 1.000, 0.001),
+    ("Distinctive directive visible in full (k=30)",
+     ("pooled", "distinctive_core_visible", "30"), 0.144, 0.002),
+]
+
+CORPUS_CHECKS = [
+    ("Benign trajectories", ("totals", "benign"), 191, 0),
+    ("Attacked trajectories", ("totals", "attacks"), 393, 0),
+    ("Compromised", ("totals", "compromised"), 90, 0),
+    ("Resisted", ("totals", "resisted"), 303, 0),
+    ("Polarity: security=True and paid attacker",
+     ("polarity_check", "security_true_pays"), 31, 0),
+    ("Polarity: security=True and did not pay",
+     ("polarity_check", "security_true_no_pay"), 0, 0),
+    ("Polarity: security=False but paid (undercount)",
+     ("polarity_check", "security_false_pays"), 3, 0),
+]
+
+QUANT_CHECKS = [
+    ("Conformal AUROC at n_cal=35 (raw 1.000)",
+     ("by_calibration_size", "35", "psi_auroc"), 0.986, 0.002),
+    ("Conformal AUROC at n_cal=5 (raw 1.000)",
+     ("by_calibration_size", "5", "psi_auroc"), 0.925, 0.002),
+    ("Counterexample: saturation to one half",
+     ("counterexamples", "saturation_to_half", "psi"), 0.500, 0.001),
+    ("Counterexample: above chance to below chance",
+     ("counterexamples", "below_half", "psi"), 0.333, 0.001),
 ]
 
 ABLATION_CHECKS = [
@@ -110,6 +140,21 @@ def main() -> None:
         bad += _check(CEILING_CHECKS, json.loads(p.read_text()), _dig)
     else:
         missing.append("results_ceiling_per_corpus.json -- run: python -m real_data.ceiling")
+
+    p = ROOT / "results_corpus.json"
+    if p.exists():
+        print("\n## Corpus composition and label polarity (Tables: corpus, polarity)")
+        bad += _check(CORPUS_CHECKS, json.loads(p.read_text()), _dig)
+    else:
+        missing.append("results_corpus.json -- run: python -m real_data.corpus_table")
+
+    p = ROOT / "results_quantisation.json"
+    if p.exists():
+        print("\n## Conformal quantisation loss (Proposition 3(iii))")
+        bad += _check(QUANT_CHECKS, json.loads(p.read_text()), _dig)
+    else:
+        missing.append("results_quantisation.json -- run: "
+                       "python -m real_data.quantisation_demo")
 
     p = ROOT / "results_signal_ablation.json"
     if p.exists():

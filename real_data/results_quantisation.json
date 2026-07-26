@@ -1,0 +1,75 @@
+{
+  "n_replicates": 400,
+  "separation_sigma": 6.0,
+  "n_eval_per_class": 200,
+  "by_calibration_size": {
+    "1": {
+      "raw_auroc": 1.0,
+      "psi_auroc": 0.7546,
+      "loss": 0.2454
+    },
+    "5": {
+      "raw_auroc": 1.0,
+      "psi_auroc": 0.9245,
+      "loss": 0.0755
+    },
+    "10": {
+      "raw_auroc": 1.0,
+      "psi_auroc": 0.9552,
+      "loss": 0.0448
+    },
+    "23": {
+      "raw_auroc": 1.0,
+      "psi_auroc": 0.9793,
+      "loss": 0.0207
+    },
+    "35": {
+      "raw_auroc": 1.0,
+      "psi_auroc": 0.9858,
+      "loss": 0.0142
+    },
+    "63": {
+      "raw_auroc": 1.0,
+      "psi_auroc": 0.9923,
+      "loss": 0.0077
+    },
+    "200": {
+      "raw_auroc": 1.0,
+      "psi_auroc": 0.9973,
+      "loss": 0.0027
+    }
+  },
+  "counterexamples": {
+    "saturation_to_half": {
+      "calibration": [
+        0.0
+      ],
+      "benign": [
+        0.1,
+        0.2
+      ],
+      "attack": [
+        0.3,
+        0.4
+      ],
+      "raw": 1.0,
+      "psi": 0.5
+    },
+    "below_half": {
+      "calibration": [
+        10.0
+      ],
+      "benign": [
+        0.0,
+        0.0,
+        11.0
+      ],
+      "attack": [
+        1.0,
+        2.0
+      ],
+      "raw": 0.6666666666666666,
+      "psi": 0.3333333333333333
+    }
+  }
+}

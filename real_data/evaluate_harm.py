@@ -74,7 +74,8 @@ def _behav(model, items):
         best, hist = 0.0, []
         for ctx, a in t:
             sv = model.signal_vector(ctx, hist, a)
-            best = max(best, sv["transition"] + 4.0 * sv["novelty"])
+            # transition and novelty kept separate: no hand-chosen weight
+            best = max(best, sv["transition"], sv["novelty"])
             hist = list(hist) + [(ctx, a)]
         out.append(best)
     return out

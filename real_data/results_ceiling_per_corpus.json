@@ -8,19 +8,38 @@
         "n": 72,
         "frac": 1.0
       },
+      "payload_visible_strict": {
+        "n": 64,
+        "frac": 0.8889
+      },
       "has_effectful_sink_call": {
         "n": 63,
         "frac": 0.875
       },
-      "either_channel": {
-        "n": 72,
-        "frac": 1.0
+      "primary": {
+        "either_n": 72,
+        "either_frac": 1.0,
+        "neither_n": 0,
+        "nu": 0.0,
+        "ceiling_at_alpha_0.05": 1.0
       },
-      "neither_channel": {
-        "n": 0,
-        "nu": 0.0
+      "strict": {
+        "either_n": 70,
+        "either_frac": 0.9722,
+        "neither_n": 2,
+        "nu": 0.0278,
+        "ceiling_at_alpha_0.05": 0.9736
       },
-      "ceiling_at_alpha_0.0366": 1.0
+      "distinctive_core_visible": {
+        "1": 1.0,
+        "5": 1.0,
+        "6": 0.75,
+        "10": 0.5556,
+        "20": 0.4583,
+        "25": 0.2083,
+        "30": 0.1528
+      },
+      "distinctive_core_never_visible": 0
     },
     "DeepSeek": {
       "n_compromised": 18,
@@ -28,19 +47,38 @@
         "n": 18,
         "frac": 1.0
       },
+      "payload_visible_strict": {
+        "n": 14,
+        "frac": 0.7778
+      },
       "has_effectful_sink_call": {
         "n": 14,
         "frac": 0.7778
       },
-      "either_channel": {
-        "n": 18,
-        "frac": 1.0
+      "primary": {
+        "either_n": 18,
+        "either_frac": 1.0,
+        "neither_n": 0,
+        "nu": 0.0,
+        "ceiling_at_alpha_0.05": 1.0
       },
-      "neither_channel": {
-        "n": 0,
-        "nu": 0.0
+      "strict": {
+        "either_n": 16,
+        "either_frac": 0.8889,
+        "neither_n": 2,
+        "nu": 0.1111,
+        "ceiling_at_alpha_0.05": 0.8944
       },
-      "ceiling_at_alpha_0.0366": 1.0
+      "distinctive_core_visible": {
+        "1": 1.0,
+        "5": 1.0,
+        "6": 0.8333,
+        "10": 0.3889,
+        "20": 0.1111,
+        "25": 0.1111,
+        "30": 0.1111
+      },
+      "distinctive_core_never_visible": 0
     }
   },
   "pooled": {
@@ -49,18 +87,37 @@
       "n": 90,
       "frac": 1.0
     },
+    "payload_visible_strict": {
+      "n": 78,
+      "frac": 0.8667
+    },
     "has_effectful_sink_call": {
       "n": 77,
       "frac": 0.8556
     },
-    "either_channel": {
-      "n": 90,
-      "frac": 1.0
+    "primary": {
+      "either_n": 90,
+      "either_frac": 1.0,
+      "neither_n": 0,
+      "nu": 0.0,
+      "ceiling_at_alpha_0.05": 1.0
     },
-    "neither_channel": {
-      "n": 0,
-      "nu": 0.0
+    "strict": {
+      "either_n": 86,
+      "either_frac": 0.9556,
+      "neither_n": 4,
+      "nu": 0.0444,
+      "ceiling_at_alpha_0.05": 0.9578
     },
-    "ceiling_at_alpha_0.0366": 1.0
+    "distinctive_core_visible": {
+      "1": 1.0,
+      "5": 1.0,
+      "6": 0.7667,
+      "10": 0.5222,
+      "20": 0.3889,
+      "25": 0.1889,
+      "30": 0.1444
+    },
+    "distinctive_core_never_visible": 0
   }
 }

@@ -1,0 +1,48 @@
+{
+  "corpus": [
+    {
+      "agent": "DeepSeek-V4-Flash",
+      "attack_family": "important_instructions",
+      "n_benign": 71,
+      "n_attacks": 198,
+      "n_compromised": 18,
+      "n_resisted": 180
+    },
+    {
+      "agent": "DeepSeek-V4-Flash",
+      "attack_family": "injecagent",
+      "n_benign": 0,
+      "n_attacks": 42,
+      "n_compromised": 0,
+      "n_resisted": 42
+    },
+    {
+      "agent": "GPT-4o-mini",
+      "attack_family": "important_instructions",
+      "n_benign": 70,
+      "n_attacks": 153,
+      "n_compromised": 72,
+      "n_resisted": 81
+    },
+    {
+      "agent": "DeepSeek-V4-Flash",
+      "attack_family": "tau-bench retail (benign)",
+      "n_benign": 50,
+      "n_attacks": 0,
+      "n_compromised": 0,
+      "n_resisted": 0
+    }
+  ],
+  "polarity_check": {
+    "security_true_pays": 31,
+    "security_true_no_pay": 0,
+    "security_false_pays": 3,
+    "security_false_no_pay": 73
+  },
+  "totals": {
+    "benign": 191,
+    "attacks": 393,
+    "compromised": 90,
+    "resisted": 303
+  }
+}

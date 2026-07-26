@@ -1,6 +1,6 @@
 \documentclass[10pt]{article}
-\usepackage[a4paper,margin=0.7in]{geometry}
-\linespread{0.98}
+\usepackage[a4paper,margin=0.65in]{geometry}
+\linespread{0.95}
 \usepackage{parskip}
 \usepackage[hidelinks]{hyperref}
 \pagestyle{empty}
@@ -46,8 +46,8 @@ benign calibration split and fuses them by addition. The construction is
 scale-free, non-decreasing in every component and free of tuned signal weights,
 and the paper proves that the natural alternative of subtracting the benign
 training maximum is many-to-one and caps AUROC at one half. That is not
-hypothetical: an earlier version of this work did exactly that, at a cost of $0.25$
-AUROC and a confidently wrong explanation of the resulting failure. Second,
+hypothetical: an earlier, unpublished draft of this work did exactly that, at a cost
+of $0.25$ AUROC and a confidently wrong explanation of the resulting failure. Second,
 action-side evidence is shown to be \emph{complementary} rather than redundant:
 over $90$ genuinely compromised trajectories the fusion reaches
 $\mathrm{AUROC} = 0.957 \pm 0.004$ and a true-positive rate of $0.919 \pm 0.007$ at
@@ -55,11 +55,14 @@ a realised $3.4\%$ false-positive rate, against $0.944$ and $0.729$ for the
 instruction signal alone, and it cuts that signal's across-split standard deviation
 from $\pm 0.364$ to $\pm 0.007$. Third, it formalises the \textbf{detectability
 ceiling} of trace-only monitoring and then measures it: on AgentDojo the fraction
-of compromises leaving no trace evidence is \emph{zero}, because the benchmark
-delivers payloads through tool outputs a successful injection must have read. The
-ceiling is an artefact of benchmark construction rather than a limit of the
-problem---a negative result about the field's evaluation practice, and the finding
-I expect to be most useful to others. Fourth, it documents a label-polarity
+of compromises leaving no trace evidence lies between $0$ and $0.044$ depending on
+how visibility is defined, putting the bound at or above $0.958$, because the
+benchmark delivers payloads through tool outputs a successful injection must have
+read. The ceiling is an artefact of benchmark construction rather than a limit of
+the problem---a negative result about the field's evaluation practice, and the
+finding I expect to be most useful to others. It also led me to withdraw a claim an
+earlier draft made, that a published figure exceeded this corpus's information
+limit; that was an artefact of the measurement convention. Fourth, it documents a label-polarity
 pitfall in a widely used harness that inverts the compromised and resisted
 classes, with the ground-truth procedure that resolves it.
 
@@ -75,11 +78,11 @@ security paper first: it defines a threat model, evaluates a defence against rea
 attacks on real agent traces, and reports its limits rather than only its
 successes. It offers two things of direct use to others: a measurement showing that
 the benchmarks the field relies on cannot exhibit the hardest case, and a
-methodological warning that affects how results on a standard benchmark should be
-read. Its negative results are reported in full---four signals I implemented and
-rejected, two of which an earlier version of this work presented as part of the
-method, and the finding that a hand-picked threshold outperformed the anytime-valid
-machinery from which the project began.
+methodological warning about how results on a standard benchmark should be read.
+Its negative results are reported in full---four signals I implemented and
+rejected, two of which an earlier draft presented as part of the method, and the
+finding that a hand-picked threshold outperformed the anytime-valid machinery from
+which the project began.
 
 All code, the trajectory corpora, the cached model-judge scores and the analysis
 scripts that regenerate every number, table and figure are publicly released, and

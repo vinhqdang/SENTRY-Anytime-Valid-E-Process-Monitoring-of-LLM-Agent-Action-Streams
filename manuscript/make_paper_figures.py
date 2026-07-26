@@ -162,29 +162,25 @@ def fig_fusion():
 
 def fig_evidence():
     """Evidence-channel coverage of the compromised class, per corpus."""
-    labels, obs, act, either, ns = [], [], [], [], []
-    for name in ("GPT-4o-mini", "DeepSeek"):
-        r = CEIL["corpora"][name]
+    labels, obs, obs_s, act, ns = [], [], [], [], []
+    blocks = [("GPT-4o-mini", CEIL["corpora"]["GPT-4o-mini"]),
+              ("DeepSeek", CEIL["corpora"]["DeepSeek"]),
+              ("Pooled", CEIL["pooled"])]
+    for name, r in blocks:
         labels.append(name)
         obs.append(r["payload_visible_in_trace"]["frac"])
+        obs_s.append(r["payload_visible_strict"]["frac"])
         act.append(r["has_effectful_sink_call"]["frac"])
-        either.append(r["either_channel"]["frac"])
         ns.append(r["n_compromised"])
-    r = CEIL["pooled"]
-    labels.append("Pooled")
-    obs.append(r["payload_visible_in_trace"]["frac"])
-    act.append(r["has_effectful_sink_call"]["frac"])
-    either.append(r["either_channel"]["frac"])
-    ns.append(r["n_compromised"])
 
     x = np.arange(len(labels))
     w = 0.26
-    fig, ax = plt.subplots(figsize=(6.6, 3.6))
-    ax.bar(x - w, obs, w, color=C["obs"], label="payload visible in observations")
-    ax.bar(x, act, w, color=C["act"], label="calls an effectful sink")
-    ax.bar(x + w, either, w, color=C["green"], label="either channel")
-    for xi, (o, a, e) in zip(x, zip(obs, act, either)):
-        for dx, v in ((-w, o), (0, a), (w, e)):
+    fig, ax = plt.subplots(figsize=(6.8, 3.6))
+    ax.bar(x - w, obs, w, color=C["obs"], label="payload visible (permissive)")
+    ax.bar(x, obs_s, w, color=C["purple"], label="payload visible (strict)")
+    ax.bar(x + w, act, w, color=C["act"], label="calls an effectful sink")
+    for xi, (o, o2, a) in zip(x, zip(obs, obs_s, act)):
+        for dx, v in ((-w, o), (0, o2), (w, a)):
             ax.text(xi + dx, v + 0.015, f"{v:.3f}", ha="center", fontsize=7.5)
     ax.set_xticks(x)
     ax.set_xticklabels([f"{l}\n(n={n})" for l, n in zip(labels, ns)], fontsize=9)
@@ -192,13 +188,16 @@ def fig_evidence():
     ax.set_yticks(np.arange(0, 1.01, 0.2))
     ax.set_ylabel("fraction of compromised trajectories")
     ax.axhline(1.0, color=C["muted"], lw=0.8, ls="--")
+    nu_p = CEIL["pooled"]["primary"]["nu"]
+    nu_s = CEIL["pooled"]["strict"]["nu"]
     ax.text((len(labels) - 1) / 2, 1.115,
-            r"$\nu = 0$ on every corpus: no trace-only ceiling binds",
+            rf"pooled $\nu \in [{nu_p:.3f},\, {nu_s:.3f}]$: "
+            r"the trace-only bound stays $\geq 0.958$",
             ha="center", fontsize=8.5, color="#333333")
-    ax.set_title("Every compromised trajectory carries trace evidence",
+    ax.set_title("Almost every compromised trajectory carries trace evidence",
                  fontsize=10, pad=22)
-    ax.legend(frameon=False, fontsize=8, ncol=3, loc="lower center",
-              bbox_to_anchor=(0.5, -0.30))
+    ax.legend(frameon=False, fontsize=7.5, ncol=3, loc="lower center",
+              bbox_to_anchor=(0.5, -0.32))
     fig.tight_layout()
     fig.savefig(FIG / "evidence.pdf")
     plt.close(fig)

@@ -1,22 +1,29 @@
 """SENTRY-Fuse: conformal fusion of heterogeneous trace signals.
 
-The four signals live on incompatible scales (a bigram surprise in nats, a
-[0,1] judge score, a binary provenance flag), so summing them raw lets whichever
-happens to have the widest range dominate. Instead each signal is converted to
-its conformal tail probability against a BENIGN calibration split,
+The signals live on incompatible scales (a bigram surprise in nats, a [0,1] judge
+score, a binary provenance flag), so summing them raw lets whichever happens to
+have the widest range dominate. Instead each signal is converted to its conformal
+tail probability against a BENIGN calibration split,
 
     p_k(x) = (1 + #{benign_k >= x}) / (n_k + 1),
 
-and the fused statistic is the sum of surprisals, S = sum_k -log p_k(x_k).
-This is scale-free, monotone in every component (so no signal can be clipped
-away -- the failure mode that destroyed the InjecAgent signal earlier), and
-needs no tuned weights.
+and the fused statistic is the sum of surprisals, S = sum_k -log p_k(x_k). This is
+scale-free and needs no tuned weights. It is NOT injective -- psi takes at most
+n+1 values and saturates above the calibration maximum, so it can lose
+discrimination; what it guarantees is a far finer quantisation than the
+excess-over-maximum transform, which collapses a whole class to a point.
 
-Evaluation protocol, to avoid the optimism of scoring a fused detector on the
-data used to build it: benign trajectories are split in half per seed; one half
-calibrates the conformal transforms and the operating threshold, the other half
-provides the held-out false positives. Compromised trajectories are always
-held out. Reported over 10 seeds as mean +/- std.
+Evaluation protocol. Benign trajectories are split THREE ways per seed: one third
+fits the reference model, one third supplies the conformal calibration values, one
+third supplies the held-out negatives. Fitting and calibrating on the same split
+would make the calibration values in-sample and the p-values anti-conservative.
+Compromised trajectories are always held out. Reported over 10 seeds as
+mean +/- std.
+
+The reported operating point is the largest ATTAINABLE false-positive rate at or
+below the target: with n held-out negatives only multiples of 1/n are reachable,
+and ties in the discrete surprisal make the realised rate lower still, so
+_tpr_at returns it explicitly rather than assuming the nominal value.
 
     SENTRY_IL_MODE=llm SENTRY_JUSTIFY=1 python -m real_data.evaluate_fused
 """
@@ -47,16 +54,20 @@ def _auroc(neg, pos):
 
 
 def _tpr_at(neg, pos, fpr):
-    """TPR at the largest ATTAINABLE false-positive rate <= `fpr`.
+    """TPR at an attainable false-positive rate <= `fpr`, with that rate returned.
 
-    With n held-out negatives only the multiples of 1/n are attainable, so a
-    nominal target such as 3.66% cannot be hit exactly: interpolating a
-    quantile and thresholding silently lands on some other rate (on 35
-    negatives, 2/35 = 5.71%). We therefore pick the threshold explicitly as the
-    k-th largest negative with k = floor(fpr * n), which realises FPR = k/n <=
-    fpr, and we RETURN THE REALISED RATE so it can be reported alongside the
-    nominal one. k = 0 means the target is below the resolution of the sample;
-    the threshold is then the maximum negative and the realised FPR is 0.
+    Two things make the nominal target unreachable. First, with n held-out
+    negatives only multiples of 1/n are attainable at all, so e.g. a 3.66% target
+    on 35 negatives cannot be hit; interpolating an empirical quantile silently
+    lands somewhere else (there, 2/35 = 5.71%). Second, the conformal surprisal is
+    discrete -- at most n_cal+1 levels -- so negatives tie at the saturated value
+    and FEWER than k of them may strictly exceed the k-th largest.
+
+    We therefore take tau as the k-th largest negative for k = floor(fpr * n) and
+    then MEASURE the realised rate as mean(neg > tau), which is <= k/n and often
+    strictly less. Both numbers are returned so the caller can report the realised
+    one rather than the nominal one. k = 0 means the target is finer than the
+    sample can express; tau is then the maximum negative and the realised rate 0.
     """
     if len(neg) == 0 or len(pos) == 0:
         return float("nan"), float("nan")
