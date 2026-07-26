@@ -7,6 +7,6 @@ Quang-Vinh Dang
 
 - Fuses observation- and action-side trace signals to detect agent compromise
 - Conformal surprisal fusion is scale-free and needs no tuned signal weights
-- Attains 0.957 AUROC and 0.919 TPR at a realised 3.4% false-positive rate
-- Subtracting the benign maximum provably caps AUROC at one half
-- AgentDojo hides almost no compromise: its trace-only ceiling does not bind
+- Raises AUROC 0.937 to 0.954 and cuts recall variance by two orders
+- Clipping at the benign maximum provably caps AUROC at one half
+- AgentDojo hides almost no compromise, so it cannot test the hard case

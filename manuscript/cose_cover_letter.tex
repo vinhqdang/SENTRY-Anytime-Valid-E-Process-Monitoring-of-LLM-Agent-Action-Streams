@@ -45,26 +45,24 @@ stream, two auditing the action stream---into conformal tail surprisals against 
 benign calibration split and fuses them by addition. The construction is
 scale-free, non-decreasing in every component and free of tuned signal weights,
 and the paper proves that the natural alternative of subtracting the benign
-training maximum is many-to-one and caps AUROC at one half. That is not
-hypothetical: an earlier, unpublished draft of this work did exactly that, at a cost
-of $0.25$ AUROC and a confidently wrong explanation of the resulting failure. Second,
+training maximum is many-to-one and, for any attack class lying below that
+maximum, caps AUROC at one half. That is not hypothetical: an earlier, unpublished
+draft of this work did exactly that, at a cost of $0.25$ AUROC and a confidently
+wrong explanation of the resulting failure. Second,
 action-side evidence is shown to be \emph{complementary} rather than redundant:
-over $90$ genuinely compromised trajectories the fusion reaches
-$\mathrm{AUROC} = 0.957 \pm 0.004$ and a true-positive rate of $0.919 \pm 0.007$ at
-a realised $3.4\%$ false-positive rate, against $0.944$ and $0.729$ for the
-instruction signal alone, and it cuts that signal's across-split standard deviation
-from $\pm 0.364$ to $\pm 0.007$. Third, it formalises the \textbf{detectability
-ceiling} of trace-only monitoring and then measures it: on AgentDojo the fraction
-of compromises leaving no trace evidence lies between $0$ and $0.044$ depending on
-how visibility is defined, putting the bound at or above $0.958$, because the
-benchmark delivers payloads through tool outputs a successful injection must have
-read. The ceiling is an artefact of benchmark construction rather than a limit of
-the problem---a negative result about the field's evaluation practice, and the
-finding I expect to be most useful to others. It also led me to withdraw a claim an
-earlier draft made, that a published figure exceeded this corpus's information
-limit; that was an artefact of the measurement convention. Fourth, it documents a label-polarity
-pitfall in a widely used harness that inverts the compromised and resisted
-classes, with the ground-truth procedure that resolves it.
+over $90$ genuinely compromised trajectories, adding two action-side audits to the
+instruction signal raises $\mathrm{AUROC}$ from $0.937$ to $0.954 \pm 0.003$
+(paired $t = 4.9$) and cuts the across-draw standard deviation of recall from
+$\pm 0.357$ to $\pm 0.005$. I report the mean recall gain as \emph{not} significant
+against that variability, because it is not. Third, I measure where trace evidence
+lives and draw a benchmark-design conclusion: AgentDojo's observation channel is
+close to saturated, because it delivers payloads through tool outputs a successful
+injection must have read, so corpora of this shape cannot contain a compromise
+invisible to a trace monitor and cannot test the hard case. I explicitly decline to
+convert this into an information-theoretic ceiling, and explain in the paper why an
+earlier draft was wrong to do so---the quantity is not identified, and at the
+strictest criterion the bound it yields is violated by my own measured
+true-positive rate.
 
 I should be explicit that the paper does \emph{not} claim to beat the state of the
 art. The strongest reported trace-only figure ($95.75\%$ true positives at

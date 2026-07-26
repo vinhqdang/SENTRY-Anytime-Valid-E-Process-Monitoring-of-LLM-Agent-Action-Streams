@@ -29,19 +29,19 @@ FUSED_CHECKS = [
      0.951, 0.003),
     ("DeepSeek     SENTRY-Fuse AUROC",
      ("corpora", "DeepSeek", "detectors", "SENTRY-Fuse (S3+S4+S5)", "auroc_mean"),
-     0.843, 0.003),
+     0.832, 0.003),
     ("DeepSeek     SENTRY-Fuse TPR@5%",
      ("corpora", "DeepSeek", "detectors", "SENTRY-Fuse (S3+S4+S5)", "tpr_at_0.05_mean"),
-     0.778, 0.003),
+     0.767, 0.003),
     ("Pooled       SENTRY-Fuse AUROC",
      ("pooled", "detectors", "SENTRY-Fuse (S3+S4+S5)", "auroc_mean"),
-     0.957, 0.003),
+     0.954, 0.003),
     ("Pooled       SENTRY-Fuse TPR@5%",
      ("pooled", "detectors", "SENTRY-Fuse (S3+S4+S5)", "tpr_at_0.05_mean"),
-     0.919, 0.003),
+     0.918, 0.003),
     ("Pooled       S1+S2 behavioural AUROC (near chance)",
      ("pooled", "detectors", "S1 + S2 behavioural", "auroc_mean"),
-     0.561, 0.005),
+     0.557, 0.008),
 ]
 
 CEILING_CHECKS = [
@@ -50,13 +50,15 @@ CEILING_CHECKS = [
      ("pooled", "payload_visible_in_trace", "frac"), 1.000, 0.001),
     ("Payload visible, strict criterion",
      ("pooled", "payload_visible_strict", "frac"), 0.867, 0.002),
+    ("Full directive visible verbatim",
+     ("pooled", "core_fully_visible", "frac"), 0.400, 0.002),
     ("Calls an effectful sink", ("pooled", "has_effectful_sink_call", "frac"),
      0.856, 0.002),
     ("nu, permissive criterion", ("pooled", "primary", "nu"), 0.000, 0.001),
     ("nu, strict criterion", ("pooled", "strict", "nu"), 0.044, 0.002),
     ("Distinctive directive visible for >= 5 words",
      ("pooled", "distinctive_core_visible", "5"), 1.000, 0.001),
-    ("Distinctive directive visible in full (k=30)",
+    ("Distinctive directive visible for >= 30 words",
      ("pooled", "distinctive_core_visible", "30"), 0.144, 0.002),
 ]
 
@@ -82,6 +84,32 @@ QUANT_CHECKS = [
      ("counterexamples", "saturation_to_half", "psi"), 0.500, 0.001),
     ("Counterexample: above chance to below chance",
      ("counterexamples", "below_half", "psi"), 0.333, 0.001),
+]
+
+LONGHORIZON_CHECKS = [
+    ("e-detector a=0.2   false alarms/1k",
+     ("methods", "SENTRY (alpha=0.2)", "false_alarms_per_1k"), 45.6, 0.1),
+    ("e-detector a=0.2   attack detection",
+     ("methods", "SENTRY (alpha=0.2)", "attack_detection"), 0.612, 0.002),
+    ("e-detector a=0.05  false alarms/1k (saturated)",
+     ("methods", "SENTRY (alpha=0.05)", "false_alarms_per_1k"), 23.0, 0.1),
+    ("e-detector a=0.002 identical to a=0.05 (saturation)",
+     ("methods", "SENTRY (alpha=0.002)", "attack_detection"), 0.538, 0.002),
+    ("fixed q=0.95       attack detection",
+     ("methods", "fixed threshold (q=0.95)", "attack_detection"), 0.658, 0.002),
+    ("fixed q=0.999      false alarms/1k",
+     ("methods", "fixed threshold (q=0.999)", "false_alarms_per_1k"), 10.2, 0.1),
+    ("fixed q=0.999      attack detection",
+     ("methods", "fixed threshold (q=0.999)", "attack_detection"), 0.524, 0.002),
+]
+
+GENERALISATION_CHECKS = [
+    ("DeepSeek/imp.instr.  attempt AUROC",
+     ("A_baseline_deepseek_important", "auroc_attempt_max", "mean"), 0.76, 0.01),
+    ("DeepSeek/InjecAgent  attempt AUROC",
+     ("B_newattack_deepseek_injecagent", "auroc_attempt_max", "mean"), 0.71, 0.01),
+    ("GPT-4o-mini/imp.instr. attempt AUROC",
+     ("C_newagent_gpt4omini_important", "auroc_attempt_max", "mean"), 0.82, 0.01),
 ]
 
 ABLATION_CHECKS = [
@@ -166,11 +194,29 @@ def main() -> None:
         missing.append("results_signal_ablation.json -- run: "
                        "python -m real_data.normalisation_ablation")
 
+    p = ROOT / "results_longhorizon.json"
+    if p.exists():
+        print("\n## Long-horizon e-detector comparison (negative result)")
+        bad += _check(LONGHORIZON_CHECKS, json.loads(p.read_text()), _dig)
+    else:
+        missing.append("results_longhorizon.json -- run: python -m real_data.longhorizon")
+
+    p = ROOT / "results_generalization.json"
+    if p.exists():
+        print("\n## Attempt detection and generalisation")
+        bad += _check(GENERALISATION_CHECKS, json.loads(p.read_text()), _dig)
+    else:
+        missing.append("results_generalization.json -- run: "
+                       "python -m real_data.evaluate_generalization")
+
     for m in missing:
-        print(f"\n  skipped: {m}")
+        print(f"\n  MISSING: {m}")
     print()
-    if bad:
-        print(f"{bad} value(s) disagree with the manuscript.")
+    if bad or missing:
+        if bad:
+            print(f"{bad} value(s) disagree with the manuscript.")
+        if missing:
+            print(f"{len(missing)} results file(s) absent -- nothing was verified for them.")
         raise SystemExit(1)
     print("All checked values match the manuscript.")
 

@@ -35,7 +35,7 @@ from pathlib import Path
 
 import numpy as np
 
-from real_data.adapters import load_agentdojo_logs, load_taubench_logs
+from real_data.adapters import load_agentdojo_logs
 from real_data.sink_provenance import score_trajectory_from_log
 from sentry.scores import SequentialWorldModel
 
@@ -142,13 +142,20 @@ SIGNAL_SETS = {
 
 
 def _corpus(ld):
-    """Benign and compromised trajectories for one agent's corpus."""
-    benign, comp = _load(ld)
-    if ld == "logs_deepseek":
-        benign += [(t, {"messages": []}) for t, m in
-                   load_taubench_logs(ROOT / "tau_bench" / "logs_deepseek")
-                   if len(t) >= MIN_ACTIONS]
-    return benign, comp
+    """Benign and compromised trajectories for one agent's corpus.
+
+    AgentDojo only. An earlier version added the 50 tau-bench retail trajectories
+    to the DeepSeek benign set, which was wrong twice over: it made a row labelled
+    per-corpus actually a mixture of two domains with different tool vocabularies
+    (straining the exchangeability Proposition 2 needs), and because those
+    trajectories were inserted without their message list, the sink-provenance
+    signal S5 was silently forced to 0 for all 50 rather than measured -- 26% of
+    the pooled benign reference. That concentrated S5's benign distribution at
+    zero and inflated the surprisal it assigned to positives. tau-bench is
+    retained in the repository and used for attempt detection, where S5 plays no
+    part.
+    """
+    return _load(ld)
 
 
 def _evaluate(benign, comp, label):

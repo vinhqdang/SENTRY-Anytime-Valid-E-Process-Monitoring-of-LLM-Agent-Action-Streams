@@ -39,6 +39,10 @@
         "25": 0.2083,
         "30": 0.1528
       },
+      "core_fully_visible": {
+        "n": 23,
+        "frac": 0.3194
+      },
       "distinctive_core_never_visible": 0
     },
     "DeepSeek": {
@@ -77,6 +81,10 @@
         "20": 0.1111,
         "25": 0.1111,
         "30": 0.1111
+      },
+      "core_fully_visible": {
+        "n": 13,
+        "frac": 0.7222
       },
       "distinctive_core_never_visible": 0
     }
@@ -117,6 +125,10 @@
       "20": 0.3889,
       "25": 0.1889,
       "30": 0.1444
+    },
+    "core_fully_visible": {
+      "n": 36,
+      "frac": 0.4
     },
     "distinctive_core_never_visible": 0
   }

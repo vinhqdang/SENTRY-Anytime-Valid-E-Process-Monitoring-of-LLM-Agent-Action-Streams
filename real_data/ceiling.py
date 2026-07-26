@@ -1,23 +1,30 @@
-"""Detectability ceiling for trace-only monitoring, broken out per corpus.
+"""Where evidence of compromise lives in the trace.
 
-A monitor that sees only the black-box trace can distinguish a compromised
-trajectory from a benign one only if the trace carries *some* evidence of the
-injection. We measure the two channels through which such evidence can arrive:
+A trace-only monitor can only react to evidence present in the trace. Evidence can
+arrive through two channels:
 
-  observation channel  the injected payload text appears verbatim in some tool
-                       output the agent observed, so an observation-side scorer
-                       has something to read;
-  action channel       the trajectory calls an effectful sink, so an
-                       action-side scorer has something to audit.
+  observation channel  injected payload text appears in some tool output the agent
+                       observed, so an observation-side scorer has something to read;
+  action channel       the trajectory calls an effectful sink, so an action-side
+                       scorer has something to audit.
 
-A compromised trajectory with NEITHER is indistinguishable in principle: no
-function of the trace can flag it without also flagging benign traces that
-look identical. The fraction of such trajectories, nu, bounds the true-positive
-rate of every trace-only monitor at (1 - nu) + nu*alpha (Theorem 1).
+We report these fractions DESCRIPTIVELY and deliberately do not convert them into
+an information-theoretic ceiling on trace-only detection. An earlier version of
+this work did, and it was a mistake: the quantity is not identified. Whether a
+payload counts as "visible" needs a matching criterion, and the answer moves a long
+way with it, because these payloads share a fixed 32-word wrapper (identical across
+all 110 payload instances here) while the attacker's actual directive is often
+reflowed or truncated by the logging renderer. We therefore report:
 
-This is reported PER CORPUS as well as pooled, because nu differs between
-agents and the bound is only meaningful against the corpus a TPR was measured
-on. Quoting a pooled ceiling against a per-corpus TPR is an error.
+  * permissive  -- any 8-word payload span visible (largely tests the wrapper);
+  * strict      -- the payload's opening 8 words visible;
+  * the distinctive directive, wrapper stripped, at a range of strictnesses,
+    including whether it is present in FULL.
+
+The corresponding "neither channel" fractions are 0.000, 0.044 and 0.089 pooled.
+At the strictest the implied bound (0.916) falls BELOW the true-positive rate we
+measure (0.918), which is the clearest evidence that such a bound is not usable
+here rather than that it has been beaten.
 
     python -m real_data.ceiling
 """
@@ -205,6 +212,15 @@ def summarise(logs: list[dict]) -> dict:
             str(k): round(sum(1 for r in runs if r >= k) / n, 4) if n else None
             for k in CORE_NGRAMS
         },
+        # Whether the ENTIRE directive is present, which is what "in full"
+        # should mean: a 20-word directive fully visible must not be counted as
+        # invisible merely because it cannot reach a 30-word threshold.
+        "core_fully_visible": {
+            "n": sum(1 for g, r in zip(logs, runs)
+                     if r >= max((len(c) for c in _cores(g)), default=0)),
+            "frac": round(sum(1 for g, r in zip(logs, runs)
+                              if r >= max((len(c) for c in _cores(g)), default=0)) / n, 4)
+            if n else None},
         "distinctive_core_never_visible": sum(1 for r in runs if r == 0),
     }
 

@@ -1,5 +1,14 @@
 # SENTRY on real agent trajectories: results
 
+> **Status: superseded working notes.**
+> This file records intermediate results from earlier stages of the project. Some
+> of it predates two corrections the final paper makes: the attack-success label
+> polarity (AgentDojo's `security` flag is the *injection task's* success, so
+> `security=True` means the agent WAS compromised -- this file states the opposite
+> in places), and the removal of a hand-chosen weight from the fused score. Read
+> `manuscript/` for the results of record; this file is kept only as a log.
+
+
 Running SENTRY-Detect on real LLM agent trajectories instead of synthetic
 Bernoulli/Gaussian streams, per algorithm.md §7's evaluation plan. Data
 collection used OpenRouter's `openrouter/free` free-model router (a

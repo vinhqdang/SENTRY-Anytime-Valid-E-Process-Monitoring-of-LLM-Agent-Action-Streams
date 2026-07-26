@@ -188,13 +188,10 @@ def fig_evidence():
     ax.set_yticks(np.arange(0, 1.01, 0.2))
     ax.set_ylabel("fraction of compromised trajectories")
     ax.axhline(1.0, color=C["muted"], lw=0.8, ls="--")
-    nu_p = CEIL["pooled"]["primary"]["nu"]
-    nu_s = CEIL["pooled"]["strict"]["nu"]
     ax.text((len(labels) - 1) / 2, 1.115,
-            rf"pooled $\nu \in [{nu_p:.3f},\, {nu_s:.3f}]$: "
-            r"the trace-only bound stays $\geq 0.958$",
+            "observation channel near-saturated; action channel is not",
             ha="center", fontsize=8.5, color="#333333")
-    ax.set_title("Almost every compromised trajectory carries trace evidence",
+    ax.set_title("Where evidence of compromise lives",
                  fontsize=10, pad=22)
     ax.legend(frameon=False, fontsize=7.5, ncol=3, loc="lower center",
               bbox_to_anchor=(0.5, -0.32))

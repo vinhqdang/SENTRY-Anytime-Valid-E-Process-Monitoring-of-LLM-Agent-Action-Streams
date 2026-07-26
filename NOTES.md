@@ -1,5 +1,14 @@
 # SENTRY — research log
 
+> **Status: research log, appended chronologically.**
+> Sections are written as work happened and are NOT revised when later sections
+> supersede them. Earlier sections therefore contain claims the paper withdraws --
+> including a detectability-ceiling bound and a comparison against published
+> figures. Where an entry conflicts with `manuscript/sentry_cose.tex`, the
+> manuscript is correct. The audit findings in later sections were acted on; see
+> the git history for the corrections.
+
+
 A running record of every experiment, result, dead end and correction. Kept so
 that nothing has to be re-derived and so that claims in the manuscript can be
 traced to the run that produced them. Newest sections at the bottom.

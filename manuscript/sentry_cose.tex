@@ -6,6 +6,9 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage[section]{placeins}
+% Let TeX stretch the last resort rather than overrun the margin.
+\emergencystretch=1.2em
+\hyphenpenalty=200
 % Without this, every result table migrates past the bibliography.
 \renewcommand{\topfraction}{0.9}
 \renewcommand{\bottomfraction}{0.7}
@@ -69,21 +72,22 @@ rule is scale-free, non-decreasing in every component and free of tuned weights,
 and we prove it distribution-free valid. We also prove, and then measure, that
 the natural alternative of subtracting the benign training maximum is
 many-to-one and can drive an entire attack family to chance---as it did in an
-earlier, unpublished draft of this work, where it cost $0.25$ AUROC and produced an
-explanation we had written up and believed, which was wrong. Second, we show that action-side
-evidence is complementary rather than redundant: on $90$ genuinely compromised
-trajectories the three-signal fusion reaches $\mathrm{AUROC} = 0.957 \pm 0.004$
-and a true-positive rate of $0.919 \pm 0.007$ at a realised $3.4\%$
-false-positive rate, against $0.944$ and $0.729$ for the instruction signal
-alone. Third, we formalise the \textbf{detectability ceiling} of trace-only
-monitoring---the fraction $\nu$ of compromises leaving no trace evidence bounds
-every such monitor---and then show that on AgentDojo it does not bind: $\nu$ lies
-between $0$ and $0.044$ depending on how payload visibility is defined, placing
-the bound at or above $0.958$, because the benchmark delivers payloads through tool
-outputs a successful injection must have read. Our residual error is therefore
-scoring error, not missing information; and since $\nu$ depends on a measurement
-convention as well as on the corpus, cross-corpus rates are incomparable unless
-both are reported. Fourth, we document a
+earlier, unpublished draft of this work, where it cost $0.25$ AUROC on the
+composite score of Section~\ref{sec:ablation} and produced an explanation we had
+written up and believed, which was wrong. Second, we show that action-side evidence is complementary rather than redundant:
+over $90$ genuinely compromised trajectories from two agents, adding two
+action-side audits to the instruction signal raises $\mathrm{AUROC}$ from $0.937$
+to $0.954 \pm 0.003$ (paired $t = 4.9$ over ten calibration draws) and---the effect
+that matters more for deployment---cuts the across-draw standard deviation of
+recall at a fixed false-alarm budget from $\pm 0.357$ to $\pm 0.005$. The mean
+recall gain, $0.709 \to 0.918$, is itself within that baseline variability and we do
+not claim it as significant. Third, we measure where trace evidence lives and
+report a caution about benchmark design: the observation channel is close to
+saturated on AgentDojo because it delivers payloads through tool outputs a
+successful injection must have read, so corpora of this shape cannot exhibit a
+compromise that is invisible to a trace monitor. We deliberately decline to turn
+this into an information-theoretic ceiling, and explain why an earlier version of
+this work was wrong to do so. Fourth, we document a
 label-polarity pitfall in the standard AgentDojo harness that inverts the
 compromised and resisted classes, which silently inverted our own results, and
 we give the ground-truth procedure that settles it. We report our negative
@@ -165,14 +169,18 @@ the two action-side audits lifts pooled $\mathrm{AUROC}$ from $0.944$ to $0.957$
 and the true-positive rate from $0.729$ to $0.919$, and it removes almost all of
 the variance the single signal shows across calibration draws.
 
-\item \textbf{The detectability ceiling, and why it does not bind here}
-(Section~\ref{sec:ceiling}). Theorem~\ref{thm:ceiling} bounds the true-positive
-rate of \emph{any} trace-only monitor by the fraction of compromises that leave
-trace evidence. Measuring that fraction on AgentDojo puts the bound at or above
-$0.958$ under every criterion we tried, so it does not bind: injections arrive
-through tool outputs a successful attack must have read. We also show the estimate
-is sensitive to how ``visible'' is defined, which is why we withdraw an earlier
-claim that a published figure exceeded this corpus's information limit.
+\item \textbf{Where trace evidence lives, and a caution about benchmarks}
+(Section~\ref{sec:ceiling}). We measure how often a compromise leaves evidence in
+the observation and action channels. The observation channel is close to
+saturated---every compromised trajectory contains part of the attacker's directive
+in a tool output it read---for the structural reason that AgentDojo delivers
+payloads \emph{through} tool outputs. We deliberately stop short of converting
+this into an information-theoretic ceiling: the quantity is not identified (three
+defensible matching criteria give three different answers), and we explain in
+Remark~\ref{rem:noceiling} why we withdrew such a bound from an earlier version of
+this work. The durable consequence is a benchmark-design point: corpora of this
+shape cannot exhibit a compromise that is invisible to a trace monitor, so they
+cannot test the hard case.
 
 \item \textbf{Methodological findings and honest negatives}
 (Sections~\ref{sec:polarity} and~\ref{sec:negatives}). We document a
@@ -1032,49 +1040,52 @@ $0.914 \pm 0.040$, and adding sink provenance to
 $\mathbf{0.956 \pm 0.006}$ at a realised $2.9\%$ false-positive rate. Pooled over
 both agents the same ordering holds, ending at $0.919 \pm 0.007$.
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
-\caption{Compromise detection, ten seeds, mean $\pm$ std. Benign trajectories are
-split three ways per seed: one third fits the reference model, one third supplies
-the conformal calibration values, one third the held-out negatives. The realised
-false-positive rate is reported alongside because a $5\%$ target is not exactly
-attainable at these sample sizes (Section~\ref{sec:metrics}). The rows therefore
-sit at \emph{different} operating points---from $0.0\%$ to $4.4\%$---so the TPR
-column is not a like-for-like comparison across rows, whereas AUROC, being
-threshold-free, is. SENTRY-Fuse in bold.}
+\caption{Compromise detection, ten seeds, mean $\pm$ std, AgentDojo benign
+trajectories only. Each seed splits the benign set three ways: one third fits the
+reference, one third supplies the conformal calibration values, one third the
+held-out negatives. Because only multiples of $1/n$ are attainable and the fused
+statistic is discrete, a nominal target is not reached exactly; the realised rate
+at the $5\%$ target is given, and rows therefore sit at \emph{different} operating
+points, so the TPR columns are not like-for-like across rows whereas AUROC is. The
+final column repeats the exercise at $3.66\%$, the operating point
+\citet{wang2025agentarmor} report, for readers who want that comparison---though
+Section~\ref{sec:metrics} explains why we do not present it as a head-to-head.
+SENTRY-Fuse in bold.}
 \label{tab:fused}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lccc@{}}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-Detector & AUROC & TPR & realised FPR \\
+Detector & AUROC & TPR@$5\%$ & realised FPR & TPR@$3.66\%$ \\
 \midrule
-\multicolumn{4}{@{}l}{\emph{GPT-4o-mini: 72 compromised, 24 held-out benign}} \\
-S3 instruction-likeness only        & $0.951 \pm 0.026$ & $0.661 \pm 0.433$ & $1.2\%$ \\
-S4 action audit only                & $0.900 \pm 0.039$ & $0.267 \pm 0.407$ & $0.4\%$ \\
-S5 sink provenance only             & $0.868 \pm 0.019$ & $0.164 \pm 0.328$ & $0.4\%$ \\
-S1 $+$ S2 behavioural               & $0.530 \pm 0.058$ & $0.101 \pm 0.076$ & $3.8\%$ \\
-S3 $+$ S4                           & $0.981 \pm 0.009$ & $0.914 \pm 0.040$ & $2.5\%$ \\
-\textbf{SENTRY-Fuse (S3--S5)}       & $\mathbf{0.985 \pm 0.003}$ & $\mathbf{0.956 \pm 0.006}$ & $2.9\%$ \\
-all five signals                    & $0.973 \pm 0.013$ & $0.932 \pm 0.053$ & $3.3\%$ \\
+\multicolumn{5}{@{}l}{\emph{GPT-4o-mini: 72 compromised, 24 held-out benign}} \\
+S3 instruction-likeness only    & $0.951 \pm 0.026$ & $0.661 \pm 0.433$ & $1.2\%$ & $0.472 \pm 0.472$ \\
+S4 action audit only            & $0.900 \pm 0.039$ & $0.267 \pm 0.407$ & $0.4\%$ & $0.178 \pm 0.356$ \\
+S5 sink provenance only         & $0.868 \pm 0.019$ & $0.164 \pm 0.328$ & $0.4\%$ & $0.082 \pm 0.246$ \\
+S1 $+$ S2 behavioural           & $0.530 \pm 0.058$ & $0.101 \pm 0.076$ & $3.8\%$ & $0.040 \pm 0.050$ \\
+S3 $+$ S4                       & $0.981 \pm 0.009$ & $0.914 \pm 0.040$ & $2.5\%$ & $0.803 \pm 0.269$ \\
+\textbf{SENTRY-Fuse (S3--S5)}   & $\mathbf{0.985 \pm 0.003}$ & $\mathbf{0.956 \pm 0.006}$ & $2.9\%$ & $\mathbf{0.899 \pm 0.063}$ \\
+all five signals                & $0.973 \pm 0.013$ & $0.932 \pm 0.053$ & $3.3\%$ & $0.743 \pm 0.290$ \\
 \midrule
-\multicolumn{4}{@{}l}{\emph{DeepSeek-V4-Flash: 18 compromised, 41 held-out benign}} \\
-S3 instruction-likeness only        & $0.871 \pm 0.014$ & $0.622 \pm 0.311$ & $2.2\%$ \\
-S4 action audit only                & $0.780 \pm 0.021$ & $0.000 \pm 0.000$ & $0.0\%$ \\
-S5 sink provenance only             & $0.665 \pm 0.019$ & $0.233 \pm 0.191$ & $2.0\%$ \\
-S1 $+$ S2 behavioural               & $0.480 \pm 0.058$ & $0.011 \pm 0.022$ & $2.4\%$ \\
-S3 $+$ S4                           & $0.850 \pm 0.005$ & $0.778 \pm 0.000$ & $2.7\%$ \\
-\textbf{SENTRY-Fuse (S3--S5)}       & $\mathbf{0.843 \pm 0.008}$ & $\mathbf{0.778 \pm 0.000}$ & $3.9\%$ \\
-all five signals                    & $0.848 \pm 0.021$ & $0.717 \pm 0.115$ & $4.4\%$ \\
+\multicolumn{5}{@{}l}{\emph{DeepSeek-V4-Flash: 18 compromised, 25 held-out benign}} \\
+S3 instruction-likeness only    & $0.850 \pm 0.021$ & $0.467 \pm 0.381$ & $2.4\%$ & $0.078 \pm 0.233$ \\
+S4 action audit only            & $0.781 \pm 0.017$ & $0.000 \pm 0.000$ & $0.0\%$ & $0.000 \pm 0.000$ \\
+S5 sink provenance only         & $0.648 \pm 0.027$ & $0.117 \pm 0.178$ & $0.8\%$ & $0.039 \pm 0.117$ \\
+S1 $+$ S2 behavioural           & $0.389 \pm 0.080$ & $0.000 \pm 0.000$ & $2.4\%$ & $0.000 \pm 0.000$ \\
+S3 $+$ S4                       & $0.842 \pm 0.006$ & $0.778 \pm 0.000$ & $4.0\%$ & $0.683 \pm 0.230$ \\
+\textbf{SENTRY-Fuse (S3--S5)}   & $\mathbf{0.832 \pm 0.010}$ & $\mathbf{0.767 \pm 0.033}$ & $4.0\%$ & $\mathbf{0.539 \pm 0.184}$ \\
+all five signals                & $0.807 \pm 0.032$ & $0.661 \pm 0.118$ & $3.6\%$ & $0.478 \pm 0.263$ \\
 \midrule
-\multicolumn{4}{@{}l}{\emph{Pooled: 90 compromised, 65 held-out benign}} \\
-S3 instruction-likeness only        & $0.944 \pm 0.012$ & $0.729 \pm 0.364$ & $2.5\%$ \\
-S4 action audit only                & $0.862 \pm 0.015$ & $0.000 \pm 0.000$ & $0.0\%$ \\
-S5 sink provenance only             & $0.836 \pm 0.013$ & $0.220 \pm 0.336$ & $0.8\%$ \\
-S1 $+$ S2 behavioural               & $0.561 \pm 0.047$ & $0.023 \pm 0.037$ & $3.5\%$ \\
-S3 $+$ S4                           & $0.956 \pm 0.005$ & $0.902 \pm 0.018$ & $3.2\%$ \\
-\textbf{SENTRY-Fuse (S3--S5)}       & $\mathbf{0.957 \pm 0.004}$ & $\mathbf{0.919 \pm 0.007}$ & $3.4\%$ \\
-all five signals                    & $0.951 \pm 0.008$ & $0.892 \pm 0.064$ & $4.3\%$ \\
+\multicolumn{5}{@{}l}{\emph{Pooled: 90 compromised, 47 held-out benign}} \\
+S3 instruction-likeness only    & $0.937 \pm 0.012$ & $0.709 \pm 0.357$ & $2.8\%$ & $0.598 \pm 0.394$ \\
+S4 action audit only            & $0.863 \pm 0.030$ & $0.000 \pm 0.000$ & $0.0\%$ & $0.000 \pm 0.000$ \\
+S5 sink provenance only         & $0.812 \pm 0.015$ & $0.000 \pm 0.000$ & $0.0\%$ & $0.000 \pm 0.000$ \\
+S1 $+$ S2 behavioural           & $0.557 \pm 0.065$ & $0.038 \pm 0.048$ & $3.8\%$ & $0.011 \pm 0.020$ \\
+S3 $+$ S4                       & $0.953 \pm 0.005$ & $0.898 \pm 0.020$ & $3.8\%$ & $0.871 \pm 0.045$ \\
+\textbf{SENTRY-Fuse (S3--S5)}   & $\mathbf{0.954 \pm 0.003}$ & $\mathbf{0.918 \pm 0.005}$ & $4.0\%$ & $\mathbf{0.884 \pm 0.071}$ \\
+all five signals                & $0.948 \pm 0.012$ & $0.886 \pm 0.070$ & $3.8\%$ & $0.808 \pm 0.076$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1082,24 +1093,33 @@ all five signals                    & $0.951 \pm 0.008$ & $0.892 \pm 0.064$ & $4
 Figure~\ref{fig:fusion} visualises the ablation. Four points deserve emphasis.
 
 First, \textbf{action-side evidence is complementary}. Pooled, the instruction
-signal alone reaches $\mathrm{AUROC} = 0.944$ and $\mathrm{TPR} = 0.729$; adding
-the two action-side signals takes these to $0.957$ and $0.919$. The gain is not
-explained by the action signals being individually strong: alone they reach
-$0.862$ and $0.836$ AUROC, and their recall at their own much stricter realised
-operating points ($0.0\%$ and $0.8\%$) is near zero. They contribute cases the
-observation signal misses rather than duplicating it, which is why we rest the
-claim on AUROC---it does not depend on where each row's threshold happens to
-fall. This
-is what one would hope for from evidence about \emph{what the agent did} as
-opposed to \emph{what it read}, and it is the paper's main positive claim.
+signal alone reaches $\mathrm{AUROC} = 0.937$; adding the two action-side signals
+takes this to $0.954$, a paired difference of $+0.017 \pm 0.011$ over the ten
+calibration draws ($t = 4.9$, significant at the $5\%$ level). The gain is not
+explained by the action signals being individually strong---alone they reach
+$0.863$ and $0.812$ AUROC and no recall whatever at this budget---so they
+contribute cases the observation signal misses rather than duplicating it. We rest
+this claim on AUROC because it does not depend on where each row's threshold
+happens to fall; the corresponding recall difference, $0.709 \to 0.918$, is
+\emph{not} significant against the baseline's own spread ($+0.209 \pm 0.372$,
+$t = 1.8$), and we say so rather than quoting the difference of the means.
 
-Second, \textbf{fusion buys stability as well as power}, and this matters more
-than the mean. The instruction signal's standard deviation at a fixed budget is
-$\pm 0.433$ on GPT-4o-mini and $\pm 0.364$ pooled: its recall at a low
+The third signal deserves a sharper statement than the second. Sink provenance
+(S5) adds $+0.020 \pm 0.017$ recall over S3$+$S4 ($t = 3.7$, significant) but only
+$+0.0005 \pm 0.0044$ AUROC ($t = 0.4$, indistinguishable from zero), and on the
+DeepSeek corpus it makes AUROC slightly \emph{worse} ($0.832$ against $0.842$). Its
+case therefore rests on recall at a fixed budget, not on ranking quality, and a
+reader who prefers AUROC as the figure of merit should regard SENTRY-Fuse as
+S3$+$S4 with S5 an optional third channel.
+
+Second, \textbf{fusion buys stability as well as power}, and this is the more
+robust of the two effects. The instruction signal's standard deviation at a fixed
+budget is $\pm 0.381$ on GPT-4o-mini and $\pm 0.357$ pooled: its recall at a low
 false-alarm rate is close to unpredictable across calibration draws. SENTRY-Fuse
-reduces this to $\pm 0.006$ and $\pm 0.007$---nearly two orders of magnitude---%
-which is the difference between a detector one can deploy at a stated operating
-point and one that cannot be given a stated operating point at all.
+reduces this to $\pm 0.006$ and $\pm 0.005$---nearly two orders of
+magnitude---which is the difference between a detector one can deploy at a stated
+operating point and one that cannot be given a stated operating point at all.
+Unlike the mean gain, this difference is far outside sampling noise.
 
 Third, \textbf{more signals is not monotonically better}. Adding the two
 behavioural signals S1 and S2 to the three retained ones makes every corpus
@@ -1234,170 +1254,72 @@ attacker's IBAN---five actions after the monitor would have halted it.}
 \label{fig:casetrace}
 \end{figure}
 
-\subsection{The detectability ceiling, and why it does not bind here}\label{sec:ceiling}
+\subsection{Where evidence of compromise lives}\label{sec:ceiling}
 
-The results above raise an obvious question: how much room is left? A trace-only
-monitor can only react to evidence present in the trace, so if some compromises
-leave none, no such monitor can find them. We formalise that limit, and then
-report the measurement---which turns out to be the more interesting half, because
-on this benchmark the limit turns out not to bind.
+A trace-only monitor can only react to evidence present in the trace, so it is
+natural to ask how often that evidence is there at all. Evidence can arrive
+through two channels: the injected payload appears in some tool output the
+monitor sees, or the agent performs an externally-effectful call whose arguments
+reflect the adversary's goal.
 
-A trace-only monitor can only react to evidence present in the trace. For
-indirect prompt injection there are exactly two channels through which a
-compromise can leave such evidence:
+We measured both on the $90$ compromised trajectories, and the honest summary is
+that the observation channel is close to saturated while the action channel is
+not. Every compromised trajectory contains at least a five-word contiguous span
+of the attacker's directive in some tool output it read; $86.7\%$ contain the
+payload's opening verbatim; $40.0\%$ contain the entire directive verbatim; and
+$85.6\%$ make an effectful call. The reason the observation channel is so full is
+structural: AgentDojo delivers its payload \emph{through a tool output}, and an
+injection cannot succeed unless the agent read that output.
 
-\begin{itemize}
-\item \textbf{Observation channel}: the injected payload appears in some tool
-output $o_t$ that the monitor sees.
-\item \textbf{Action channel}: the agent performs an externally-effectful call
-whose arguments reflect the adversary's goal.
-\end{itemize}
+\begin{remark}[Why we do not turn this into a bound]\label{rem:noceiling}
+It is tempting to convert these fractions into an information-theoretic ceiling on
+any trace-only monitor---the fraction of compromises with neither channel would
+bound every such detector's true-positive rate---and an earlier version of this
+work did exactly that. We no longer report such a bound, for two reasons that we
+think are worth stating rather than burying.
 
-If a compromise leaves evidence in neither channel, then by construction its
-trace cannot be told apart from that of a benign trajectory performing the same
-reads.
+First, the quantity is not identified. ``The payload is visible'' requires a
+matching criterion, and the answer moves a long way with it: the fraction with
+neither channel is $0.000$ if any eight-word payload span counts, $0.044$ if the
+payload's opening must appear verbatim, and $0.089$ if the whole directive
+must. These payloads share a fixed $32$-word wrapper, so the permissive readings
+largely test for scaffolding, while the strictest reading partly tests how the
+logging renderer reflowed the text rather than whether evidence was available. We
+produced three different values for this quantity in the course of this work, and
+we do not believe any of them is canonical.
 
-\begin{assumption}[Trace indistinguishability]\label{ass:indist}
-Let $N$ be the set of compromised trajectories whose trace exhibits neither
-channel. The law of the monitor input $(u,\Tcal)$ conditional on $\Tcal \in N$ is
-absolutely continuous with respect to the law of $(u,\Tcal)$ under benign
-operation, with density bounded by $1$.
-\end{assumption}
+Second, at the stricter end the resulting bound ($0.916$) falls below the
+true-positive rate we ourselves measure ($0.918$ pooled). A bound that the
+measurement violates is not a useful bound: either the indistinguishability
+assumption such an argument needs is false on this corpus, or the criterion is too
+strict to represent evidence availability. Both readings undercut the exercise.
 
-This is stronger than merely requiring that each element of $N$ have \emph{some}
-benign counterpart with the same monitor input, and the strengthening is
-necessary: a bound on the benign measure of the alarm region constrains the
-compromised class only if the compromised class is distributed over that region no
-more heavily than the benign class is. With only an existence assumption a
-monitor could alarm on exactly the inputs realised by $N$ while spending an
-$\alpha$ fraction of benign probability, giving
-$\mathrm{TPR}\vert_N = 1$.
+What survives is a descriptive observation and a caution, not a theorem.
+\end{remark}
 
-\begin{theorem}[Detectability ceiling]\label{thm:ceiling}
-Let $\Ccal$ be the set of compromised trajectories, and let $N \subseteq \Ccal$
-be those exhibiting neither channel, with $\nu = |N|/|\Ccal|$. Under
-Assumption~\ref{ass:indist}, every monitor $M$ that is a function of $(u,\Tcal)$
-and has false-positive rate at most $\alpha$ satisfies
-\begin{equation}
-\mathrm{TPR}(M) \;\le\; (1-\nu) + \nu\,\alpha .
-\end{equation}
-\end{theorem}
-
-\begin{proof}
-Partition $\Ccal$ into $N$ and its complement. On $\Ccal \setminus N$ we bound
-the true-positive rate by $1$, contributing at most $(1-\nu)$. For the rest, let
-$A$ be the set of monitor inputs on which the deterministic map $M$ alarms. By
-hypothesis $A$ has benign probability at most $\alpha$, and by
-Assumption~\ref{ass:indist} the conditional law on $N$ is dominated by the benign
-law with density at most $1$, so
-$\mathrm{TPR}\vert_N = \Prob\big((u,\Tcal) \in A \mid \Tcal \in N\big) \le \alpha$.
-This contributes at most $\nu\alpha$, and summing gives the bound. \qed
-\end{proof}
-
-The bound is tight: a monitor that alarms on every evidence-bearing trace and on
-an $\alpha$-probability benign region attains it.
-
-\paragraph{The measurement, and why it is criterion-dependent}
-Measuring $\nu$ requires deciding when the payload counts as \emph{visible}, and
-this turns out to matter more than we expected. AgentDojo's
-\texttt{important\_instructions} payloads share a fixed wrapper: across all $110$
-payloads here the first $32$ words and the last $21$ are identical, so a test that
-looks for the payload's opening text is largely testing for scaffolding, while one
-that demands the attacker's specific directive verbatim is partly testing how the
-logging renderer reflowed it. We therefore report two criteria and the sensitivity
-in between (Table~\ref{tab:ceiling}).
-
-Under the \emph{permissive} criterion---any contiguous eight-word span of the
-payload appears in some tool output---every compromised trajectory is visible and
-$\nu = 0$. Under the \emph{strict} criterion---the payload's opening eight words
-appear verbatim---$0.867$ are visible and $\nu = 0.044$ pooled. The attacker's
-distinctive directive, with the wrapper stripped, survives verbatim for at least
-five contiguous words in \emph{all} $90$ cases, for at least ten in $52\%$, and in
-full in only $14\%$.
-
-\begin{corollary}\label{cor:ceiling}
-Pooled, $\nu \in [0, 0.044]$ across these criteria, so at $\alpha = 0.05$
-Theorem~\ref{thm:ceiling} gives $\mathrm{TPR} \le 1$ under the permissive reading
-and $\mathrm{TPR} \le 0.958$ under the strict one. Our pooled $0.919$ lies below
-the bound on either reading, so no conclusion in this paper depends on which is
-adopted.
-\end{corollary}
-
-\begin{table}[t]
+\begin{figure}[htbp]
 \centering
-\caption{Where evidence of compromise lives. The observation channel is measured
-two ways---permissively (any eight-word payload span visible) and strictly (the
-payload's opening eight words visible)---because the payloads share a fixed
-wrapper and the two readings disagree. $\nu$ is the fraction with neither channel;
-the lower block gives the fraction whose \emph{distinctive} directive, with the
-shared wrapper removed, survives verbatim for at least $k$ contiguous words.}
-\label{tab:ceiling}
-\small
-\begin{tabular}{@{}lccc@{}}
-\toprule
- & GPT-4o-mini & DeepSeek & Pooled \\
- & ($n=72$) & ($n=18$) & ($n=90$) \\
-\midrule
-payload visible, permissive & $1.000$ & $1.000$ & $1.000$ \\
-payload visible, strict     & $0.889$ & $0.778$ & $0.867$ \\
-externally-effectful (sink) call & $0.875$ & $0.778$ & $0.856$ \\
-\midrule
-$\nu$, permissive & $0.000$ & $0.000$ & $0.000$ \\
-$\nu$, strict     & $0.028$ & $0.111$ & $0.044$ \\
-\midrule
-\multicolumn{4}{@{}l}{\emph{distinctive directive visible for $\ge k$ words}} \\
-$k=5$  & $1.000$ & $1.000$ & $1.000$ \\
-$k=10$ & $0.556$ & $0.389$ & $0.522$ \\
-$k=20$ & $0.458$ & $0.111$ & $0.389$ \\
-$k=30$ & $0.153$ & $0.111$ & $0.144$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.85\textwidth]{figures/evidence.pdf}
-\caption{Evidence-channel coverage of the compromised class, under the permissive
-visibility criterion of Table~\ref{tab:ceiling}. The observation channel is
-saturated on both corpora, so the bound of Theorem~\ref{thm:ceiling} does not bind;
-under the strict criterion it falls to $0.889$ and $0.778$ and the bound is still
-$0.958$ or above. The action channel is not saturated, which is why sink
-provenance contributes recall rather than replacing the observation signal.}
+\includegraphics[width=0.82\textwidth]{figures/evidence.pdf}
+\caption{Evidence-channel coverage of the compromised class. ``Permissive'' counts
+any eight-word payload span appearing in a tool output; ``strict'' requires the
+payload's opening words verbatim. The observation channel is close to saturated on
+both corpora and the action channel is not, which is why sink provenance
+contributes recall rather than replacing the observation signal. We report these
+fractions descriptively; Remark~\ref{rem:noceiling} explains why we do not convert
+them into a bound.}
 \label{fig:evidence}
 \end{figure}
 
-Three consequences follow, and they are not the ones we anticipated.
-
-\paragraph{The ceiling is at most weakly binding, and it is a property of the
-benchmark} On either criterion the bound sits at or above $0.958$, well above what
-any detector here achieves, so it does not explain our residual error. The reason
-is structural: AgentDojo delivers its payload \emph{through a tool output}, and an
-injection cannot succeed unless the agent read that output. Any benchmark built
-this way will have $\nu$ near zero by construction. A trace-only monitor evaluated
-on such a corpus is limited by its \emph{scoring}, not by the information
-available---so the $8\%$ we miss is signal we failed to extract, not signal that
-was absent. That is a more demanding conclusion than a binding ceiling would have
-licensed.
-
-\paragraph{This is a caution about benchmark design}
-The corpora the field uses cannot exhibit the invisible-compromise regime, so a
-defence validated only on them has not been tested against it. Real deployments
-admit compromises that a benchmark of this shape excludes: an agent persuaded
-through a channel the monitor never sees, or one whose harmful action is
-indistinguishable from a legitimate one. We think building a corpus in which some
-successful injections genuinely leave no trace evidence is the more useful
-follow-up to this section than any improvement to our detector.
-
-\paragraph{A headline $\nu$ should not be quoted without its criterion}
-Our own experience is the argument. The same $90$ trajectories yield $\nu = 0$ or
-$\nu = 0.044$ depending on a decision about text matching that looks like an
-implementation detail, and an earlier, unpublished draft of this work reported $\nu = 0.078$
-from a third variant and drew a substantive conclusion from it---that a published
-figure exceeded the corpus's information limit. That conclusion was an artefact of
-the criterion, and we withdraw it. What survives is the weaker and more useful
-recommendation: because $\nu$ is a property of a corpus \emph{and} of a
-measurement convention, a true-positive rate on one corpus is not comparable with
-a rate on another unless both report $\nu$ and how they computed it.
+The caution is about benchmark construction, and we think it is the more useful
+half. A corpus that delivers payloads through tool outputs cannot contain a
+compromise that is invisible to an observation-side monitor, so it cannot test how
+a monitor behaves when the evidence genuinely is absent. Real deployments admit
+such cases---an agent persuaded through a channel the monitor never sees, or one
+whose harmful action is indistinguishable from a legitimate one---and no benchmark
+we are aware of provides them. A defence validated only on corpora of this shape
+has not been tested against the hard case, and our own results should be read with
+that limitation in mind: the $8\%$ of compromises we miss are ones we failed to
+score, not ones that were hidden from us.
 
 \subsection{Negative results}\label{sec:negatives}
 
@@ -1453,44 +1375,53 @@ argument directly. Holding the signal fixed and varying only the decision rule, 
 built $1000$-action benign streams by concatenating held-out benign trajectories
 and swept each rule's knob (Table~\ref{tab:longhorizon}).
 
-\begin{table}[t]
+\begin{table}[htbp]
 \centering
 \caption{Long-horizon false alarms on $1000$-action benign streams, ten seeds,
-identical signal. A hand-picked threshold dominates the e-detector on both axes at
-every level the e-detector can certify.}
+identical underlying score. All nine configurations we ran are listed, including
+the two loose fixed thresholds that favour the e-detector's comparison. The
+e-detector's rows are identical for $\alpha \le 0.05$ because its PAC threshold
+saturates at the order statistic our calibration set can supply.}
 \label{tab:longhorizon}
 \small
 \begin{tabular}{@{}lrrr@{}}
 \toprule
-Decision rule & False alarms / 1k & ARL to first & Attack det. \\
+Method & false alarms / $1$k & ARL (first alarm) & attack det. \\
 \midrule
-e-detector, $\alpha=0.2$   & $48.9$ & $29$  & $0.624$ \\
-e-detector, $\alpha=0.05$  & $19.7$ & $138$ & $0.530$ \\
-e-detector, $\alpha=0.01$  & $19.7$ & $138$ & $0.530$ \\
-e-detector, $\alpha=0.002$ & $19.7$ & $138$ & $0.530$ \\
-fixed threshold, $q=0.99$  & $\mathbf{17.4}$ & $158$ & $\mathbf{0.588}$ \\
-fixed threshold, $q=0.999$ & $\mathbf{11.0}$ & $343$ & $0.565$ \\
+e-detector, $\alpha=0.2$ & $45.6$ & $32$ & $0.612$ \\
+e-detector, $\alpha=0.05$ & $23.0$ & $117$ & $0.538$ \\
+e-detector, $\alpha=0.01$ & $23.0$ & $117$ & $0.538$ \\
+e-detector, $\alpha=0.002$ & $23.0$ & $117$ & $0.538$ \\
+fixed threshold, $q=0.9$ & $124.7$ & $19$ & $0.752$ \\
+fixed threshold, $q=0.95$ & $60.9$ & $31$ & $0.658$ \\
+fixed threshold, $q=0.99$ & $19.8$ & $238$ & $0.563$ \\
+fixed threshold, $q=0.995$ & $17.8$ & $334$ & $0.539$ \\
+fixed threshold, $q=0.999$ & $10.2$ & $343$ & $0.524$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Two findings stand out. A fixed threshold on the same score dominates the
-e-detector at every level the e-detector can actually certify
-($\alpha \le 0.05$)---fewer false alarms and higher detection simultaneously. Only
-at $\alpha = 0.2$, where the guarantee is $\mathrm{ARL} \ge 5$ and therefore
-worthless, does the e-detector achieve a higher detection rate ($0.624$ against
-$0.588$), and it does so at nearly three times the false-alarm cost. And the e-detector's results are \emph{identical} for
-$\alpha \in \{0.05, 0.01, 0.002\}$: the PAC threshold saturates at the
-order-statistic index available from our calibration set, so the guarantee cannot
-be tightened below $\alpha = 0.2$, where it promises only $\mathrm{ARL} \ge 5$
-actions---a vacuous promise for a monitor. A cross-agent transfer test showed no
-advantage either.
+Two findings stand out, and the first is weaker than we first reported. The
+e-detector is not simply dominated. At its loosest setting ($\alpha = 0.2$) it
+detects $0.612$ of attacks at $45.6$ false alarms per thousand actions, and a fixed
+threshold matched to roughly that alarm budget ($q = 0.95$: $60.9$ per thousand)
+detects $0.658$---better, but at a $34\%$ higher alarm rate. At the tight end the
+comparison is clearer: $q = 0.999$ gives $10.2$ false alarms per thousand at
+$0.524$ detection, against the e-detector's $23.0$ at $0.538$, so roughly the same
+detection for less than half the alarms. The honest summary is that a fixed benign
+quantile traces out a better false-alarm/detection frontier than the e-detector
+over most of the range, not that it dominates pointwise.
 
-We therefore retain conformal calibration, which does real work
-(Propositions~\ref{prop:valid}--\ref{prop:mono}), and demote the sequential
-apparatus to an optional operating mode. The theory is not wrong; it simply
-requires far more trusted data than a realistic deployment provides before its
-guarantee becomes both valid and non-vacuous. We consider this a useful negative
+The second finding is the damaging one for the machinery: the e-detector's results
+are \emph{identical} for $\alpha \in \{0.05, 0.01, 0.002\}$. The PAC threshold
+saturates at the order-statistic index our calibration set can supply, so the
+guarantee cannot be tightened below $\alpha = 0.2$, where it promises only
+$\mathrm{ARL} \ge 5$---a vacuous promise for a monitor. A cross-agent transfer test
+showed no benefit either. The anytime-valid apparatus this project began from
+therefore did not earn its place, and we removed it from the method rather than
+keep it for the theory it advertises. What would change this is a calibration set
+one to two orders of magnitude larger, at which point the order statistic exists
+and the guarantee becomes both valid and non-vacuous. We consider this a useful negative
 result for a community currently enthusiastic about anytime-valid monitoring.
 
 %======================================================================
@@ -1498,16 +1429,15 @@ result for a community currently enthusiastic about anytime-valid monitoring.
 
 \paragraph{What the measurement changes} We set out expecting to find that
 trace-only detection is limited by the evidence available in the trace, and to
-report how close to that limit a good fusion rule gets. The measurement says
-otherwise: on AgentDojo nearly every compromise leaves observation-side evidence,
-the bound sits at or above $0.958$, and the $8\%$ we miss is scoring error rather
-than missing information. The
-framing that trace-only injection detection is a modelling problem is, on this
-corpus, correct---and our own contribution is a modelling contribution, not an
-information-theoretic one. The place where the evidence framing does bite is
-benchmark construction: a corpus that delivers payloads through tool outputs
-cannot exhibit the invisible-compromise case at all, so it cannot tell us how a
-monitor behaves when the evidence really is absent.
+report how close to that limit a good fusion rule gets. Neither half survived. The
+observation channel is close to saturated on AgentDojo, so the limit is not what
+constrains a detector here; and the limit itself turned out not to be identifiable
+from this corpus, which is why Remark~\ref{rem:noceiling} reports fractions rather
+than a bound. The framing that trace-only injection detection is a modelling
+problem is, on this corpus, the correct one---and our contribution is accordingly a
+modelling contribution, not an information-theoretic one. Where the evidence framing
+does bite is benchmark construction: a corpus that delivers payloads through tool
+outputs cannot tell us how a monitor behaves when the evidence really is absent.
 
 \paragraph{Why several channels rather than one} S3 and S4 fail on largely
 different cases. S3 misses compromises whose payload is present but unremarkable
@@ -1584,14 +1514,12 @@ chance. Larger calibration splits reduce the loss, at the cost of fewer held-out
 negatives and hence a coarser attainable FPR grid---a trade-off this corpus is too
 small to escape.
 
-\emph{(vi) Ceiling assumption.} Theorem~\ref{thm:ceiling} rests on
-Assumption~\ref{ass:indist}, which requires the conditional law of the
-no-evidence class to be dominated by the benign law. This is an idealisation: two
-traces that share no injection-related evidence might still differ in some
-incidental way a detector could exploit, and the compromised class might
-concentrate on inputs a monitor happens to flag. The bound should be read as
-characterising what is available in principle from the two named channels. On this
-corpus it does not bind in any case.
+\emph{(vi) No information-theoretic guarantee.} We report no bound on what a
+trace-only monitor can achieve. Remark~\ref{rem:noceiling} explains why: the
+fraction of compromises leaving no trace evidence is not identified on this corpus,
+and at the strictest criterion the bound it would give is violated by our own
+measured true-positive rate. Readers should therefore not treat our numbers as
+close to, or far from, any limit---we do not know where the limit is.
 
 \emph{(vii) Non-exchangeability across domains.} The pooled benign set mixes
 AgentDojo and $\tau$-bench trajectories, which have different tool vocabularies
@@ -1634,9 +1562,10 @@ in LLM agents, and to establish where the information in a trace runs out.
 SENTRY-Fuse converts heterogeneous trace signals into conformal tail surprisals
 and fuses them by addition; the construction is scale-free, non-decreasing in
 every component and free of tuned weights, and we proved that the natural
-alternative of subtracting the benign training maximum is many-to-one and drives
-AUROC to at most one half---as it did, measurably, in an earlier version of this
-work, where it cost $0.25$ AUROC and produced an explanation of the failure that
+alternative of subtracting the benign training maximum is many-to-one and, for any
+attack class lying below that maximum, drives AUROC to at most one half---as it
+did, measurably, in an earlier and unpublished draft of this work, where it cost
+$0.25$ AUROC on the composite score and produced an explanation of the failure that
 was confidently wrong.
 
 Fusing one observation-side signal with two action-side audits attains
@@ -1650,20 +1579,19 @@ $\pm 0.007$. These figures sit in the same regime as the strongest reported
 trace-only detector, but we do not claim to beat it: the corpora, agents and
 operating points differ, and we re-implemented no baseline.
 
-Our expectation going in was that a detectability ceiling would explain the
-residual error. Theorem~\ref{thm:ceiling} formalises such a ceiling---the fraction
-$\nu$ of compromises leaving no trace evidence bounds every trace-only
-monitor---but the measurement refutes the expectation. On AgentDojo $\nu$ lies
-between $0$ and $0.044$ depending on how payload visibility is defined, putting the
-bound at or above $0.958$, because the benchmark delivers its payloads through tool
-outputs a successful injection must have read. The ceiling is therefore an artefact
-of benchmark construction rather than a limit of the problem, and the $8\%$ we miss
-is scoring error rather than absent evidence. We also found $\nu$ to be
-uncomfortably sensitive to a text-matching convention---the same $90$ trajectories
-give $0$, $0.044$ or, under a variant used in an earlier draft, $0.078$---so we
-withdraw the claim that a published figure exceeded this corpus's information
-limit, and recommend instead that papers report $\nu$ together with the criterion
-used, and that someone build a corpus in which compromises really can hide.
+Our expectation going in was that an information limit would explain the residual
+error, and an earlier version of this work reported one. We withdraw it. The
+fraction of compromises leaving no trace evidence is not identified on this
+corpus---three defensible matching criteria give $0.000$, $0.044$ and $0.089$---and
+at the strictest of them the implied bound falls below the true-positive rate we
+measure, which means the bound is not usable rather than that we have beaten it. We
+report the underlying measurement descriptively instead: the observation channel is
+close to saturated because AgentDojo delivers its payloads through tool outputs a
+successful injection must have read. The consequence is about benchmarks rather
+than about monitors. A corpus of this shape cannot contain a compromise that is
+invisible to a trace monitor, so it cannot test the case that matters most, and the
+$8\%$ of compromises we miss are ones we failed to score rather than ones that were
+hidden.
 
 Alongside this we document a label-polarity trap in a standard harness that
 silently inverted our own conclusions, and we report in full the components we
