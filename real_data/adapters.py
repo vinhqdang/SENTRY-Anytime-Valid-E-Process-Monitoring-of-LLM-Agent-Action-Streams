@@ -44,7 +44,16 @@ from sentry.scores import Action, Context, Trajectory, instruction_likeness
 #   "llm"               -- the cached semantic LLM judge (sentry.llm_judge);
 #                          falls back to the lexicon for any observation not in
 #                          the cache, so a partial cache degrades gracefully.
+# Read per call rather than captured at import, so an ablation can switch
+# scorers in-process (real_data/normalisation_ablation.py) instead of needing a
+# fresh interpreter per setting.
 IL_MODE = os.environ.get("SENTRY_IL_MODE", "lexicon")
+
+
+def _il_mode() -> str:
+    return os.environ.get("SENTRY_IL_MODE", "lexicon")
+
+
 _LLM_CACHE: dict[str, float] | None = None
 # Action-justification audit (sentry.llm_judge.score_actions). Enabled with
 # SENTRY_JUSTIFY=1; reads the committed cache, so it needs no API at eval time.
@@ -74,7 +83,7 @@ def _first_user_text(messages) -> str:
 
 
 def _obs_instruction_score(text: str) -> float:
-    if IL_MODE != "llm":
+    if _il_mode() != "llm":
         return instruction_likeness(text)
     global _LLM_CACHE
     if _LLM_CACHE is None:

@@ -1,50 +1,50 @@
 {
   "lexicon|excess_max|important_instr": {
-    "obs": 0.9859375,
-    "att": 0.6575757575757575,
-    "far": 0.020279093535275003,
-    "auroc": 0.7687451437451437
+    "pac_observable_rate": 0.98671875,
+    "pac_attempt_rate": 0.6616161616161615,
+    "pac_nominal_far": 0.018154265333638002,
+    "auroc_attempt_max": 0.7789918414918414
   },
   "lexicon|excess_max|injecagent": {
-    "obs": 0.096,
-    "att": 0.08333333333333333,
-    "far": 0.020279093535275003,
-    "auroc": 0.4678113553113553
+    "pac_observable_rate": 0.16399999999999998,
+    "pac_attempt_rate": 0.11428571428571428,
+    "pac_nominal_far": 0.018154265333638002,
+    "auroc_attempt_max": 0.5213827838827838
   },
   "lexicon|conformal|important_instr": {
-    "obs": 0.95390625,
-    "att": 0.6196969696969697,
-    "far": 0.03291776622113476,
-    "auroc": 0.7563034188034188
+    "pac_observable_rate": 0.96328125,
+    "pac_attempt_rate": 0.6267676767676768,
+    "pac_nominal_far": 0.033542766221134765,
+    "auroc_attempt_max": 0.7619463869463869
   },
   "lexicon|conformal|injecagent": {
-    "obs": 0.76,
-    "att": 0.45476190476190476,
-    "far": 0.03291776622113476,
-    "auroc": 0.7010531135531135
+    "pac_observable_rate": 0.8039999999999999,
+    "pac_attempt_rate": 0.4809523809523809,
+    "pac_nominal_far": 0.033542766221134765,
+    "auroc_attempt_max": 0.6868131868131868
   },
   "llm|excess_max|important_instr": {
-    "obs": 0.088,
-    "att": 0.07727272727272727,
-    "far": 0.020279093535275003,
-    "auroc": 0.4318473193473194
+    "pac_observable_rate": 0.20400000000000001,
+    "pac_attempt_rate": 0.15858585858585858,
+    "pac_nominal_far": 0.018154265333638002,
+    "auroc_attempt_max": 0.5145396270396271
   },
   "llm|excess_max|injecagent": {
-    "obs": 0.09047619047619047,
-    "att": 0.09047619047619046,
-    "far": 0.020279093535275003,
-    "auroc": 0.4902472527472527
+    "pac_observable_rate": 0.20476190476190476,
+    "pac_attempt_rate": 0.1357142857142857,
+    "pac_nominal_far": 0.018154265333638002,
+    "auroc_attempt_max": 0.5310439560439562
   },
   "llm|conformal|important_instr": {
-    "obs": 1.0,
-    "att": 0.6479797979797979,
-    "far": 0.02808899054759894,
-    "auroc": 0.7504662004662006
+    "pac_observable_rate": 1.0,
+    "pac_attempt_rate": 0.6505050505050505,
+    "pac_nominal_far": 0.026976601652381978,
+    "auroc_attempt_max": 0.7612665112665112
   },
   "llm|conformal|injecagent": {
-    "obs": 1.0,
-    "att": 0.5309523809523811,
-    "far": 0.02808899054759894,
-    "auroc": 0.714423076923077
+    "pac_observable_rate": 1.0,
+    "pac_attempt_rate": 0.5214285714285715,
+    "pac_nominal_far": 0.026976601652381978,
+    "auroc_attempt_max": 0.7062728937728938
   }
 }
