@@ -1,5 +1,6 @@
-\documentclass[10.5pt]{article}
-\usepackage[a4paper,margin=0.75in]{geometry}
+\documentclass[10pt]{article}
+\usepackage[a4paper,margin=0.7in]{geometry}
+\linespread{0.98}
 \usepackage{parskip}
 \usepackage[hidelinks]{hyperref}
 \pagestyle{empty}
@@ -25,52 +26,60 @@ Elsevier
 \noindent Dear Editors,
 
 \vspace{0.6em}
-I am pleased to submit my manuscript, \textbf{``Breaking the Observation Ceiling:
-Conformal Fusion of Trace Signals for Detecting Prompt-Injection Compromise in LLM
-Agents,''} for consideration as a research article in \emph{Computers \&
-Security}.
+I am pleased to submit my manuscript, \textbf{``Conformal Surprisal Fusion for
+Detecting Prompt-Injection Compromise in LLM Agent Traces,''} for consideration as
+a research article in \emph{Computers \& Security}.
 
 Large language model agents that call external tools now read email, browse the
 web and move money on a user's behalf. Because they ingest untrusted content and
 fold it into the context that drives their next action, they are exposed to
-indirect prompt injection. Runtime monitors that watch only the agent's black-box
-execution trace are attractive in practice---they need no model access, no
-retraining, and can be placed in front of a third-party agent---but the
-literature has converged almost entirely on a single kind of evidence: deciding
-whether untrusted text \emph{looks like an instruction}. This paper shows that
-this choice imposes a hard information limit, and that crossing it requires a
-different kind of evidence.
+indirect prompt injection. Runtime monitors that watch only the black-box execution
+trace need no model access and no retraining, but the literature has converged
+almost entirely on one kind of evidence: whether untrusted text \emph{looks like an
+instruction}. This paper asks what else the trace affords, how heterogeneous
+evidence should be combined, and where the information in a trace runs out.
 
 The work makes four contributions. First, it introduces \textbf{SENTRY-Fuse}, a
-monitor that converts heterogeneous trace signals---two scoring the observation
-stream, two scoring the action stream---into conformal tail surprisals against a
-benign calibration split and fuses them additively. The construction is
-scale-free, provably order-preserving and free of tuned weights, and the paper
-proves that a widely-used alternative normalisation is many-to-one and can drive
-performance to exactly chance, as it did in an earlier version of this work.
-Second, action-side evidence is shown to be \emph{complementary} rather than
-redundant: the fused monitor exceeds what payload visibility alone can support,
-reaching $0.960 \pm 0.010$ true positives at a $3.66\%$ false-positive rate on a
-matched corpus, above the strongest published trace-only figure. Third, it
-characterises the \textbf{detectability ceiling} of trace-only monitoring: of $90$
-genuinely compromised trajectories, $7.8\%$ leave no trace evidence at all, which
-bounds \emph{every} such monitor and means reported rates above that ceiling are
-not comparable across corpora unless the corresponding fraction is reported too.
-Fourth, it documents a label-polarity pitfall in a widely used evaluation harness
-that inverts the compromised and resisted classes, with the ground-truth procedure
-that resolves it.
+monitor that converts heterogeneous trace signals---one scoring the observation
+stream, two auditing the action stream---into conformal tail surprisals against a
+benign calibration split and fuses them by addition. The construction is
+scale-free, non-decreasing in every component and free of tuned signal weights,
+and the paper proves that the natural alternative of subtracting the benign
+training maximum is many-to-one and caps AUROC at one half. That is not
+hypothetical: an earlier version of this work did exactly that, at a cost of $0.25$
+AUROC and a confidently wrong explanation of the resulting failure. Second,
+action-side evidence is shown to be \emph{complementary} rather than redundant:
+over $90$ genuinely compromised trajectories the fusion reaches
+$\mathrm{AUROC} = 0.957 \pm 0.004$ and a true-positive rate of $0.919 \pm 0.007$ at
+a realised $3.4\%$ false-positive rate, against $0.944$ and $0.729$ for the
+instruction signal alone, and it cuts that signal's across-split standard deviation
+from $\pm 0.364$ to $\pm 0.007$. Third, it formalises the \textbf{detectability
+ceiling} of trace-only monitoring and then measures it: on AgentDojo the fraction
+of compromises leaving no trace evidence is \emph{zero}, because the benchmark
+delivers payloads through tool outputs a successful injection must have read. The
+ceiling is an artefact of benchmark construction rather than a limit of the
+problem---a negative result about the field's evaluation practice, and the finding
+I expect to be most useful to others. Fourth, it documents a label-polarity
+pitfall in a widely used harness that inverts the compromised and resisted
+classes, with the ground-truth procedure that resolves it.
+
+I should be explicit that the paper does \emph{not} claim to beat the state of the
+art. The strongest reported trace-only figure ($95.75\%$ true positives at
+$3.66\%$ false positives) comes from a preprint version that later versions
+withdraw, was measured on a different corpus with a different agent, and I
+re-implemented no baseline on my own corpus. My numbers sit in the same regime,
+and I say so rather than constructing a comparison the evidence does not support.
 
 I believe the work suits \emph{Computers \& Security} in particular. It is a
 security paper first: it defines a threat model, evaluates a defence against real
-attacks on real agent traces, quantifies what that defence can and cannot achieve,
-and reports its limits rather than only its successes. It also offers two things
-of direct use to others in the area: a measurement that bounds a whole class of
-defences, and a methodological warning that affects how results on a standard
-benchmark should be read. The paper reports its negative results in full,
-including three signals I implemented and rejected and the finding that a
-hand-tuned threshold outperformed the anytime-valid machinery from which the
-project began; these are what allow the positive claims to be interpreted
-correctly.
+attacks on real agent traces, and reports its limits rather than only its
+successes. It offers two things of direct use to others: a measurement showing that
+the benchmarks the field relies on cannot exhibit the hardest case, and a
+methodological warning that affects how results on a standard benchmark should be
+read. Its negative results are reported in full---four signals I implemented and
+rejected, two of which an earlier version of this work presented as part of the
+method, and the finding that a hand-picked threshold outperformed the anytime-valid
+machinery from which the project began.
 
 All code, the trajectory corpora, the cached model-judge scores and the analysis
 scripts that regenerate every number, table and figure are publicly released, and

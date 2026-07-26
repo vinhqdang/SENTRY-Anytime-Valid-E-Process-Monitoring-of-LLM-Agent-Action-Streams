@@ -56,7 +56,7 @@
   preference optimization}, in: \bibinfo{booktitle}{Proceedings of the 2025 ACM
   SIGSAC Conference on Computer and Communications Security (CCS '25)},
   \bibinfo{publisher}{Association for Computing Machinery},
-  \bibinfo{address}{Taipei, Taiwan}.
+  \bibinfo{address}{Taipei, Taiwan}. pp. \bibinfo{pages}{2833--2847}.
 \newblock \DOIprefix\doi{10.1145/3719027.3744836}.
 %Type = Article
 \bibitem[{Das et~al.(2025)Das, Beurer-Kellner, Fischer and
@@ -261,7 +261,7 @@
 \newblock \bibinfo{title}{E-detectors: A nonparametric framework for sequential
   change detection}.
 \newblock \bibinfo{journal}{The New England Journal of Statistics in Data
-  Science} \bibinfo{volume}{1}, \bibinfo{pages}{229--260}.
+  Science} \bibinfo{volume}{2}, \bibinfo{pages}{229--260}.
 \newblock \DOIprefix\doi{10.51387/23-nejsds51}.
 %Type = Article
 \bibitem[{Thaman(2026)}]{thaman2026rewardhacking}
@@ -307,9 +307,11 @@
   \bibinfo{author}{Hong, J.}, \bibinfo{author}{Wu, Y.}, \bibinfo{year}{2025}.
 \newblock \bibinfo{title}{Agentarmor: Enforcing program analysis on agent
   runtime trace to defend against prompt injection}.
-\newblock \bibinfo{journal}{arXiv preprint arXiv:2508.01249} \URLprefix
-  \url{https://arxiv.org/abs/2508.01249},
-  \DOIprefix\doi{10.48550/arXiv.2508.01249}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2508.01249v1} \URLprefix
+  \url{https://arxiv.org/abs/2508.01249v1},
+  \DOIprefix\doi{10.48550/arXiv.2508.01249}. \bibinfo{note}{version 1. The
+  95.75\%/3.66\% operating point cited here appears in v1 and is not present in
+  later versions}.
 %Type = Article
 \bibitem[{Waudby-Smith and Ramdas(2023)}]{waudbysmith2023betting}
 \bibinfo{author}{Waudby-Smith, I.}, \bibinfo{author}{Ramdas, A.},

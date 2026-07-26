@@ -1,12 +1,12 @@
 Highlights
 
-Breaking the Observation Ceiling: Conformal Fusion of Trace Signals for
-Detecting Prompt-Injection Compromise in LLM Agents
+Conformal Surprisal Fusion for Detecting Prompt-Injection Compromise in LLM
+Agent Traces
 
 Quang-Vinh Dang
 
 - Fuses observation- and action-side trace signals to detect agent compromise
-- Conformal surprisal fusion is scale-free and cannot clip out a weak signal
-- Attains 0.960 TPR at 3.66% FPR, above the best published trace-only result
-- 7.8% of successful injections leave no trace evidence, capping all monitors
-- AgentDojo's security flag is easily inverted; a ground-truth check is given
+- Conformal surprisal fusion is scale-free and needs no tuned signal weights
+- Attains 0.957 AUROC and 0.919 TPR at a realised 3.4% false-positive rate
+- Subtracting the benign maximum provably caps AUROC at one half; it did
+- AgentDojo hides no compromise, so its trace-only detectability ceiling is vacuous
