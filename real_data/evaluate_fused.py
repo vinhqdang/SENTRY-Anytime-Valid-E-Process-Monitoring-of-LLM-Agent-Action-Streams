@@ -48,9 +48,15 @@ SOTA = {"name": "AgentArmor (arXiv:2508.01249v1)", "tpr": 0.9575, "fpr": 0.0366,
 
 
 def _auroc(neg, pos):
-    if len(neg) == 0 or len(pos) == 0:
+    """AUROC with ties counted as one half. Vectorised: the scalar double loop is
+    too slow for the trajectory bootstrap."""
+    neg = np.asarray(neg, dtype=float)
+    pos = np.asarray(pos, dtype=float)
+    if neg.size == 0 or pos.size == 0:
         return float("nan")
-    return sum((p > n) + 0.5 * (p == n) for p in pos for n in neg) / (len(neg) * len(pos))
+    gt = (pos[:, None] > neg[None, :]).sum()
+    eq = (pos[:, None] == neg[None, :]).sum()
+    return float((gt + 0.5 * eq) / (neg.size * pos.size))
 
 
 def _tpr_at(neg, pos, fpr):
@@ -135,8 +141,8 @@ SIGNAL_SETS = {
     "S1 transition only": [0],
     "S2 novelty only": [1],
     "S1 + S2 behavioural": [0, 1],
-    "S3 + S4": [2, 3],
-    "SENTRY-Fuse (S3+S4+S5)": [2, 3, 4],
+    "SENTRY-Fuse (S3+S4)": [2, 3],
+    "S3+S4+S5 (adds provenance)": [2, 3, 4],
     "all five signals": [0, 1, 2, 3, 4],
 }
 
@@ -158,64 +164,126 @@ def _corpus(ld):
     return _load(ld)
 
 
-def _evaluate(benign, comp, label):
-    """Three-way split: fit / calibrate / test.
+def _split(benign, seed, four_way):
+    """Disjoint benign splits for one seed.
 
-    The reference model is fitted on `fit`; the conformal calibration values and
-    the held-out negatives are then BOTH scored out-of-sample against that
-    model, which is what makes them exchangeable and the conformal p-values
-    valid. An earlier version fitted the model and drew the calibration values
-    from the same half, so calibration scores were systematically less
-    surprising than a fresh benign draw and the p-values were anti-conservative.
+    Three-way: fit / calibrate / evaluate. The threshold is then read off the
+    evaluation negatives, so the reported false-positive rate is in-sample on
+    them -- a point on their empirical ROC curve, not an out-of-sample guarantee.
+
+    Four-way: fit / calibrate / threshold / evaluate, which makes the operating
+    point genuinely out-of-sample at the cost of halving the negatives (and hence
+    coarsening the attainable FPR grid to 1/n_eval).
     """
+    rng = np.random.default_rng(seed)
+    idx = rng.permutation(len(benign))
+    if four_way:
+        q = len(benign) // 4
+        return ([benign[i] for i in idx[:q]], [benign[i] for i in idx[q:2 * q]],
+                [benign[i] for i in idx[2 * q:3 * q]], [benign[i] for i in idx[3 * q:]])
+    third = len(benign) // 3
+    return ([benign[i] for i in idx[:third]], [benign[i] for i in idx[third:2 * third]],
+            None, [benign[i] for i in idx[2 * third:]])
+
+
+def _bootstrap_gain(benign, comp, set_a, set_b, metric, n_boot=2000, seed=0):
+    """Bootstrap CI for (metric of set_a) - (metric of set_b) over TRAJECTORIES.
+
+    The per-seed spread reported elsewhere measures how much the answer moves when
+    the same fixed sample is re-split; it says nothing about sampling error in the
+    90 positives and the negatives, which is the uncertainty a claim about the
+    method needs. We therefore resample trajectories with replacement, averaging
+    over the same ten splits inside each bootstrap replicate.
+    """
+    rng = np.random.default_rng(seed)
+    # Precompute per-seed score vectors once; bootstrap indexes into them.
+    per_seed = []
+    for sd in range(N_SEEDS):
+        fit, cal, _, test = _split(benign, sd, False)
+        model = SequentialWorldModel().fit([t for t, _ in fit])
+        S_cal, S_test, S_pos = (_signals(x, model) for x in (cal, test, comp))
+        row = {}
+        for nm, cols in (("a", set_a), ("b", set_b)):
+            row[nm] = (sum(_conformal_surprisal(S_cal[:, c], S_test[:, c]) for c in cols),
+                       sum(_conformal_surprisal(S_cal[:, c], S_pos[:, c]) for c in cols))
+        per_seed.append(row)
+
+    diffs = []
+    for _ in range(n_boot):
+        vals = []
+        for row in per_seed:
+            n_neg = row["a"][0].size
+            n_pos = row["a"][1].size
+            i_neg = rng.integers(0, n_neg, n_neg)
+            i_pos = rng.integers(0, n_pos, n_pos)
+            out = {}
+            for nm in ("a", "b"):
+                neg, pos = row[nm][0][i_neg], row[nm][1][i_pos]
+                out[nm] = _auroc(neg, pos) if metric == "auroc" else _tpr_at(neg, pos, 0.05)[0]
+            vals.append(out["a"] - out["b"])
+        diffs.append(float(np.mean(vals)))
+    d = np.sort(np.asarray(diffs))
+    return {"mean": float(d.mean()),
+            "ci_lo": float(d[int(0.025 * len(d))]),
+            "ci_hi": float(d[int(0.975 * len(d)) - 1]),
+            "p_le_zero": float(np.mean(d <= 0.0))}
+
+
+def _evaluate(benign, comp, label, four_way=False):
     acc = {k: {"auroc": [], **{f: {"tpr": [], "realised": []} for f in FPR_POINTS}}
            for k in SIGNAL_SETS}
     for seed in range(N_SEEDS):
-        rng = np.random.default_rng(seed)
-        idx = rng.permutation(len(benign))
-        third = len(benign) // 3
-        fit = [benign[i] for i in idx[:third]]
-        cal = [benign[i] for i in idx[third:2 * third]]
-        test = [benign[i] for i in idx[2 * third:]]
+        fit, cal, thr, test = _split(benign, seed, four_way)
         model = SequentialWorldModel().fit([t for t, _ in fit])
-        S_cal, S_test, S_pos = (_signals(x, model) for x in (cal, test, comp))
+        parts = (cal, test, comp) if thr is None else (cal, test, comp, thr)
+        mats = [_signals(x, model) for x in parts]
+        S_cal, S_test, S_pos = mats[0], mats[1], mats[2]
+        S_thr = mats[3] if thr is not None else None
         for name, cols in SIGNAL_SETS.items():
             neg = sum(_conformal_surprisal(S_cal[:, c], S_test[:, c]) for c in cols)
             pos = sum(_conformal_surprisal(S_cal[:, c], S_pos[:, c]) for c in cols)
             acc[name]["auroc"].append(_auroc(neg, pos))
             for f in FPR_POINTS:
-                tpr, realised = _tpr_at(neg, pos, f)
+                if S_thr is None:
+                    tpr, realised = _tpr_at(neg, pos, f)
+                else:
+                    # threshold from the disjoint threshold split; FPR and TPR
+                    # then measured out-of-sample on `test`.
+                    thr_scores = sum(_conformal_surprisal(S_cal[:, c], S_thr[:, c])
+                                     for c in cols)
+                    ts = np.sort(thr_scores)
+                    k = int(np.floor(f * ts.size))
+                    tau = float(ts[-1] if k == 0 else ts[ts.size - k - 1])
+                    realised = float(np.mean(neg > tau))
+                    tpr = float(np.mean(pos > tau))
                 acc[name][f]["tpr"].append(tpr)
                 acc[name][f]["realised"].append(realised)
 
-    n_test = len(benign) - 2 * (len(benign) // 3)
-    print(f"\n=== {label}: benign={len(benign)} (fit/cal/test = "
-          f"{len(benign)//3}/{len(benign)//3}/{n_test}) compromised={len(comp)}, "
-          f"{N_SEEDS} seeds ===")
-    print(f"    attainable FPR grid on {n_test} held-out negatives: "
-          f"multiples of {1/n_test:.4f}")
+    n_test = len(_split(benign, 0, four_way)[3])
+    tag = "four-way (threshold out-of-sample)" if four_way else "three-way"
+    print(f"\n=== {label}, {tag}: benign={len(benign)} eval-negatives={n_test} "
+          f"compromised={len(comp)}, {N_SEEDS} seeds ===")
+    print(f"    attainable FPR grid: multiples of {1/n_test:.4f}")
     hdr = f"{'detector':<24}{'AUROC':>14}" + "".join(
         f"{'TPR@'+f'{f:.2%}':>18}" for f in FPR_POINTS)
-    print(hdr)
-    print("-" * len(hdr))
+    print(hdr); print("-" * len(hdr))
     rec_all = {"n_benign": len(benign), "n_compromised": len(comp),
-               "n_fit": len(benign) // 3, "n_cal": len(benign) // 3,
                "n_test": n_test, "attainable_fpr_step": 1.0 / n_test,
-               "detectors": {}}
+               "protocol": tag, "detectors": {}}
     for name in SIGNAL_SETS:
         a = np.array(acc[name]["auroc"])
         line = f"{name:<24}{a.mean():>8.3f}±{a.std():<5.3f}"
         rec = {"auroc_mean": float(a.mean()), "auroc_std": float(a.std())}
         for f in FPR_POINTS:
-            v = np.array(acc[name][f]["tpr"])
-            r = np.array(acc[name][f]["realised"])
+            v = np.array(acc[name][f]["tpr"]); r = np.array(acc[name][f]["realised"])
             line += f"{v.mean():>10.3f}±{v.std():<5.3f} [{r.mean():.3f}]"
             rec[f"tpr_at_{f}_mean"] = float(v.mean())
             rec[f"tpr_at_{f}_std"] = float(v.std())
             rec[f"realised_fpr_at_{f}"] = float(r.mean())
+            rec[f"tpr_at_{f}_per_seed"] = [float(x) for x in acc[name][f]["tpr"]]
         rec_all["detectors"][name] = rec
         print(line)
-    print("  [bracketed] = realised FPR, the attainable rate actually used.")
+    print("  [bracketed] = realised FPR")
     return rec_all
 
 
@@ -234,6 +302,32 @@ def main() -> None:
     # Pooled across both agents. Reported so that no corpus can be quietly
     # dropped for being unfavourable.
     out["pooled"] = _evaluate(pooled_benign, pooled_comp, "Pooled")
+
+    # Robustness: the same evaluation with the operating point set on a disjoint
+    # fourth split, so the reported false-positive rate is out-of-sample.
+    out["pooled_four_way"] = _evaluate(pooled_benign, pooled_comp, "Pooled",
+                                       four_way=True)
+
+    # Trajectory-level bootstrap for the two differences the paper claims.
+    print("\n=== trajectory bootstrap (2000 replicates), pooled ===")
+    out["bootstrap"] = {}
+    for tag, a, b, metric in (
+            ("s3s4_minus_s3_auroc", SIGNAL_SETS["SENTRY-Fuse (S3+S4)"],
+             SIGNAL_SETS["S3 instruction only"], "auroc"),
+            ("s3s4_minus_s3_tpr", SIGNAL_SETS["SENTRY-Fuse (S3+S4)"],
+             SIGNAL_SETS["S3 instruction only"], "tpr"),
+            ("fuse_minus_s3_auroc", SIGNAL_SETS["S3+S4+S5 (adds provenance)"],
+             SIGNAL_SETS["S3 instruction only"], "auroc"),
+            ("fuse_minus_s3_tpr", SIGNAL_SETS["S3+S4+S5 (adds provenance)"],
+             SIGNAL_SETS["S3 instruction only"], "tpr"),
+            ("s5_contribution_auroc", SIGNAL_SETS["S3+S4+S5 (adds provenance)"],
+             SIGNAL_SETS["SENTRY-Fuse (S3+S4)"], "auroc"),
+            ("s5_contribution_tpr", SIGNAL_SETS["S3+S4+S5 (adds provenance)"],
+             SIGNAL_SETS["SENTRY-Fuse (S3+S4)"], "tpr")):
+        r = _bootstrap_gain(pooled_benign, pooled_comp, a, b, metric)
+        out["bootstrap"][tag] = r
+        print(f"  {tag:<26} {r['mean']:+.4f}  95% CI [{r['ci_lo']:+.4f}, "
+              f"{r['ci_hi']:+.4f}]  P(<=0)={r['p_le_zero']:.3f}")
 
     (ROOT / "results_fused.json").write_text(json.dumps(out, indent=2))
     print(f"\nwrote {ROOT / 'results_fused.json'}")

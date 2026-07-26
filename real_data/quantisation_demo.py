@@ -18,7 +18,7 @@ import numpy as np
 ROOT = Path(__file__).parent
 N_REPLICATES = 400
 SEPARATION = 6.0          # sigma; enough that the raw signal separates perfectly
-CAL_SIZES = (1, 5, 10, 23, 35, 63, 200)
+CAL_SIZES = (1, 5, 10, 23, 35, 47, 63, 200)
 N_EVAL = 200
 
 

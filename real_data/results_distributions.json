@@ -1,0 +1,19 @@
+{
+  "scorer": "lexicon",
+  "benign_instruction_likeness": {
+    "n_actions": 689,
+    "median": 0.0,
+    "mean": 0.013,
+    "max": 0.6129
+  },
+  "injecagent_instruction_likeness": {
+    "n_actions": 163,
+    "median": 0.0,
+    "max": 0.3521
+  },
+  "s4_saturates_at_one": {
+    "n_benign": 141,
+    "n": 14,
+    "pct": 9.9
+  }
+}

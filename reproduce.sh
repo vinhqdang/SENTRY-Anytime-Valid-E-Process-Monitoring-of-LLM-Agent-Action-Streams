@@ -54,6 +54,7 @@ echo "### [6/10] Corpus composition, label polarity, and quantisation loss"
 echo "          (writes real_data/results_{corpus,quantisation}.json) ..."
 python -m real_data.corpus_table
 python -m real_data.quantisation_demo
+python -m real_data.distributions
 
 echo "### [7/10] Attempt detection and generalisation"
 echo "          (writes real_data/results{,_generalization}.json) ..."
@@ -65,6 +66,7 @@ echo "          (writes real_data/results_longhorizon.json) ..."
 python -m real_data.longhorizon
 
 echo "### [9/10] Regenerating figures ..."
+python manuscript/make_numbers.py   # regenerates the manuscript's number macros
 python manuscript/make_figures.py
 python manuscript/make_paper_figures.py
 

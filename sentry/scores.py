@@ -249,11 +249,17 @@ class SequentialWorldModel:
         # anomaly score. "excess_max" subtracts the largest value seen in
         # nominal training data; that is many-to-one below the ceiling, so a
         # single benign outlier can zero out an entire attack family's signal
-        # (measured: it destroyed InjecAgent detection, AUROC 0.84 -> 0.50).
+        # (measured: it drove InjecAgent attempt AUROC to 0.531 against 0.706
+        # under the conformal transform).
         # "conformal" instead reports the empirical-tail surprise
-        # -log((1 + #{nominal >= x}) / (n + 1)), which is strictly monotone in
-        # x and therefore preserves the signal's full ranking while still
-        # mapping nominal-typical observations to a small score.
+        # -log((1 + #{nominal >= x}) / (n + 1)). That is NON-DECREASING in x, but
+        # it is many-to-one: it takes at most n+1 values and saturates above the
+        # calibration maximum, so ranking is preserved only up to the ties that
+        # quantisation introduces. It is NOT strictly monotone and does not
+        # guarantee AUROC -- Proposition 3 of the paper gives a case where AUROC
+        # falls from 0.667 to 0.333. What it does guarantee is a far finer
+        # quantisation than excess-over-maximum, which collapses a whole class to
+        # a single point.
         if instruction_transform not in ("conformal", "excess_max"):
             raise ValueError(f"unknown instruction_transform: {instruction_transform}")
         self.instruction_transform = instruction_transform
@@ -310,9 +316,10 @@ class SequentialWorldModel:
 
         With instruction_transform="conformal" (default) this is the
         empirical-tail surprise of the raw value against the nominal
-        training distribution, -log((1 + #{nominal >= x}) / (n + 1)): strictly
-        monotone in the raw value, so no attack family can be clipped away by
-        a single benign outlier. With "excess_max" it is the original
+        training distribution, -log((1 + #{nominal >= x}) / (n + 1)):
+        non-decreasing in the raw value and retaining n+1 ordered levels, so no
+        attack family is collapsed to a single point the way excess-over-maximum
+        collapses one. It is many-to-one, not injective (Proposition 3). With "excess_max" it is the original
         excess-over-nominal-maximum.
         """
         x = action.obs_instruction_likeness

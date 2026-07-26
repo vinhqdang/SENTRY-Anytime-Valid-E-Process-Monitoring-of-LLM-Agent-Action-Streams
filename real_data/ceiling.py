@@ -110,9 +110,9 @@ def _payload_visible(log: dict) -> bool:
     True when ANY contiguous 8-word span of a payload appears in the
     observations. This is deliberately permissive about *which* span: tool
     renderers reflow and truncate, so demanding a particular part of the payload
-    measures log formatting as much as evidence availability. What Theorem 1
-    needs is whether an observation-side scorer has attacker-authored text to
-    read at all.
+    measures log formatting as much as evidence availability. The question of
+    interest is simply whether an observation-side scorer has attacker-authored
+    text to read at all.
     """
     return _longest_payload_run(log) >= 8
 

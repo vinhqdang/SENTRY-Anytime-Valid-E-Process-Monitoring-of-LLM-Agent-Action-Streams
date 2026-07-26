@@ -16,29 +16,29 @@ ROOT = Path(__file__).parent
 # (label, path-into-json, expected-as-printed-in-the-paper, tolerance)
 FUSED_CHECKS = [
     ("GPT-4o-mini  SENTRY-Fuse AUROC",
-     ("corpora", "GPT-4o-mini", "detectors", "SENTRY-Fuse (S3+S4+S5)", "auroc_mean"),
-     0.985, 0.002),
+     ("corpora", "GPT-4o-mini", "detectors", "SENTRY-Fuse (S3+S4)", "auroc_mean"),
+     0.981, 0.002),
     ("GPT-4o-mini  SENTRY-Fuse TPR@5%",
-     ("corpora", "GPT-4o-mini", "detectors", "SENTRY-Fuse (S3+S4+S5)", "tpr_at_0.05_mean"),
-     0.956, 0.003),
+     ("corpora", "GPT-4o-mini", "detectors", "SENTRY-Fuse (S3+S4)", "tpr_at_0.05_mean"),
+     0.914, 0.003),
     ("GPT-4o-mini  realised FPR",
-     ("corpora", "GPT-4o-mini", "detectors", "SENTRY-Fuse (S3+S4+S5)", "realised_fpr_at_0.05"),
-     0.029, 0.003),
+     ("corpora", "GPT-4o-mini", "detectors", "SENTRY-Fuse (S3+S4)", "realised_fpr_at_0.05"),
+     0.025, 0.003),
     ("GPT-4o-mini  S3 alone AUROC",
      ("corpora", "GPT-4o-mini", "detectors", "S3 instruction only", "auroc_mean"),
      0.951, 0.003),
     ("DeepSeek     SENTRY-Fuse AUROC",
-     ("corpora", "DeepSeek", "detectors", "SENTRY-Fuse (S3+S4+S5)", "auroc_mean"),
-     0.832, 0.003),
+     ("corpora", "DeepSeek", "detectors", "SENTRY-Fuse (S3+S4)", "auroc_mean"),
+     0.842, 0.003),
     ("DeepSeek     SENTRY-Fuse TPR@5%",
-     ("corpora", "DeepSeek", "detectors", "SENTRY-Fuse (S3+S4+S5)", "tpr_at_0.05_mean"),
-     0.767, 0.003),
+     ("corpora", "DeepSeek", "detectors", "SENTRY-Fuse (S3+S4)", "tpr_at_0.05_mean"),
+     0.778, 0.003),
     ("Pooled       SENTRY-Fuse AUROC",
-     ("pooled", "detectors", "SENTRY-Fuse (S3+S4+S5)", "auroc_mean"),
-     0.954, 0.003),
+     ("pooled", "detectors", "SENTRY-Fuse (S3+S4)", "auroc_mean"),
+     0.953, 0.003),
     ("Pooled       SENTRY-Fuse TPR@5%",
-     ("pooled", "detectors", "SENTRY-Fuse (S3+S4+S5)", "tpr_at_0.05_mean"),
-     0.918, 0.003),
+     ("pooled", "detectors", "SENTRY-Fuse (S3+S4)", "tpr_at_0.05_mean"),
+     0.898, 0.003),
     ("Pooled       S1+S2 behavioural AUROC (near chance)",
      ("pooled", "detectors", "S1 + S2 behavioural", "auroc_mean"),
      0.557, 0.008),
@@ -110,6 +110,30 @@ GENERALISATION_CHECKS = [
      ("B_newattack_deepseek_injecagent", "auroc_attempt_max", "mean"), 0.71, 0.01),
     ("GPT-4o-mini/imp.instr. attempt AUROC",
      ("C_newagent_gpt4omini_important", "auroc_attempt_max", "mean"), 0.82, 0.01),
+]
+
+BOOTSTRAP_CHECKS = [
+    ("AUROC gain over S3 (bootstrap mean)",
+     ("bootstrap", "s3s4_minus_s3_auroc", "mean"), 0.0161, 0.0008),
+    ("AUROC gain 95% CI lower bound",
+     ("bootstrap", "s3s4_minus_s3_auroc", "ci_lo"), 0.0082, 0.0015),
+    ("AUROC gain P(<=0)",
+     ("bootstrap", "s3s4_minus_s3_auroc", "p_le_zero"), 0.000, 0.005),
+    ("S5 contribution to AUROC (not significant)",
+     ("bootstrap", "s5_contribution_auroc", "mean"), 0.0005, 0.0008),
+    ("S5 contribution P(<=0) -- must be large",
+     ("bootstrap", "s5_contribution_auroc", "p_le_zero"), 0.398, 0.05),
+]
+
+DISTRIBUTION_CHECKS = [
+    ("Benign instruction-likeness median",
+     ("benign_instruction_likeness", "median"), 0.000, 0.001),
+    ("Benign instruction-likeness maximum",
+     ("benign_instruction_likeness", "max"), 0.613, 0.001),
+    ("InjecAgent maximum (must be below the benign max)",
+     ("injecagent_instruction_likeness", "max"), 0.352, 0.001),
+    ("S4 saturates at 1.0 on this %% of benign",
+     ("s4_saturates_at_one", "pct"), 9.9, 0.1),
 ]
 
 ABLATION_CHECKS = [
@@ -193,6 +217,19 @@ def main() -> None:
     else:
         missing.append("results_signal_ablation.json -- run: "
                        "python -m real_data.normalisation_ablation")
+
+    p = ROOT / "results_fused.json"
+    if p.exists():
+        print("\n## Trajectory bootstrap (claims about the method)")
+        bad += _check(BOOTSTRAP_CHECKS, json.loads(p.read_text()), _dig)
+
+    p = ROOT / "results_distributions.json"
+    if p.exists():
+        print("\n## Distributional statistics (Propositions 1 and 2)")
+        bad += _check(DISTRIBUTION_CHECKS, json.loads(p.read_text()), _dig)
+    else:
+        missing.append("results_distributions.json -- run: "
+                       "python -m real_data.distributions")
 
     p = ROOT / "results_longhorizon.json"
     if p.exists():

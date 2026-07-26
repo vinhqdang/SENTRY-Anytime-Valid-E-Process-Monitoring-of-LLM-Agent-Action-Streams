@@ -5,7 +5,7 @@ instruction-likeness, a semantic instruction judge, and a semantic
 action-justification audit -- are all *scalar aggregates over text*, max-pooled
 per trajectory. That has two consequences measured on this corpus:
 
-  1. Saturation. The audit assigns 1.0 to 17% of BENIGN trajectories, so the
+  1. Saturation. The audit assigns 1.0 to 9.9% of BENIGN trajectories, so the
      benign 96.34th percentile is itself 1.0 and TPR at a 3.66% false-positive
      rate is 0.000 *by construction*, however good the signal is elsewhere.
   2. Lost structure. An aggregate cannot express the thing that actually

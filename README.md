@@ -12,7 +12,11 @@ Three heterogeneous signals are computed per action, each converted to its
 |---|---|---|
 | **S3** instruction-likeness | observation | does an untrusted tool output read as a directive to the agent? |
 | **S4** action-justification audit | action | does this tool call fail to serve the user's actual request? |
-| **S5** sensitive-sink provenance | action | did an identifier from untrusted prose reach an externally-effectful call? |
+
+A third signal, **S5** sensitive-sink provenance (did an identifier from untrusted
+prose reach an externally-effectful call?), is implemented and evaluated but **not
+part of the method**: its contribution does not survive a trajectory bootstrap
+(see Negative results).
 
 The conformal step is what makes signals on incompatible scales (a $[0,1]$ judge
 score, a binary flag) commensurable, so the sum needs **no tuned weights**.
@@ -26,25 +30,33 @@ score, a binary flag) commensurable, so the sum needs **no tuned weights**.
 
 ## Headline results
 
-Compromise detection over **90 genuinely compromised trajectories** (AgentDojo +
-τ-bench, two agents), ten seeds, mean ± std. Benign trajectories are split three
+Compromise detection over **90 genuinely compromised trajectories** (AgentDojo,
+two agents), ten seeds, mean ± std. Benign trajectories are split three
 ways per seed — one third fits the reference, one third supplies conformal
-calibration values, one third the held-out negatives — so nothing the detector is
-scored on was used to build it.
+calibration values, one third the held-out negatives — The operating point is read off the
+evaluation negatives, so the reported false-positive rate is descriptive of them
+rather than an out-of-sample guarantee; `results_fused.json` also carries a
+four-way split in which the threshold is fitted on a disjoint fourth part.
 
-| corpus | detector | AUROC | TPR | realised FPR |
+| corpus | detector | AUROC | TPR@5% | realised FPR |
 |---|---|---|---|---|
 | GPT-4o-mini (72 comp.) | S3 alone | 0.951 ± 0.026 | 0.661 ± 0.433 | 1.2% |
-| GPT-4o-mini | **SENTRY-Fuse** | **0.985 ± 0.003** | **0.956 ± 0.006** | 2.9% |
-| DeepSeek-V4-Flash (18 comp.) | S3 alone | 0.871 ± 0.014 | 0.622 ± 0.311 | 2.2% |
-| DeepSeek-V4-Flash | **SENTRY-Fuse** | **0.843 ± 0.008** | **0.778 ± 0.000** | 3.9% |
-| Pooled (90 comp.) | S3 alone | 0.944 ± 0.012 | 0.729 ± 0.364 | 2.5% |
-| Pooled | **SENTRY-Fuse** | **0.957 ± 0.004** | **0.919 ± 0.007** | 3.4% |
+| GPT-4o-mini | **SENTRY-Fuse** | **0.981 ± 0.009** | **0.914 ± 0.040** | 2.5% |
+| DeepSeek-V4-Flash (18 comp.) | S3 alone | 0.850 ± 0.021 | 0.467 ± 0.381 | 2.4% |
+| DeepSeek-V4-Flash | **SENTRY-Fuse** | **0.842 ± 0.006** | **0.778 ± 0.000** | 4.0% |
+| Pooled (90 comp.) | S3 alone | 0.937 ± 0.012 | 0.709 ± 0.357 | 2.8% |
+| Pooled | **SENTRY-Fuse** | **0.953 ± 0.005** | **0.898 ± 0.020** | 3.8% |
 
 The gain over the single-signal baseline is largest in **variance**: pooled recall
-goes from 0.729 ± 0.364 to 0.919 ± 0.007. A ±0.36 standard deviation means the
-detector's recall at a fixed false-alarm budget is close to unpredictable across
-calibration draws; ±0.007 is deployable.
+goes from 0.709 ± 0.357 to 0.898 ± 0.020, and the baseline collapses to *exactly zero*
+recall in 2 of 10 splits. A ±0.36 standard deviation means the detector's recall at
+a fixed false-alarm budget is close to unpredictable across calibration draws;
+±0.020 is deployable.
+
+Resampling trajectories (2000 replicates), the AUROC gain over the single-signal
+baseline is **+0.0161, 95% CI [+0.0082, +0.0244]**. We report bootstrap intervals rather
+than a t-statistic over re-splits, because the splits permute one fixed sample and
+so describe calibration-draw variance rather than sampling error.
 
 We report the *realised* false-positive rate because with `n` held-out negatives
 only multiples of `1/n` are attainable, so a nominal target such as 3.66% cannot
@@ -63,8 +75,8 @@ save someone else time.
 
 - **Two behavioural signals we dropped.** Tool-transition surprise and argument
   novelty were the original method. Under an honest three-way split they are
-  near-chance (pooled AUROC 0.558 and 0.546; *below* chance on DeepSeek), and
-  adding them lowers pooled AUROC from 0.957 to 0.951. Statistical unusualness is
+  near-chance (pooled AUROC 0.526 and 0.602; *below* chance on DeepSeek), and
+  adding them lowers pooled AUROC from 0.953 to 0.948. Statistical unusualness is
   not a proxy for misalignment.
 - **Subtracting the benign maximum destroys signals.** Normalising a score as
   `max(0, x − max(benign))` collapses any class lying under that maximum to a
@@ -76,12 +88,20 @@ save someone else time.
   which silently graded every effect-based signal against trajectories where the
   agent had done nothing harmful. `real_data/evaluate.py` documents the
   in-trace ground-truth check that settles it.
-- **The trace-only detectability ceiling is vacuous on AgentDojo.** We prove that
-  the fraction of compromises leaving no trace evidence bounds *every* trace-only
-  monitor, then measure that fraction: it is **0**, because AgentDojo delivers
-  payloads through tool outputs a successful injection must have read. So the
-  ceiling is an artefact of benchmark construction, and the ~8% we still miss is
-  scoring error, not absent evidence.
+- **We withdrew an information-theoretic ceiling rather than defend it.** An
+  earlier version proved that the fraction of compromises leaving no trace evidence
+  bounds every trace-only monitor, and reported that fraction as 0. It is not
+  identified: three defensible text-matching criteria give 0.000, 0.044 and 0.089,
+  and at the strictest the implied bound (0.916) falls *below* the true-positive
+  rate we measure. The paper now reports the underlying channel coverage
+  descriptively and draws only the benchmark-design conclusion — AgentDojo delivers
+  payloads through tool outputs a successful injection must have read, so corpora of
+  this shape cannot contain a compromise invisible to a trace monitor, and cannot
+  test the hard case.
+- **A third signal did not earn inclusion.** Sink provenance is well motivated and
+  precise, but adding it moves pooled AUROC by +0.0005, 95% CI [-0.0028, +0.0040] — an
+  interval containing zero — and recovers fewer than two extra positives out of 90.
+  It is reported as an ablation, not as part of the method.
 - **The anytime-valid machinery did not earn its place.** A fixed benign quantile
   outperformed the PAC-calibrated e-detector this project started from.
 

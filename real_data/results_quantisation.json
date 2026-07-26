@@ -28,6 +28,11 @@
       "psi_auroc": 0.9858,
       "loss": 0.0142
     },
+    "47": {
+      "raw_auroc": 1.0,
+      "psi_auroc": 0.9896,
+      "loss": 0.0104
+    },
     "63": {
       "raw_auroc": 1.0,
       "psi_auroc": 0.9923,

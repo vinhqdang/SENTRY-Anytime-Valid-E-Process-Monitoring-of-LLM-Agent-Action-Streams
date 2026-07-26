@@ -71,9 +71,8 @@ def fig_overview():
          fontsize=8, weight="bold")
 
     sig = [
-        (0.655, "S3  instruction-likeness\nof observation $o_{t-1}$", C["obs"]),
-        (0.395, "S4  action-justification\naudit of $a_t$ given $u$", C["act"]),
-        (0.135, "S5  sensitive-sink\nprovenance of $a_t$", C["act"]),
+        (0.545, "S3  instruction-likeness\nof observation $o_{t-1}$", C["obs"]),
+        (0.245, "S4  action-justification\naudit of $a_t$ given $u$", C["act"]),
     ]
     for y, label, col in sig:
         _box(ax, 0.185, y, 0.295, 0.175, label, "#FFFFFF")
@@ -92,7 +91,7 @@ def fig_overview():
          weight="bold")
     _arrow(ax, (0.853, 0.4975), (0.817, 0.4975))
 
-    ax.text(0.3325, 0.955, "one observation-side,\ntwo action-side signals",
+    ax.text(0.3325, 0.955, "one observation-side,\none action-side signal",
             ha="center", va="top", fontsize=7.5, color="#333333",
             style="italic", linespacing=1.35)
     ax.text(0.585, 0.955, "scale-free,\nno tuned weights",
@@ -111,9 +110,10 @@ def fig_overview():
 # --------------------------------------------------------------------------- #
 
 ROWS = ["S3 instruction only", "S4 audit only", "S5 provenance only",
-        "S1 + S2 behavioural", "S3 + S4", "SENTRY-Fuse (S3+S4+S5)"]
-SHORT = ["S3\nonly", "S4\nonly", "S5\nonly", "S1+S2\nbehav.", "S3+S4",
-         "SENTRY-\nFuse"]
+        "S1 + S2 behavioural", "SENTRY-Fuse (S3+S4)",
+        "S3+S4+S5 (adds provenance)"]
+SHORT = ["S3\nonly", "S4\nonly", "S5\nonly", "S1+S2\nbehav.", "SENTRY-\nFuse",
+         "+S5\n(not\nadopted)"]
 
 
 def fig_fusion():
@@ -133,7 +133,7 @@ def fig_fusion():
         # The realised FPR that matters is the one at the proposed operating
         # point; it varies by detector, so averaging it across rows would be
         # misleading.
-        realised = det["SENTRY-Fuse (S3+S4+S5)"]["realised_fpr_at_0.05"]
+        realised = det["SENTRY-Fuse (S3+S4)"]["realised_fpr_at_0.05"]
         b1 = ax.bar(x - w / 2, auroc, w, yerr=auroc_e, capsize=2.5,
                     color=C["obs"], label="AUROC")
         b2 = ax.bar(x + w / 2, tpr, w, yerr=tpr_e, capsize=2.5,
