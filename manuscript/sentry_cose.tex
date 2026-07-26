@@ -67,7 +67,7 @@ else the trace affords, and how heterogeneous evidence should be combined.
 
 We make four contributions. First, we introduce \textbf{SENTRY-Fuse}, a monitor
 that converts heterogeneous trace signals---one scoring the \emph{observation}
-stream and two auditing the \emph{action} stream---into conformal tail
+stream, one auditing the \emph{action} stream---into conformal tail
 surprisals against a benign calibration split and fuses them by addition. The
 rule is scale-free, non-decreasing in every component and free of tuned weights,
 and we prove it distribution-free valid. We also prove, and then measure, that
@@ -75,18 +75,22 @@ the natural alternative of subtracting the benign training maximum is
 many-to-one and can drive an entire attack family to chance---as it did in an
 earlier, unpublished draft of this work, where it cost $0.25$ AUROC on the
 composite score of Section~\ref{sec:ablation} and produced an explanation we had
-written up and believed, which was wrong. Second, we show that action-side evidence is complementary rather than redundant:
-over $\nComp$ genuinely compromised trajectories from two agents, adding an
-action-side audit to the instruction signal raises $\mathrm{AUROC}$ from
-$\PoolSthreeAuroc$ to $\PoolFuseAuroc \pm \PoolFuseAurocSd$ and recall at a fixed
-budget from $\PoolSthreeTpr$ to $\PoolFuseTpr$. Resampling trajectories, the AUROC
-gain is $\BootGainAuroc$ with a $95\%$ interval of
-$[\BootGainAurocLo, \BootGainAurocHi]$; we report bootstrap intervals rather than a
-statistic over re-splits of one fixed sample, because the latter measures only how
-much the answer moves with the calibration draw. A third signal we implemented,
-sink provenance, does \emph{not} reach significance
-($\BootSfiveAuroc$, $[\BootSfiveAurocLo, \BootSfiveAurocHi]$) and we therefore
-exclude it from the method rather than claim it. Third, we measure where trace evidence lives and
+written up and believed, which was wrong. Second, we show that action-side evidence is complementary rather than redundant,
+and we are careful about how strongly. Over $\nComp$ genuinely compromised
+trajectories from two agents, adding an action-side audit to the instruction signal
+raises $\mathrm{AUROC}$ from $\PoolSthreeAuroc$ to
+$\PoolFuseAuroc \pm \PoolFuseAurocSd$ and recall at a fixed budget from
+$\PoolSthreeTpr$ to $\PoolFuseTpr$. Resampling trajectories, the recall gain is
+$\BootGainTpr$ $[\BootGainTprLo, \BootGainTprHi]$ and the AUROC gain
+$\BootGainAuroc$ $[\BootGainAurocLo, \BootGainAurocHi]$---the latter interval only
+marginally excluding no effect, which a corpus of this size cannot resolve further.
+The robust effect is elsewhere: the single signal returns \emph{zero} recall in
+$\SthreeZeroSplits$ of $\nSeeds$ calibration draws, and fusion removes that collapse
+entirely ($\pm \PoolSthreeTprSd \to \pm \PoolFuseTprSd$), which is the difference
+between a detector that can be given a stated operating point and one that cannot.
+A third signal we implemented, sink provenance, does \emph{not} reach significance
+($\BootSfiveAuroc$, $[\BootSfiveAurocLo, \BootSfiveAurocHi]$) and we exclude it from
+the method rather than claim it. Third, we measure where trace evidence lives and
 report a caution about benchmark design: the observation channel is close to
 saturated on AgentDojo because it delivers payloads through tool outputs a
 successful injection must have read, so corpora of this shape cannot exhibit a
@@ -96,7 +100,7 @@ this work was wrong to do so. Fourth, we document a
 label-polarity pitfall in the standard AgentDojo harness that inverts the
 compromised and resisted classes, which silently inverted our own results, and
 we give the ground-truth procedure that settles it. We report our negative
-results in full, including four rejected signals and the finding that a
+results in full, including five rejected components and the finding that a
 hand-picked threshold outperformed the anytime-valid e-detector we began from.
 All code, trajectories and scripts are released.
 \end{abstract}
@@ -158,8 +162,8 @@ tuned for the first is not automatically good at the second.
 
 \begin{enumerate}
 \item \textbf{SENTRY-Fuse, a conformal fusion monitor}
-(Section~\ref{sec:method}). We combine three trace signals---one scoring the
-observation stream, two auditing the action stream---by mapping each to its
+(Section~\ref{sec:method}). We combine two trace signals---one scoring the
+observation stream, one auditing the action stream---by mapping each to its
 conformal tail surprisal against a benign calibration split and summing. We show
 (Propositions~\ref{prop:valid}--\ref{prop:mono}) that the construction is
 distribution-free valid, scale-free and non-decreasing in every component, and
@@ -195,8 +199,8 @@ cannot test the hard case.
 \item \textbf{Methodological findings and honest negatives}
 (Sections~\ref{sec:polarity} and~\ref{sec:negatives}). We document a
 label-polarity trap in the standard evaluation harness that inverts the
-compromised and resisted classes; four signals we implemented and rejected,
-two of which we had previously reported as part of the method; and the finding
+compromised and resisted classes; five components we implemented and rejected,
+three of which we had previously reported as part of the method; and the finding
 that a hand-picked threshold outperformed the anytime-valid e-detector we
 started from, which we report rather than omit.
 \end{enumerate}
@@ -504,8 +508,8 @@ We implemented five per-action signals and adopted two. Exactly one, S3, scores 
 \emph{observation} stream, asking whether untrusted content is behaving like an
 instruction; the other four score the \emph{action} stream.
 \textbf{SENTRY-Fuse is the fusion of S3 and S4}---one signal from each channel.
-The remaining three are reported because we implemented them, an earlier version of
-this work included two of them in the method, and their failure modes are
+The remaining three are reported because we implemented them, earlier versions of
+this work included three of them in the method, and their failure modes are
 informative: S1 and S2 ask only whether behaviour is statistically \emph{unusual}
 and are near-chance under a protocol that fits the reference out-of-sample
 (Section~\ref{sec:negatives}); S5 is well motivated and precise but its measured
@@ -641,10 +645,15 @@ The premise is not hypothetical. In our data the lexicon instruction-likeness of
 benign observations is $\BenIlMedian$ at the median and $\BenIlMean$ on average,
 but its \emph{maximum} is $\BenIlMax$---a single outlier---while no InjecAgent
 observation exceeds $\InjIlMax$. Every InjecAgent score therefore fell below
-$\beta$, and the signal was driven to $\mathrm{AUROC} = 0.531$ under
-$\phi_{\max}$ against $0.706$ under the conformal transform of
-Section~\ref{sec:fusion}: a loss of $0.175$, and $0.246$ on the
-\texttt{important\_instructions} family ($0.515$ against $0.761$). An earlier,
+$\beta$, and under $\phi_{\max}$ the lexicon signal was driven to
+$\mathrm{AUROC} = \AblLexMaxInjAuroc$ against $\AblLexConfInjAuroc$ under the conformal
+transform of Section~\ref{sec:fusion}. The model judge, whose output is far more
+concentrated, fares worse: it awards exactly $1.0$ to some benign observations, so
+$\beta = 1$ and $\phi_{\max}$ is \emph{identically} zero---giving
+$\AblJudgeMaxInjAuroc$ against $\AblJudgeConfInjAuroc$ on InjecAgent and
+$\AblJudgeMaxImpAuroc$ against $\AblJudgeConfImpAuroc$ on
+\texttt{important\_instructions}, a loss of roughly a quarter of an AUROC on the
+better scorer. An earlier,
 unpublished draft of this work reported that collapse and attributed it to the
 attack being subtly phrased. That explanation was wrong---the InjecAgent payloads
 are imperative and appear in the trace in every case---and the cause was our own
@@ -747,8 +756,8 @@ $x^{(k)}_{1:n_k}$, the fused statistic is
 \begin{equation}\label{eq:fuse}
 S \;=\; \sum_{k=1}^{K} \psi_k(x_k) \;=\; -\sum_{k=1}^{K} \log p_k(x_k),
 \end{equation}
-and the monitor alarms when $S > \tau$, with $\tau$ set to a benign quantile on
-a held-out calibration split.
+and the monitor alarms when $S > \tau$, with $\tau$ set from held-out benign scores
+as Algorithm~\ref{alg:fuse} specifies.
 \end{definition}
 
 The rule has no tuned weights: every signal contributes on the common scale of
@@ -811,7 +820,7 @@ one.
 \For{$k = 1,\dots,K$}
   \State $x^{(k)}_{1:n_k} \gets$ per-trajectory summaries of signal $k$ on $\Dcal_{\mathrm{cal}}$, scored against the $\Dcal_{\mathrm{fit}}$ reference
 \EndFor
-\State $\tau \gets$ the $k$-th largest of $\{S(\Tcal) : \Tcal \in \Dcal_{\mathrm{test}}\}$, $k = \lfloor \alpha |\Dcal_{\mathrm{test}}| \rfloor$ \Comment{in sample; Section~\ref{sec:metrics}}
+\State $\tau \gets$ the $k$-th largest of $\{S(\Tcal) : \Tcal \in \Dcal_{\mathrm{test}}\}$, $k = \lfloor \alpha |\Dcal_{\mathrm{test}}| \rfloor$, or the maximum if $k=0$ \Comment{in sample; Section~\ref{sec:metrics}}
 \Statex \textbf{at monitoring time, for a trace} $\Tcal$:
 \For{$k = 1,\dots,K$}
   \State $x_k \gets \max_t s^{(k)}_t(\Tcal)$;\quad
@@ -914,7 +923,7 @@ An earlier version of this evaluation fitted the reference on all benign
 trajectories including the test half. Under that protocol the weighted behavioural
 composite (S1 and S2 summed with fixed coefficients) appeared excellent,
 $\mathrm{AUROC} = 0.982$; with the reference fitted out-of-sample and the signals
-kept separate, S1 and S2 collapse to $0.48$--$0.56$
+kept separate, S1 and S2 fall to between $\DsStwoAuroc$ and $\PoolStwoAuroc$
 (Table~\ref{tab:fused}). Only held-out numbers appear in the compromise-detection
 results.
 This is worth stating plainly because the leaky number is the one a careless
@@ -1060,15 +1069,16 @@ known to be right.
 \subsection{Compromise detection}
 
 Table~\ref{tab:fused} gives the main result. On GPT-4o-mini, where the
-compromised class is large enough for stable estimates ($72$ positives), the
-observation-side instruction signal alone reaches $\mathrm{AUROC} = \GptSthreeAuroc$ but a
-wildly variable $\mathrm{TPR} = 0.661 \pm 0.433$: it is strong on average and
-close to unusable at a fixed low false-alarm budget, because whether it clears the
-threshold depends on which benign trajectories happened to land in the
-calibration split. Adding the action-justification audit lifts this to
-$0.914 \pm 0.040$, and adding sink provenance to
-$\mathbf{0.956 \pm 0.006}$ at a realised $2.9\%$ false-positive rate. Pooled over
-both agents the same ordering holds, ending at $\PoolFuseTpr \pm \PoolFuseTprSd$.
+compromised class is largest ($\nGptComp$ positives), the observation-side
+instruction signal alone reaches $\mathrm{AUROC} = \GptSthreeAuroc$ but a wildly
+variable $\mathrm{TPR} = \GptSthreeTpr \pm \GptSthreeTprSd$: strong on average and
+close to unusable at a fixed low false-alarm budget. Adding the
+action-justification audit gives $\mathbf{\GptFuseAuroc \pm \GptFuseAurocSd}$ AUROC
+and $\mathbf{\GptFuseTpr \pm \GptFuseTprSd}$ recall at a realised
+$\GptFuseFpr\%$ false-positive rate. Pooled over both agents the ordering holds,
+ending at $\PoolFuseAuroc$ and $\PoolFuseTpr \pm \PoolFuseTprSd$. Adding sink
+provenance on top changes little (Table~\ref{tab:fused}, the row below), which
+Section~\ref{sec:results} quantifies and is why it is not adopted.
 
 \begin{table}[htbp]
 \centering
@@ -1132,9 +1142,19 @@ signal alone reaches $\mathrm{AUROC} = \PoolSthreeAuroc$; adding the action-side
 audit takes this to $\PoolFuseAuroc$. We quantify that difference by resampling
 \emph{trajectories}---positives and negatives---within each of the $\nSeeds$
 splits, which gives $\BootGainAuroc$ with a $95\%$ interval of
-$[\BootGainAurocLo, \BootGainAurocHi]$ and an estimated
-$\Prob(\text{gain} \le 0) = \BootGainAurocP$. The corresponding recall gain is
-$\BootGainTpr$ $[\BootGainTprLo, \BootGainTprHi]$.
+$[\BootGainAurocLo, \BootGainAurocHi]$ and $\Prob(\text{gain} \le 0) =
+\BootGainAurocP$. The recall gain is $\BootGainTpr$
+$[\BootGainTprLo, \BootGainTprHi]$, $\Prob(\le 0) = \BootGainTprP$.
+
+We draw one trajectory resample per replicate and reuse it across the $\nSeeds$
+splits, which matters: the splits are re-splits of one corpus, so drawing an
+independent resample inside each split and averaging would estimate the variance of
+a mean of ten draws and shrink the corpus-sampling variance by about a factor of
+ten. An earlier version of this work did that, and it turned a borderline effect
+into an apparently decisive one. Corrected, the AUROC interval only marginally
+excludes no effect. We therefore do \emph{not} present the AUROC gain as
+established: $\nComp$ positives cannot resolve a difference of this size, and the
+claim we rest on is the one in the next paragraph.
 
 We report bootstrap intervals rather than a $t$-statistic over the ten splits, and
 the distinction matters. The splits permute one fixed benign sample and the
@@ -1146,8 +1166,12 @@ requires. An earlier version of this work quoted the former as evidence for the
 latter.
 
 The gain is not explained by the action signal being individually strong: alone, S4
-reaches $\PoolSfourAuroc$ AUROC and no recall whatever at this budget. It
-contributes cases the observation signal misses rather than duplicating it.
+reaches only $\PoolSfourAuroc$ AUROC. Its recall column reads $0.000$, but that is a
+discreteness artefact and not evidence---S4's realised false-positive rate in that
+row is $0.0\%$, because $\lfloor 0.05 \times \nPoolNeg \rfloor$ negatives tie at its
+threshold, so it is being asked for recall at a zero false-alarm budget. What the
+comparison does show is that a signal far weaker in ranking terms still contributes
+cases the observation signal misses.
 
 \paragraph{A third signal that did not earn inclusion} We also implemented
 sink provenance (S5), and it is \emph{not} part of SENTRY-Fuse, because the evidence
@@ -1161,22 +1185,33 @@ $\DsFuseAuroc$). We report the ablation row in Table~\ref{tab:fused} so the read
 can see it, and we decline to claim it. This is the third signal we have moved out
 of the method on the evidence rather than defend.
 
-Second, \textbf{fusion buys stability as well as power}, and this is the more
-robust of the two effects. The instruction signal's standard deviation at a fixed
-budget is $\pm \GptSthreeTprSd$ on GPT-4o-mini and $\pm \PoolSthreeTprSd$ pooled.
-Worse, that spread is not a spread but a bimodal outcome: pooled, the instruction
-signal returns \emph{exactly zero} recall in $\SthreeZeroSplits$ of $\nSeeds$
-splits, because in those draws the calibration half contains a benign observation
-the judge scores at the ceiling and the threshold is pushed above every attack.
-SENTRY-Fuse reduces the spread to $\pm \GptFuseTprSd$ and $\pm \PoolFuseTprSd$ and
-never collapses. That is the difference between a detector one can deploy at a
-stated operating point and one that cannot be given a stated operating point at
-all.
+Second---and this is the claim we would defend hardest---\textbf{fusion removes a
+failure mode that makes the single signal undeployable}. The instruction signal's
+standard deviation of recall at a fixed budget is $\pm \GptSthreeTprSd$ on
+GPT-4o-mini and $\pm \PoolSthreeTprSd$ pooled, but that spread is not a spread: it
+is bimodal. Pooled, the signal returns \emph{exactly zero} recall in
+$\SthreeZeroSplits$ of $\nSeeds$ draws and about $0.91$ in the rest.
 
-Third, \textbf{more signals is not monotonically better}. Adding the two
-behavioural signals S1 and S2 to the three retained ones makes every corpus
-worse: pooled AUROC falls from $\PoolFuseAuroc$ to $\PoolAllFiveAuroc$ and recall
-from $\PoolFuseTpr$ to $\PoolAllFiveTpr$. Alone the pair is barely distinguishable
+The mechanism is on the negative side, not the calibration side, and it is
+instructive. The threshold is the $k$-th largest held-out negative with
+$k = \lfloor 0.05 \times \nPoolNeg \rfloor = 2$. The model judge saturates, awarding
+exactly $1.0$ to some benign observations, so whenever three or more of the
+$\nPoolNeg$ held-out negatives sit at that ceiling the threshold \emph{is} the
+ceiling and no positive can strictly exceed it. Recall is then zero regardless of
+how well the signal separates the classes. This is a discrete-operating-point
+pathology of a saturating score, and adding a second signal with a different
+saturation pattern breaks the tie: SENTRY-Fuse's spread is
+$\pm \GptFuseTprSd$ and $\pm \PoolFuseTprSd$, and it never collapses. Unlike the
+mean gains above, this difference is far outside sampling noise.
+
+Third, \textbf{more signals is not monotonically better}. Going from the
+two-signal method to all five---adding the behavioural pair and provenance---lowers
+pooled AUROC from $\PoolFuseAuroc$ to $\PoolAllFiveAuroc$. Isolating the behavioural
+pair alone, by comparing the three-signal variant ($\PoolFusePAuroc$) with all five
+($\PoolAllFiveAuroc$), gives the same direction. The effect is not uniform: on
+GPT-4o-mini all five reach a \emph{higher} recall than the method
+($\GptAllFiveTpr$ against $\GptFuseTpr$) while sitting at a looser realised
+false-alarm rate, which is why we compare on AUROC. Alone the pair is barely distinguishable
 from chance ($\GptBehavAuroc$, $\DsBehavAuroc$ and $\PoolBehavAuroc$ AUROC on the
 three corpora, the middle one \emph{below} chance). Because the fusion is an unweighted sum, a near-chance component
 injects variance without adding discrimination, and the honest conclusion is that
@@ -1189,8 +1224,10 @@ Flash every detector is worse than on GPT-4o-mini---SENTRY-Fuse reaches
 $\mathrm{AUROC} = \DsFuseAuroc$ against $\GptFuseAuroc$. With only $18$ compromised trajectories this
 corpus cannot support fine distinctions, but we present it rather than quoting the
 favourable corpus alone: on the agent that resists most attacks, our margin over
-the single-signal baseline is present in both recall ($\DsSthreeTpr \to \DsFuseTpr$)
-and AUROC ($\DsSthreeAuroc \to \DsFuseAuroc$), but on far fewer positives.
+the single-signal baseline is present in recall ($\DsSthreeTpr \to \DsFuseTpr$) but
+\emph{absent} in AUROC, where fusion is slightly worse
+($\DsSthreeAuroc \to \DsFuseAuroc$). On this corpus, with $\nDsComp$ positives, we
+do not have a ranking-quality improvement to report.
 
 \begin{figure}[t]
 \centering
@@ -1198,7 +1235,7 @@ and AUROC ($\DsSthreeAuroc \to \DsFuseAuroc$), but on far fewer positives.
 \caption{Signal ablation across the three corpora. AUROC (blue) and true-positive
 rate at a $5\%$ target (red), mean and one standard deviation over ten seeds. The
 behavioural signals S1 and S2 are near-chance on every corpus, and the five-signal
-sum is worse than the three-signal one; the realised false-positive rate at the
+sum is worse than the two-signal method; the realised false-positive rate at the
 proposed operating point is printed above each panel.}
 \label{fig:fusion}
 \end{figure}
@@ -1339,11 +1376,11 @@ logging renderer reflowed the text rather than whether evidence was available. W
 produced three different values for this quantity in the course of this work, and
 we do not believe any of them is canonical.
 
-Second, at the stricter end the resulting bound ($0.916$) falls below the
-true-positive rate we ourselves measure ($0.918$ pooled). A bound that the
-measurement violates is not a useful bound: either the indistinguishability
-assumption such an argument needs is false on this corpus, or the criterion is too
-strict to represent evidence availability. Both readings undercut the exercise.
+Second, the bound such an argument yields is inside the resolution of this corpus.
+At the strictest criterion it is $\BoundFull$, against the $\PoolFuseTpr$ our method
+attains---a margin of under two points on $\nComp$ positives, which is smaller than
+the spread we see across calibration draws. A bound that cannot be distinguished
+from the measurement it is supposed to constrain does no work.
 
 What survives is a descriptive observation and a caution, not a theorem.
 \end{remark}
@@ -1354,8 +1391,8 @@ What survives is a descriptive observation and a caution, not a theorem.
 \caption{Evidence-channel coverage of the compromised class. ``Permissive'' counts
 any eight-word payload span appearing in a tool output; ``strict'' requires the
 payload's opening words verbatim. The observation channel is close to saturated on
-both corpora and the action channel is not, which is why sink provenance
-contributes recall rather than replacing the observation signal. We report these
+both corpora and the action channel is not, which is why a provenance signal keyed
+to sinks cannot stand alone. We report these
 fractions descriptively; Remark~\ref{rem:noceiling} explains why we do not convert
 them into a bound.}
 \label{fig:evidence}
@@ -1414,9 +1451,10 @@ surprise on a preceding injection produced results identical to the plain sum.
 $\mathrm{AUROC} = \PoolSfiveAuroc$ with a true-positive rate of $\PoolSfiveTpr$ at
 this budget,
 because it fires only for the subset of attacks that route an identifier into a
-sensitive sink. Unlike the signals above we retain it, because inside the fusion
-adding it moves pooled recall by only $\BootSfiveTpr$
-$[\BootSfiveTprLo, \BootSfiveTprHi]$, which is why it is not in the method.
+sensitive sink. Adding it moves pooled recall by only $\BootSfiveTpr$
+$[\BootSfiveTprLo, \BootSfiveTprHi]$ and AUROC by $\BootSfiveAuroc$
+$[\BootSfiveAurocLo, \BootSfiveAurocHi]$, both intervals containing zero, which is
+why it is not in the method.
 
 \subsubsection{The anytime-valid machinery did not earn its headline}
 \label{sec:longhorizon}
@@ -1511,8 +1549,7 @@ resisted an entire attack family. A defence evaluated on one agent is partly
 measuring that agent. We recommend reporting the agent's unprotected compromise
 rate alongside any detector's TPR, as Table~\ref{tab:corpus} does.
 
-\paragraph{Cost} S5 is a regular-expression and set-membership operation. S3 and
-S4 each require one small-model call per distinct observation and per distinct
+\paragraph{Cost} S3 and S4 each require one small-model call per distinct observation and per distinct
 action, cached by content hash; across the $584$ trajectories these caches cover
 (the $393$ attacked plus the $191$ benign used for calibration) this is $2{,}010$
 calls in total, and zero at re-evaluation time. There is no GPU, no access to model
@@ -1536,9 +1573,11 @@ on different inputs raises the bar, but we have not measured by how much, and
 
 \emph{(ii) Corpus scale and breadth.} $90$ compromised trajectories, two agents,
 two attack families, one benchmark family. The DeepSeek compromised class has only
-$18$ members, and on that corpus the three-signal fusion is no better than the
-GPT-4o-mini corpus in AUROC ($\DsFuseAuroc$ against $\GptFuseAuroc$); we report both corpora
-separately and pooled rather than presenting the more favourable one. A partial
+$\nDsComp$ members, and on that corpus fusion does not improve ranking quality at
+all: $\mathrm{AUROC}$ is $\DsFuseAuroc$ against the single signal's
+$\DsSthreeAuroc$. It helps recall there ($\DsSthreeTpr \to \DsFuseTpr$) but that is
+a smaller claim on $\nDsComp$ positives. We report both corpora separately and
+pooled rather than presenting the more favourable one. A partial
 $\tau$-bench airline collection ($11$ of $50$ tasks) is present in the released
 data but is used in no evaluation, being too small to add a meaningful benign
 stratum.
@@ -1621,7 +1660,7 @@ data-flow implementation, fused rather than used standalone, is a natural
 strengthening, and re-implementing it on this corpus would supply the head-to-head
 baseline that Section~\ref{sec:metrics} explains we do not currently have.
 
-\paragraph{Adaptive evaluation} Attacks optimised jointly against all three
+\paragraph{Adaptive evaluation} Attacks optimised jointly against both
 retained signals are the decisive robustness test.
 
 \subsection{Conclusion}\label{sec:conclusion}
@@ -1637,16 +1676,24 @@ did, measurably, in an earlier and unpublished draft of this work, where it cost
 $0.25$ AUROC on the composite score and produced an explanation of the failure that
 was confidently wrong.
 
-Fusing one observation-side signal with two action-side audits attains
-$\mathrm{AUROC} = 0.985 \pm 0.003$ and a true-positive rate of
-$0.956 \pm 0.006$ at a realised $2.9\%$ false-positive rate on the GPT-4o-mini
-corpus, and $\PoolFuseAuroc \pm \PoolFuseAurocSd$ / $\PoolFuseTpr \pm \PoolFuseTprSd$ pooled over $\nComp$ compromised
-trajectories from two agents. Against the instruction signal alone this is a gain
-of $0.19$ in pooled recall, and---more consequentially for deployment---a
-reduction in its across-split standard deviation from $\pm \PoolSthreeTprSd$ to
-$\pm 0.007$. These figures sit in the same regime as the strongest reported
-trace-only detector, but we do not claim to beat it: the corpora, agents and
-operating points differ, and we re-implemented no baseline.
+Fusing one observation-side signal with one action-side audit attains
+$\mathrm{AUROC} = \GptFuseAuroc \pm \GptFuseAurocSd$ and a true-positive rate of
+$\GptFuseTpr \pm \GptFuseTprSd$ at a realised $\GptFuseFpr\%$ false-positive rate on
+the GPT-4o-mini corpus, and $\PoolFuseAuroc \pm \PoolFuseAurocSd$ /
+$\PoolFuseTpr \pm \PoolFuseTprSd$ pooled over $\nComp$ compromised trajectories from
+two agents. We are deliberately careful about what this establishes. Resampling
+trajectories, the recall gain over the instruction signal alone is $\BootGainTpr$
+$[\BootGainTprLo, \BootGainTprHi]$ and the AUROC gain $\BootGainAuroc$
+$[\BootGainAurocLo, \BootGainAurocHi]$; the latter interval only marginally excludes
+no effect, and $\nComp$ positives cannot settle it. The effect we would defend is
+different in kind: the single signal returns \emph{zero} recall in
+$\SthreeZeroSplits$ of $\nSeeds$ calibration draws, because a saturating judge and a
+discrete operating point conspire to put the threshold at the ceiling, and fusion
+removes that failure entirely. A detector that silently returns nothing on a fifth
+of calibration draws cannot be deployed at a stated operating point; that is the
+practical contribution. These figures sit in the same regime as the strongest
+reported trace-only detector, but we claim no comparison with it: the corpora,
+agents and operating points differ, and we re-implemented no baseline.
 
 Our expectation going in was that an information limit would explain the residual
 error, and an earlier version of this work reported one. We withdraw it. The
@@ -1664,10 +1711,10 @@ mis-scored is not answerable on this corpus.
 
 Alongside this we document a label-polarity trap in a standard harness that
 silently inverted our own conclusions, and we report in full the components we
-rejected: two behavioural signals that were part of an earlier version of this
-method and are near-chance under an honest split, two lexical signals that failed
-outright, and the anytime-valid machinery this project began from, which a
-hand-picked threshold outperformed. We think the negative results are the more
+rejected: two behavioural signals and one provenance signal that were part of
+earlier versions of this method, two lexical signals that failed outright, and the
+anytime-valid machinery this project began from, which a hand-picked threshold
+outperformed. We think the negative results are the more
 transferable half of the paper.
 
 %======================================================================

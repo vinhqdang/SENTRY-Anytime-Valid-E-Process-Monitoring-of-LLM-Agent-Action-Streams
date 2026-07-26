@@ -84,6 +84,7 @@ for tag, ms in (("s3s4_minus_s3_auroc", "GainAuroc"),
     mac(f"Boot{ms}Lo", f"{r['ci_lo']:+.4f}")
     mac(f"Boot{ms}Hi", f"{r['ci_hi']:+.4f}")
     mac(f"Boot{ms}P", f"{r['p_le_zero']:.3f}")
+    mac(f"Boot{ms}Sd", f"{r['sd']:.4f}")
 
 # how often S3 collapses to zero recall across splits
 z = sum(1 for v in blk("Pooled")["detectors"]["S3 instruction only"]["tpr_at_0.05_per_seed"]
@@ -104,6 +105,9 @@ mac("EvPoolSink", num(r["has_effectful_sink_call"]["frac"]))
 mac("EvPoolFull", num(r["core_fully_visible"]["frac"]))
 mac("NuPerm", num(r["primary"]["nu"]))
 mac("NuStrict", num(r["strict"]["nu"]))
+mac("NuFull", num(r["full_directive"]["nu"]))
+mac("BoundFull", num(r["full_directive"]["ceiling_at_alpha_0.05"]))
+mac("BoundStrict", num(r["strict"]["ceiling_at_alpha_0.05"]))
 for k, w in (("5", "Five"), ("10", "Ten"), ("20", "Twenty"), ("30", "Thirty")):
     mac(f"EvCoreK{w}", num(r["distinctive_core_visible"][k]))
 

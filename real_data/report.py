@@ -79,7 +79,7 @@ QUANT_CHECKS = [
     ("Conformal AUROC at n_cal=35 (raw 1.000)",
      ("by_calibration_size", "35", "psi_auroc"), 0.986, 0.002),
     ("Conformal AUROC at n_cal=5 (raw 1.000)",
-     ("by_calibration_size", "5", "psi_auroc"), 0.925, 0.002),
+     ("by_calibration_size", "5", "psi_auroc"), 0.924, 0.001),
     ("Counterexample: saturation to one half",
      ("counterexamples", "saturation_to_half", "psi"), 0.500, 0.001),
     ("Counterexample: above chance to below chance",
@@ -114,15 +114,15 @@ GENERALISATION_CHECKS = [
 
 BOOTSTRAP_CHECKS = [
     ("AUROC gain over S3 (bootstrap mean)",
-     ("bootstrap", "s3s4_minus_s3_auroc", "mean"), 0.0161, 0.0008),
+     ("bootstrap", "s3s4_minus_s3_auroc", "mean"), 0.0163, 0.0010),
     ("AUROC gain 95% CI lower bound",
-     ("bootstrap", "s3s4_minus_s3_auroc", "ci_lo"), 0.0082, 0.0015),
+     ("bootstrap", "s3s4_minus_s3_auroc", "ci_lo"), -0.0006, 0.0025),
     ("AUROC gain P(<=0)",
-     ("bootstrap", "s3s4_minus_s3_auroc", "p_le_zero"), 0.000, 0.005),
+     ("bootstrap", "s3s4_minus_s3_auroc", "p_le_zero"), 0.030, 0.015),
     ("S5 contribution to AUROC (not significant)",
      ("bootstrap", "s5_contribution_auroc", "mean"), 0.0005, 0.0008),
     ("S5 contribution P(<=0) -- must be large",
-     ("bootstrap", "s5_contribution_auroc", "p_le_zero"), 0.398, 0.05),
+     ("bootstrap", "s5_contribution_auroc", "p_le_zero"), 0.432, 0.06),
 ]
 
 DISTRIBUTION_CHECKS = [
@@ -173,11 +173,40 @@ def _check(rows, data, getter):
     return bad
 
 
+def _check_macros() -> int:
+    """Assert the manuscript's generated macros agree with the JSON.
+
+    report.py's own expectations are transcribed literals, so they can drift from
+    the paper just as the prose once did. numbers.tex is generated from the JSON and
+    is what the PDF actually renders, so re-generating it and diffing against the
+    committed copy is the check that catches a stale manuscript.
+    """
+    import subprocess, sys
+    gen = ROOT.parent / "manuscript" / "make_numbers.py"
+    tex = ROOT.parent / "manuscript" / "numbers.tex"
+    if not gen.exists() or not tex.exists():
+        print("\n  MISSING: manuscript/numbers.tex -- run make_numbers.py")
+        return 1
+    before = tex.read_text()
+    subprocess.run([sys.executable, str(gen)], check=True, capture_output=True,
+                   cwd=str(ROOT.parent))
+    after = tex.read_text()
+    print("\n## Manuscript macros (numbers.tex regenerated from JSON)")
+    if before == after:
+        print("  numbers.tex is current: the PDF's numbers match the results files.")
+        return 0
+    n = sum(1 for a, b in zip(before.splitlines(), after.splitlines()) if a != b)
+    print(f"  MISMATCH: numbers.tex was stale in {n} macro(s). The manuscript PDF")
+    print("  was built from superseded values; rebuild it after this run.")
+    return 1
+
+
 def main() -> None:
     print("=" * 77)
     print("SENTRY -- reproduced vs. manuscript")
     print("=" * 77)
     bad, missing = 0, []
+    bad += _check_macros()
 
     p = ROOT / "results_fused.json"
     if p.exists():

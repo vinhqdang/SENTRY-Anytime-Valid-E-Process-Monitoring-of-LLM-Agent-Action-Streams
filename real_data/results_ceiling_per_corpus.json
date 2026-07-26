@@ -30,6 +30,13 @@
         "nu": 0.0278,
         "ceiling_at_alpha_0.05": 0.9736
       },
+      "full_directive": {
+        "either_n": 65,
+        "either_frac": 0.9028,
+        "neither_n": 7,
+        "nu": 0.0972,
+        "ceiling_at_alpha_0.05": 0.9076
+      },
       "distinctive_core_visible": {
         "1": 1.0,
         "5": 1.0,
@@ -72,6 +79,13 @@
         "neither_n": 2,
         "nu": 0.1111,
         "ceiling_at_alpha_0.05": 0.8944
+      },
+      "full_directive": {
+        "either_n": 17,
+        "either_frac": 0.9444,
+        "neither_n": 1,
+        "nu": 0.0556,
+        "ceiling_at_alpha_0.05": 0.9472
       },
       "distinctive_core_visible": {
         "1": 1.0,
@@ -116,6 +130,13 @@
       "neither_n": 4,
       "nu": 0.0444,
       "ceiling_at_alpha_0.05": 0.9578
+    },
+    "full_directive": {
+      "either_n": 82,
+      "either_frac": 0.9111,
+      "neither_n": 8,
+      "nu": 0.0889,
+      "ceiling_at_alpha_0.05": 0.9156
     },
     "distinctive_core_visible": {
       "1": 1.0,

@@ -187,16 +187,22 @@ def _split(benign, seed, four_way):
 
 
 def _bootstrap_gain(benign, comp, set_a, set_b, metric, n_boot=2000, seed=0):
-    """Bootstrap CI for (metric of set_a) - (metric of set_b) over TRAJECTORIES.
+    """Cluster bootstrap CI for (metric of set_a) - (metric of set_b).
 
-    The per-seed spread reported elsewhere measures how much the answer moves when
-    the same fixed sample is re-split; it says nothing about sampling error in the
-    90 positives and the negatives, which is the uncertainty a claim about the
-    method needs. We therefore resample trajectories with replacement, averaging
-    over the same ten splits inside each bootstrap replicate.
+    The per-seed spread reported in the tables measures how much the answer moves
+    when the same fixed sample is re-split. It says nothing about sampling error in
+    the trajectories themselves, which is the uncertainty a claim about the method
+    needs, so we resample trajectories with replacement.
+
+    The subtlety that matters: the ten splits are re-splits of ONE corpus, and the
+    positives are identical across them. A replicate must therefore draw a SINGLE
+    trajectory resample and reuse it across all ten splits. Drawing an independent
+    resample inside each split and averaging would estimate the variance of the mean
+    of ten independent draws, shrinking the corpus-sampling variance by a factor of
+    about ten -- which is exactly the error an earlier version of this function made,
+    and it turned a borderline effect into an apparently decisive one.
     """
     rng = np.random.default_rng(seed)
-    # Precompute per-seed score vectors once; bootstrap indexes into them.
     per_seed = []
     for sd in range(N_SEEDS):
         fit, cal, _, test = _split(benign, sd, False)
@@ -208,14 +214,15 @@ def _bootstrap_gain(benign, comp, set_a, set_b, metric, n_boot=2000, seed=0):
                        sum(_conformal_surprisal(S_cal[:, c], S_pos[:, c]) for c in cols))
         per_seed.append(row)
 
+    n_pos = per_seed[0]["a"][1].size
     diffs = []
     for _ in range(n_boot):
+        # one resample of the positives per replicate, shared across the splits
+        i_pos = rng.integers(0, n_pos, n_pos)
         vals = []
         for row in per_seed:
             n_neg = row["a"][0].size
-            n_pos = row["a"][1].size
             i_neg = rng.integers(0, n_neg, n_neg)
-            i_pos = rng.integers(0, n_pos, n_pos)
             out = {}
             for nm in ("a", "b"):
                 neg, pos = row[nm][0][i_neg], row[nm][1][i_pos]
@@ -223,7 +230,7 @@ def _bootstrap_gain(benign, comp, set_a, set_b, metric, n_boot=2000, seed=0):
             vals.append(out["a"] - out["b"])
         diffs.append(float(np.mean(vals)))
     d = np.sort(np.asarray(diffs))
-    return {"mean": float(d.mean()),
+    return {"mean": float(d.mean()), "sd": float(d.std(ddof=1)),
             "ci_lo": float(d[int(0.025 * len(d))]),
             "ci_hi": float(d[int(0.975 * len(d)) - 1]),
             "p_le_zero": float(np.mean(d <= 0.0))}

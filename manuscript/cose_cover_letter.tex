@@ -41,7 +41,7 @@ evidence should be combined, and where the information in a trace runs out.
 
 The work makes four contributions. First, it introduces \textbf{SENTRY-Fuse}, a
 monitor that converts heterogeneous trace signals---one scoring the observation
-stream, two auditing the action stream---into conformal tail surprisals against a
+stream, one auditing the action stream---into conformal tail surprisals against a
 benign calibration split and fuses them by addition. The construction is
 scale-free, non-decreasing in every component and free of tuned signal weights,
 and the paper proves that the natural alternative of subtracting the benign
@@ -49,12 +49,20 @@ training maximum is many-to-one and, for any attack class lying below that
 maximum, caps AUROC at one half. That is not hypothetical: an earlier, unpublished
 draft of this work did exactly that, at a cost of $0.25$ AUROC and a confidently
 wrong explanation of the resulting failure. Second,
-action-side evidence is shown to be \emph{complementary} rather than redundant:
-over $90$ genuinely compromised trajectories, adding two action-side audits to the
-instruction signal raises $\mathrm{AUROC}$ from $0.937$ to $0.954 \pm 0.003$
-(paired $t = 4.9$) and cuts the across-draw standard deviation of recall from
-$\pm 0.357$ to $\pm 0.005$. I report the mean recall gain as \emph{not} significant
-against that variability, because it is not. Third, I measure where trace evidence
+action-side evidence is shown to be \emph{complementary} rather than redundant, and
+I am careful about how strongly. Over $90$ genuinely compromised trajectories,
+adding one action-side audit to the instruction signal raises $\mathrm{AUROC}$ from
+0.937 to 0.953 and recall from 0.709 to 0.898. Resampling trajectories, the recall gain
+is $+0.1706$ $[+0.0033, +0.3533]$ and the AUROC gain $+0.0163$ $[-0.0006, +0.0351]$---the latter
+interval only marginally excluding no effect, which a corpus of this size cannot
+settle, and I say so in the paper rather than assert significance. The effect I do
+defend is different in kind: the single signal returns \emph{zero} recall in 2 of 10
+calibration draws, because a saturating judge and a discrete operating point put the
+threshold at the ceiling, and fusion removes that failure entirely. A third signal I
+implemented, sink provenance, does not reach significance and is reported as an
+ablation rather than folded into the method.
+
+Third, I measure where trace evidence
 lives and draw a benchmark-design conclusion: AgentDojo's observation channel is
 close to saturated, because it delivers payloads through tool outputs a successful
 injection must have read, so corpora of this shape cannot contain a compromise
@@ -68,8 +76,7 @@ I should be explicit that the paper does \emph{not} claim to beat the state of t
 art. The strongest reported trace-only figure ($95.75\%$ true positives at
 $3.66\%$ false positives) comes from a preprint version that later versions
 withdraw, was measured on a different corpus with a different agent, and I
-re-implemented no baseline on my own corpus. My numbers sit in the same regime,
-and I say so rather than constructing a comparison the evidence does not support.
+re-implemented no baseline on my own corpus.
 
 I believe the work suits \emph{Computers \& Security} in particular. It is a
 security paper first: it defines a threat model, evaluates a defence against real
@@ -77,8 +84,8 @@ attacks on real agent traces, and reports its limits rather than only its
 successes. It offers two things of direct use to others: a measurement showing that
 the benchmarks the field relies on cannot exhibit the hardest case, and a
 methodological warning about how results on a standard benchmark should be read.
-Its negative results are reported in full---four signals I implemented and
-rejected, two of which an earlier draft presented as part of the method, and the
+Its negative results are reported in full---five components I implemented and
+rejected, three of which an earlier draft presented as part of the method, and the
 finding that a hand-picked threshold outperformed the anytime-valid machinery from
 which the project began.
 
