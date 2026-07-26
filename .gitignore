@@ -227,10 +227,7 @@ examples/output/
 *.blg
 *.synctex.gz
 
-# Private working notes: research log and submission checklist. These contain
-# venue and review history that has no place in a public repository referees are
-# pointed at from the paper's data-availability statement.
-NOTES.md
+# Submission checklist: working document with venue-specific process notes.
 manuscript/SUBMISSION_CHECKLIST.md
 
 # Superseded manuscripts for earlier target venues. These report the
