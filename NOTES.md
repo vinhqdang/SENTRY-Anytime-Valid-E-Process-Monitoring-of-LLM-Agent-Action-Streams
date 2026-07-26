@@ -284,3 +284,202 @@ earlier effect-based attempts (§8, §9) appeared to fail.
   number under the corrected label polarity; the current manuscript's
   hijack-detection figures measure the resisted class.
 - τ-bench airline collection is partial (~task 8/50).
+
+## 16. Independent pre-submission audit (2026-07-26) — BLOCKING findings
+
+Four independent reviewers audited the C&S manuscript (numbers, references,
+math/notation, framing). Every finding below that I state as confirmed I
+re-verified myself against the code and data; agent claims I could not
+reproduce are marked as such.
+
+### 16.1 The detectability ceiling does not exist on this corpus (nu = 0, not 0.078)
+
+**This is the most serious finding and it invalidates Contribution 3.**
+
+`results_ceiling.json` (the source of Table 6, Theorem 1's nu, Corollary 1, the
+0.922/0.925 bound, the "97.8% of attainable" claim and the critique of
+AgentArmor) **has no generating script anywhere in the repo**. I wrote one:
+`real_data/ceiling.py`.
+
+Measured directly on the same 90 compromised trajectories (72 GPT-4o-mini + 18
+DeepSeek, `security is True`, `len >= 2`), asking whether the attacker's
+imperative instruction text appears anywhere in the observation stream:
+
+| criterion | visible / 90 |
+|---|---|
+| attacker's imperative clause, 6-gram match | **90 / 90 = 1.000** |
+| any 8-word span of the payload | 90 / 90 = 1.000 |
+| any 25-word span | 80 / 90 = 0.889 |
+| full payload, exact after whitespace normalisation | 26 / 90 = 0.289 |
+| distinctive body only (wrapper stripped) | 36 / 90 = 0.400 |
+| **paper's claim** | **78 / 90 = 0.867** |
+
+The paper's 0.867 is not reproducible under any definition I could construct.
+The *semantically correct* answer is 1.000, and it is 1.000 for a structural
+reason: AgentDojo delivers injections **through tool outputs**, and a
+*successful* injection requires the agent to have read that output. So the
+payload is in the trace by construction.
+
+Consequence: `either_channel` = 90/90, `neither_channel` = 0, **nu = 0.000**.
+There is no set of "compromised trajectories with no trace evidence" on this
+corpus. Therefore:
+
+- "7.8% leave no trace evidence whatsoever" (abstract) is **false**;
+- the ceiling 0.922 / 0.925 (Theorem 1, Corollary 1, Table 6) **does not bind**;
+- "we reach 97.8% of the attainable" is **vacuous** (the attainable is 1.0);
+- the critique that AgentArmor's 0.9575 "exceeds the ceiling and must therefore
+  explain" is **unfounded** and must be withdrawn;
+- the title "Breaking the Observation Ceiling" refers to a quantity (0.867)
+  measured the same unreproducible way.
+
+The sink-call channel *is* roughly reproducible: I measure 77/90 = 0.856 vs the
+paper's 74/90 = 0.822. Only the payload-visibility channel is wrong.
+
+Note the construct is degenerate on this benchmark regardless of measurement: on
+AgentDojo, "payload appears in the trace" is ~tautologically 1 for successful
+attacks. A meaningful ceiling would need a different notion of evidence (e.g.
+payload not *distinguishable* from benign content), which we have not measured.
+
+### 16.2 Proposition 3 is false as stated; it contradicts Proposition 1
+
+Prop 3 claims psi "preserves the AUROC"; the text claims "the conformal
+surprisal **cannot destroy** a signal" and the abstract/contributions/conclusion
+say "strictly monotone" / "provably order-preserving".
+
+psi takes at most n+1 distinct values and **saturates at log(n+1) for every x
+above the calibration maximum** -- it is many-to-one, exactly like phi_max.
+Verified counterexamples:
+
+- cal = {0}, benign {0.1, 0.2}, attack {0.3, 0.4}: raw AUROC **1.0 -> 0.5**.
+  Every value maps to log 2. The conformal transform destroyed a perfectly
+  separating signal -- the precise failure Prop 1 attributes to phi_max.
+- At the paper's real calibration size n = 35, well-separated Gaussians:
+  1.0000 -> **0.9475**. AUROC strictly decreases at production scale.
+
+Worse, Prop 3's proof argument ("a non-decreasing map cannot reverse any strict
+ordering") applies verbatim to phi_max and would "prove" Prop 1 false. And the
+paper's own stated lesson -- "a fusion rule must never apply a many-to-one
+transform to a component signal" -- disqualifies SENTRY-Fuse itself.
+
+The real distinction is **resolution of the quantisation** (n+1 bins vs 1 bin),
+not many-to-one vs one-to-one. Prop 3 must be restated as: psi is non-decreasing,
+hence cannot *invert* an ordering, and preserves AUROC up to ties introduced by
+quantisation at n+1 levels.
+
+### 16.3 "No tuned weights" is false on the reported path
+
+`real_data/evaluate_fused.py:83`:
+
+    best_b = max(best_b, sv["transition"] + 4.0 * sv["novelty"])
+
+Column 0 of the fused matrix is a **hardcoded weighted sum of two raw
+sub-signals on incommensurable scales** (nats + 4.0 x a [0,1] unseen-token
+fraction), applied *before* any conformal transform. So:
+
+- "no tuned weights" (abstract, contributions, Section 3.7, conclusion) is false;
+- there are **five** signals, not four -- `novelty` appears nowhere in the
+  manuscript (verified: zero occurrences);
+- same constant in `compare_sota.py:73`, `evaluate_harm.py:77`;
+- `manuscript/make_figures.py:185` even *sweeps* novelty/instruction weights.
+
+Cleared: `sentry/scores.py:242`'s `unjustified_weight=4.0` is only used by
+`SequentialWorldModel.surprise()`, which the fused evaluation never calls. The
+S2/S3/S4 columns are genuinely unweighted.
+
+### 16.4 The 3.66% operating point is unattainable; realised FPR is 5.71%
+
+`_tpr_at` sets `tau = np.quantile(neg, 1-fpr)` then counts `x > tau`. With 35
+test negatives (GPT-4o-mini, 70 benign halved) the attainable FPRs are multiples
+of 1/35 = 2.86%. Verified:
+
+| corpus | n_test | nominal 3.66% | nominal 5% |
+|---|---|---|---|
+| GPT-4o-mini | 35 | **2/35 = 5.71%** | 2/35 = 5.71% |
+| pooled | 96 | 4/96 = 4.17% | 5/96 = 5.21% |
+
+So "0.960 at 3.66% FPR beats AgentArmor's 0.9575 at 3.66%" compares our number
+at a realised **5.71%** against theirs at 3.66%. The tell is already visible in
+Table 3: TPR@3.66% is *identical* to TPR@5% in four of five GPT rows, because
+both nominal levels select the same threshold.
+
+### 16.5 The abstract attributes 0.902 to SENTRY-Fuse; SENTRY-Fuse scores 0.890
+
+Table 3 pooled: S2+S3 = 0.902 +/- 0.018, SENTRY-Fuse (S1-S4) = 0.890 +/- 0.039.
+Confirmed in `results_pooled.json`. The body is candid (Section 5.1: "S2+S3
+slightly outperforms the full fusion"), which makes the abstract's and
+conclusion's attribution worse, not better. `figures/ceiling.pdf` also labels
+the 0.902 bar "SENTRY-Fuse (ours, pooled)". The complementarity argument
+(0.902 > 0.867) therefore rests on an ablation, not on the proposed method --
+and for SENTRY-Fuse proper the margin is 0.890 vs 0.867, i.e. 0.6 sigma.
+
+### 16.6 AgentArmor's 95.75% / 3.66% exists only in arXiv v1
+
+Both numbers appear only in `arXiv:2508.01249v1` (2025-08-02, GPT-4 agent). In
+v2/v3 (current) the authors **removed** the claim; v3 reports TPR 0.86-0.97 at
+FPR 0.03-0.19 and zero occurrences of "95.75" or "3.66". Our `.bib` cites the
+unversioned DOI, so a referee following the citation cannot find either number.
+Must cite v1 explicitly or re-anchor to v3's figures.
+
+### 16.7 `figures/instruction_sep.pdf` uses the INVERTED polarity
+
+`make_figures.py:66-67` still has `succ = security is False` / `resisted =
+security is True` -- backwards relative to the Section 4.4 correction. The
+rendered axis labels ("successful attack (n=180)", "resisted attack (n=18)") are
+swapped relative to Table 1. Same inverted `_load()` feeds `roc.pdf`,
+`dataset.pdf`, `signals.pdf`, `traces.pdf` (shipped in the zip, not included).
+
+### 16.8 Other confirmed items
+
+- **Pooled S2-only TPR@5% = 0.901 exceeds the claimed 0.867 observation ceiling**
+  (Table 3 vs Section 5.1) -- independent of 16.1, an internal contradiction.
+- **DeepSeek compromise block computed, released, omitted from the paper.**
+  `results_fused.json`: SENTRY-Fuse 0.843 AUROC / 0.744 TPR vs S2-alone 0.881 /
+  0.778. Fusion is *strictly worse than S2 alone* on that corpus, contradicting
+  Contribution 2. The stated reason for omission ("estimates are wide") is
+  refuted by the released sigmas (0.000-0.036).
+- **Ceiling quoted as both 0.922 and 0.925**; observation ceiling as 0.867 where
+  the paper's own theorem gives 0.872.
+- **Theorem 1's Assumption 1 is existential** and does not support the proof step
+  TPR|_N <= alpha, which needs the conditional law on N to be dominated by the
+  benign law. As stated, TPR = 1 with FPR = alpha is consistent with the
+  hypotheses.
+- **Prop 4's second claim asserts S ~ Gamma(K,1) equality** where its proof gives
+  only stochastic domination; S is discrete and bounded by sum_k log(n_k+1).
+- **Prop 2's proof asserts rank uniformity**, which fails under ties -- S4 is
+  binary and S3 saturates at 1.0 on 17% of benign. Conclusion survives via the
+  conservative >= convention; the proof does not say so.
+- **Reproducibility**: no script generates `results_ceiling.json`,
+  `results_pooled.json`, `results_signal_ablation.json`,
+  `results_detectability_ceiling.json`, nor `overview/fusion/ceiling.pdf`.
+  `evaluate_fused.py` has no pooled code path at all. `reproduce.sh` omits
+  `evaluate_fused`, `longhorizon`, `compare_sota`, `evaluate_harm`. `report.py`
+  still checks pre-label-fix targets (121/180/18, 0.99). So "every number and
+  figure is reproducible" is false as shipped.
+- **Submission zip lacks `references_cose.bib` / `.bbl`** -- cannot compile its
+  bibliography standalone.
+- **Public repo contradicts the paper**: README advertises IEEE TDSC, "99% at 2%
+  FAR", "PAC certified", "no extra LLM call", and the *retracted* InjecAgent
+  explanation. `SUBMISSION_CHECKLIST.md` and this NOTES.md quote two desk
+  rejections verbatim -- and Data availability sends every referee to that repo.
+- **`shin2023edetectors` volume is 2, not 1** (NEJSDS Vol 2 Iss 2, 2024).
+
+### 16.9 What the audit cleared
+
+- **References: no fabrications.** 34 cited / 34 present, zero orphans either
+  way, full author lists throughout, every arXiv ID and DOI resolves to the
+  exact cited title. Only defect: the volume above, a missing page range on
+  `chen2025secalign`, and the AgentArmor version issue (16.6).
+- **Every cell of all 7 tables matches the committed JSON** to 3 dp.
+- **The conformal p-value implementation is exactly correct**, including
+  `searchsorted(side="left")` tie handling (stress-tested at tie points), the
+  +1/+1 correction, the log, and the tail direction.
+- The AUROC implementation, S4's code-to-equation correspondence, the
+  label-polarity analysis (Section 4.4, Table 2), and the leakage remark are all
+  sound. 5 figures included, all `\ref`'d, none dangling.
+
+### 16.10 Status
+
+**The submission package must not go out as-is.** Contribution 3 (the ceiling)
+is unsupported; Contribution 1's "no tuned weights" and Prop 3 are false as
+stated; the headline comparison is not at the FPR claimed; and the abstract
+credits the method with an ablation's number. These are not presentational.

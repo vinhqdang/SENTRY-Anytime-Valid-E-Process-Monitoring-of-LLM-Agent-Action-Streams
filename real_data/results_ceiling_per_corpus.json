@@ -1,0 +1,66 @@
+{
+  "note": "Detectability ceiling per corpus and pooled. Labels use the CORRECTED polarity: security==True means the agent was compromised. alpha = 0.0366 is the matched operating point.",
+  "alpha": 0.0366,
+  "corpora": {
+    "GPT-4o-mini": {
+      "n_compromised": 72,
+      "payload_visible_in_trace": {
+        "n": 72,
+        "frac": 1.0
+      },
+      "has_effectful_sink_call": {
+        "n": 63,
+        "frac": 0.875
+      },
+      "either_channel": {
+        "n": 72,
+        "frac": 1.0
+      },
+      "neither_channel": {
+        "n": 0,
+        "nu": 0.0
+      },
+      "ceiling_at_alpha_0.0366": 1.0
+    },
+    "DeepSeek": {
+      "n_compromised": 18,
+      "payload_visible_in_trace": {
+        "n": 18,
+        "frac": 1.0
+      },
+      "has_effectful_sink_call": {
+        "n": 14,
+        "frac": 0.7778
+      },
+      "either_channel": {
+        "n": 18,
+        "frac": 1.0
+      },
+      "neither_channel": {
+        "n": 0,
+        "nu": 0.0
+      },
+      "ceiling_at_alpha_0.0366": 1.0
+    }
+  },
+  "pooled": {
+    "n_compromised": 90,
+    "payload_visible_in_trace": {
+      "n": 90,
+      "frac": 1.0
+    },
+    "has_effectful_sink_call": {
+      "n": 77,
+      "frac": 0.8556
+    },
+    "either_channel": {
+      "n": 90,
+      "frac": 1.0
+    },
+    "neither_channel": {
+      "n": 0,
+      "nu": 0.0
+    },
+    "ceiling_at_alpha_0.0366": 1.0
+  }
+}
