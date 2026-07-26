@@ -1,6 +1,16 @@
 # SENTRY: Algorithm Design
 ## Sequential E-process monitoriNg for Trustworthy autonomous AgencY
 
+> **Status: design history, not the current method.**
+> This document records the original design, in which the monitor was an
+> anytime-valid e-process with a PAC-calibrated threshold. That is no longer what
+> the paper proposes. A fixed benign quantile on the same score outperformed the
+> e-detector, and the two behavioural surprise scores described here are
+> near-chance under an out-of-sample protocol; both findings are reported as
+> negative results. The method actually evaluated is the conformal surprisal
+> fusion in `real_data/evaluate_fused.py`, described in `manuscript/`. This file
+> is kept because it explains where the project started and why it changed.
+
 ## 0. What changed after reading the two PDFs
 
 **E-valuator (Sadhuka et al. 2512.03109v2)** gives SENTRY two directly reusable tools:

@@ -96,17 +96,23 @@ save someone else time.
 | `tests/` | unit + end-to-end tests |
 | `reproduce.sh` | one-shot reproduction of every paper number and figure |
 
-`sentry/` contains the scoring and (now-superseded) e-detector machinery; the
-fusion monitor evaluated in the paper lives in `real_data/evaluate_fused.py`.
+The monitor evaluated in the paper is `real_data/evaluate_fused.py`. The `sentry/`
+package holds the per-action scoring code it calls, plus the e-detector and
+PAC-calibration machinery from the project's original design — retained because the
+paper's negative-results section is measured with it, not because it is the method.
 
-| module | algorithm.md section |
+| module | contents |
 |---|---|
-| `sentry/baseline.py` | §3 — exponential + conformal baseline increments, mixture over unknown drift magnitude |
-| `sentry/detector.py` | §4 Phase 3 — SR/CUSUM e-detector recursions, alarm + restart |
-| `sentry/scores.py` | §2 — surprise scores: tool-transition bigram, argument-token novelty, observation instruction-likeness |
-| `sentry/calibration.py` | §4 Phases 1-2 — mixture fitting and PAC-threshold order-statistic calibration |
-| `sentry/pipeline.py` | Algorithm SENTRY-Detect end-to-end |
-| `sentry/streams.py` | synthetic Bernoulli/Gaussian toy streams for validating the ARL guarantee |
+| `sentry/scores.py` | per-action signals: tool-transition bigram, argument-token novelty, observation instruction-likeness, and the conformal transform |
+| `sentry/baseline.py` | exponential + conformal baseline increments, mixture over unknown drift magnitude *(superseded)* |
+| `sentry/detector.py` | SR/CUSUM e-detector recursions, alarm + restart *(superseded)* |
+| `sentry/calibration.py` | mixture fitting and PAC-threshold order-statistic calibration *(superseded)* |
+| `sentry/pipeline.py` | the original end-to-end e-process monitor *(superseded)* |
+| `sentry/streams.py` | synthetic Bernoulli/Gaussian streams for validating the ARL guarantee |
+| `sentry/llm_judge.py` | the two cached model judges behind S3 and S4 |
+
+`algorithm.md` and `survey.md` are the original design and literature documents;
+both carry a banner noting they describe the superseded method.
 
 ## Install and test
 

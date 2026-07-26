@@ -1,5 +1,15 @@
 # SENTRY State-of-the-Art Survey: Anytime-Valid E-Process Monitoring of LLM Agent Action Streams
 
+> **Status: design history, not the current method.**
+> This document records the original design, in which the monitor was an
+> anytime-valid e-process with a PAC-calibrated threshold. That is no longer what
+> the paper proposes. A fixed benign quantile on the same score outperformed the
+> e-detector, and the two behavioural surprise scores described here are
+> near-chance under an out-of-sample protocol; both findings are reported as
+> negative results. The method actually evaluated is the conformal surprisal
+> fusion in `real_data/evaluate_fused.py`, described in `manuscript/`. This file
+> is kept because it explains where the project started and why it changed.
+
 ## TL;DR
 - **The core idea is defensibly novel but the neighborhood is closing fast.** No published work applies e-processes/test martingales to LLM agent action streams *for safety/drift detection against a safe-behavior (or causal-world-model) reference distribution*. The single closest competitor, E-valuator (arXiv:2512.03109, revised v2 dated 28 May 2026), applies e-processes/density-ratio martingales to agent trajectories but for **task-success** verification, and it explicitly lists early detection of unsafe or harmful trajectories as *unrealized future work* — SENTRY should treat it as the primary baseline.
 - **The causal-world-model-as-reference-distribution angle (tying to CAIRN) is the least-contested, most defensible contribution.** Causal world models of agents exist (DeepMind's "Causal Analysis of Agent Behavior") and e-process monitors exist, but no paper combines a do-calculus/SCM-predicted expected trajectory as the test statistic inside an anytime-valid monitor.
