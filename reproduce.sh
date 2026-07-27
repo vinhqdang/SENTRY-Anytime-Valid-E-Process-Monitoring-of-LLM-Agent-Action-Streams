@@ -32,45 +32,50 @@ if [[ "${1:-}" == "--collect" ]]; then
   python real_data/tau_bench/run.py
 fi
 
-echo "### [1/10] Unit + end-to-end synthetic tests ..."
+echo "### [1/11] Unit + end-to-end synthetic tests ..."
 pytest -q
 
-echo "### [2/10] Synthetic ARL/FAR + detection-delay validation ..."
+echo "### [2/11] Synthetic ARL/FAR + detection-delay validation ..."
 python examples/run_synthetic_validation.py
 
-echo "### [3/10] Compromise detection and the signal ablation"
+echo "### [3/11] Compromise detection and the signal ablation"
 echo "          (writes real_data/results_fused.json) ..."
 python -m real_data.evaluate_fused
 
-echo "### [4/10] Evidence channels / detectability"
+echo "### [4/11] Evidence channels / detectability"
 echo "          (writes real_data/results_ceiling_per_corpus.json) ..."
 python -m real_data.ceiling
 
-echo "### [5/10] Normalisation ablation"
+echo "### [5/11] Normalisation ablation"
 echo "          (writes real_data/results_signal_ablation.json) ..."
 python -m real_data.normalisation_ablation
 
-echo "### [6/10] Corpus composition, label polarity, and quantisation loss"
+echo "### [6/11] Corpus composition, label polarity, and quantisation loss"
 echo "          (writes real_data/results_{corpus,quantisation}.json) ..."
 python -m real_data.corpus_table
 python -m real_data.quantisation_demo
 python -m real_data.distributions
 
-echo "### [7/10] Attempt detection and generalisation"
+echo "### [7/11] Task Shield baseline, re-implemented on our corpus"
+echo "          (writes real_data/results_taskshield.json; uses the committed"
+echo "           judgment cache, so no API access is needed) ..."
+python -m real_data.baseline_taskshield
+
+echo "### [8/11] Attempt detection and generalisation"
 echo "          (writes real_data/results{,_generalization}.json) ..."
 python -m real_data.evaluate
 python -m real_data.evaluate_generalization
 
-echo "### [8/10] Long-horizon e-detector comparison (negative result)"
+echo "### [9/11] Long-horizon e-detector comparison (negative result)"
 echo "          (writes real_data/results_longhorizon.json) ..."
 python -m real_data.longhorizon
 
-echo "### [9/10] Regenerating figures ..."
+echo "### [10/11] Regenerating figures ..."
 python manuscript/make_numbers.py   # regenerates the manuscript's number macros
 python manuscript/make_figures.py
 python manuscript/make_paper_figures.py
 
-echo "### [10/10] Checking every reproduced value against the manuscript ..."
+echo "### [11/11] Checking every reproduced value against the manuscript ..."
 python -m real_data.report
 echo
 echo "Figures are in manuscript/figures/."

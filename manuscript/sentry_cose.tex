@@ -366,7 +366,9 @@ contaminated inputs, formulated as a minimax game so that the detector is traine
 against adaptive evasion. \textbf{Task Shield}~\citep{jia2024taskshield} checks
 each action for alignment with the user's stated task---conceptually the closest
 prior work to our action-side signal, though it is used as a standalone gate
-rather than as one calibrated component of a fused statistic.
+rather than as one calibrated component of a fused statistic. Because of that
+proximity it is the natural baseline, and we re-implement it and run it on our
+corpus in Section~\ref{sec:baseline}.
 \textbf{MELON}~\citep{zhu2025melon} detects injection by re-executing the
 trajectory with a masked user prompt and comparing the resulting tool calls, on
 the principle that a hijacked action recurs even when the real task is removed;
@@ -969,10 +971,13 @@ sample, and---as Section~\ref{sec:polarity} shows---a positive-class definition
 that is easy to get wrong); the operating points differ once the realised rate is
 accounted for; and the figure itself was removed in later versions of that
 preprint, which report TPR between $0.86$ and $0.97$ at FPR between $0.03$ and
-$0.19$ instead. We cite it as the relevant reference point and as evidence that
-our results are in the same regime, not as a baseline we outperform. No
-re-implementation of it was run on our corpus, so no head-to-head comparison is
-claimed.
+$0.19$ instead. We cite it as a reference point for the regime, not as a baseline
+we outperform, and we did not re-implement its program-dependence analysis.
+
+Comparing only against published figures on other corpora would leave the
+evaluation a self-ablation, so we re-implemented one published method and ran it
+on our trajectories under our protocol: \textbf{Task Shield}, which is the closest
+prior work to our action-side signal. Section~\ref{sec:baseline} reports it.
 
 \subsection{A label-polarity pitfall}\label{sec:polarity}
 
@@ -1408,6 +1413,87 @@ we are aware of provides them. A defence validated only on corpora of this shape
 has not been tested against the hard case, and our own results should be read with
 that limitation in mind (Figure~\ref{fig:evidence}): the $8\%$ of compromises we miss are ones we failed to
 score, not ones that were hidden from us.
+
+\subsection{Comparison with a re-implemented baseline}\label{sec:baseline}
+\ifnum\TaskShieldReady=0 \emph{(Baseline run pending.)}\else
+
+Every comparison so far has been between our own signal subsets, which makes the
+evaluation a self-ablation. To give it an external anchor we re-implemented a
+published method and ran it on the same trajectories, with the same splits and the
+same operating-point rule.
+
+We chose \textbf{Task Shield}~\citep{jia2024taskshield} because it is the closest
+prior work to our action-side signal: it reframes injection defence as
+\emph{task alignment}, requiring every agent action to serve the user's stated
+goal. Our S4 asks a related question, so a reader is entitled to ask whether the
+fusion adds anything over the published method it most resembles.
+
+\paragraph{What we implemented} We follow the paper's Section 4 and Algorithm 1,
+using its Appendix E prompts. An LLM extracts the set of actionable user task
+instructions $T_u$ from the user message. For each tool call $e$ the LLM then
+scores $\mathrm{ContributesTo}(e,t) \in [0,1]$ against every $t \in T_u$, and the
+aggregate $S(e) = \sum_{t} s(e,t)$ decides alignment: $e$ is misaligned iff
+$S(e) \le \epsilon$, with $\epsilon = 0$ as in the paper.
+
+\paragraph{What we necessarily changed} Three deviations, all forced by the
+setting, and all of which we regard as caveats on the comparison rather than
+improvements to it.
+\begin{enumerate}
+\item Task Shield is a \emph{defence}: on detecting misalignment it injects
+feedback and blocks the call, changing the trajectory. We score fixed,
+already-collected traces, so we cannot intervene. We run its alignment check
+unchanged and read it as a detector---a trajectory is flagged when any of its
+calls is misaligned. Its published attack-success-rate numbers measure prevention
+and are therefore not comparable with anything here.
+\item The paper's defender is GPT-4o. We use the model that also serves our judge
+(DeepSeek-V4-Flash, temperature $0$), so the comparison isolates the \emph{method}
+rather than the defender's capability. The paper's own ablation reports Task Shield
+degrading gracefully with defender capacity and includes a GPT-4o-mini defender, so
+a weaker defender depresses the absolute numbers; it does not favour either method
+in the comparison, since both use the same model.
+\item Task Shield also checks assistant natural-language content. Our traces
+contain tool calls and tool outputs but not assistant prose, so only the tool-call
+checker applies and one of its layers is absent.
+\end{enumerate}
+
+\paragraph{Result} Table~\ref{tab:baseline} gives the comparison. Task Shield's
+published decision rule---flag when any call is misaligned---is a fixed operating
+point rather than a tunable threshold, so we report it as a single (FPR, TPR) pair
+alongside its ROC.
+
+\begin{table}[htbp]
+\centering
+\caption{Task Shield~\citep{jia2024taskshield}, re-implemented and run on our
+trajectories under our protocol, against SENTRY-Fuse. Both use the same judge model
+(DeepSeek-V4-Flash, temperature $0$), so the comparison isolates the method. Task
+Shield's published rule is a fixed operating point, reported as one (FPR, TPR)
+pair; the AUROC column ranks trajectories by its minimum aggregate alignment score.
+The final columns apply our held-out $5\%$ target to both.}
+\label{tab:baseline}
+\small
+\begin{tabular}{@{}llccc@{}}
+\toprule
+Corpus & Detector & AUROC & TPR & FPR \\
+\midrule
+\multirow{3}{*}{GPT-4o-mini}
+ & Task Shield, published rule & --- & \TsGptRuleTpr & \TsGptRuleFpr \\
+ & Task Shield, at our target  & \TsGptAuroc & \TsGptTpr & \TsGptFpr\% \\
+ & \textbf{SENTRY-Fuse}        & \textbf{\GptFuseAuroc} & \textbf{\GptFuseTpr} & \GptFuseFpr\% \\
+\midrule
+\multirow{3}{*}{DeepSeek}
+ & Task Shield, published rule & --- & \TsDsRuleTpr & \TsDsRuleFpr \\
+ & Task Shield, at our target  & \TsDsAuroc & \TsDsTpr & \TsDsFpr\% \\
+ & \textbf{SENTRY-Fuse}        & \textbf{\DsFuseAuroc} & \textbf{\DsFuseTpr} & \DsFuseFpr\% \\
+\midrule
+\multirow{3}{*}{Pooled}
+ & Task Shield, published rule & --- & \TsPoolRuleTpr & \TsPoolRuleFpr \\
+ & Task Shield, at our target  & \TsPoolAuroc & \TsPoolTpr & \TsPoolFpr\% \\
+ & \textbf{SENTRY-Fuse}        & \textbf{\PoolFuseAuroc} & \textbf{\PoolFuseTpr} & \PoolFuseFpr\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\fi
 
 \subsection{Negative results}\label{sec:negatives}
 
