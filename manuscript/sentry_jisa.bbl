@@ -109,7 +109,7 @@
   \bibinfo{author}{A.~Thakurta}, \bibinfo{author}{K.~Y. Xiao},
   \bibinfo{author}{A.~Terzis}, \bibinfo{author}{F.~Tramèr},
 \newblock \bibinfo{title}{{The Attacker Moves Second: Stronger Adaptive Attacks
-  Bypass Defenses Against Llm Jailbreaks and Prompt Injections}},
+  Bypass Defenses Against LLM Jailbreaks and Prompt Injections}},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2510.09023}
   (\bibinfo{year}{2025}). \URLprefix \url{https://arxiv.org/abs/2510.09023}.
   \DOIprefix\doi{10.48550/arXiv.2510.09023}.
@@ -162,7 +162,7 @@
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2605.16282}
   (\bibinfo{year}{2026}). \URLprefix \url{https://arxiv.org/abs/2605.16282}.
   \DOIprefix\doi{10.48550/arXiv.2605.16282}.
-%Type = Article
+%Type = Inproceedings
 \bibitem[{Hines et~al.(2024)Hines, Lopez, Hall, Zarfati, Zunger, and
   K{\i}c{\i}man}]{hines2024spotlighting}
 \bibinfo{author}{K.~Hines}, \bibinfo{author}{G.~Lopez},
@@ -170,9 +170,12 @@
   \bibinfo{author}{Y.~Zunger}, \bibinfo{author}{E.~K{\i}c{\i}man},
 \newblock \bibinfo{title}{{Defending Against Indirect Prompt Injection Attacks
   With Spotlighting}},
-\newblock \bibinfo{journal}{arXiv preprint arXiv:2403.14720}
-  (\bibinfo{year}{2024}). \URLprefix \url{https://arxiv.org/abs/2403.14720}.
-  \DOIprefix\doi{10.48550/arXiv.2403.14720}.
+\newblock in: \bibinfo{booktitle}{{Proceedings of the Conference on Applied
+  Machine Learning in Information Security (CAMLIS 2024)}}, volume
+  \bibinfo{volume}{3920} of \textit{\bibinfo{series}{{CEUR Workshop
+  Proceedings}}}, \bibinfo{address}{Arlington, Virginia, USA},
+  \bibinfo{year}{2024}, pp. \bibinfo{pages}{48--62}. \URLprefix
+  \url{https://ceur-ws.org/Vol-3920/paper3.pdf}.
 %Type = Inproceedings
 \bibitem[{Chen et~al.(2025{\natexlab{a}})Chen, Piet, Sitawarin, and
   Wagner}]{chen2025struq}
@@ -340,7 +343,8 @@
   Models: Representation, validity, and monitoring}},
 \newblock \bibinfo{journal}{arXiv preprint arXiv:2606.07624}
   (\bibinfo{year}{2026}). \URLprefix \url{https://arxiv.org/abs/2606.07624}.
-  \DOIprefix\doi{10.48550/arXiv.2606.07624}.
+  \DOIprefix\doi{10.48550/arXiv.2606.07624}, \bibinfo{note}{{Prepared for an
+  invited discussion in \emph{The American Statistician}}}.
 %Type = Article
 \bibitem[{Li(2026)}]{li2026whodrifted}
 \bibinfo{author}{Y.~Li},
