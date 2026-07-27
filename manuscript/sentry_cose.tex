@@ -65,7 +65,7 @@ cheap, but the literature has converged on a single family of evidence:
 detecting whether untrusted text \emph{looks like an instruction}. We ask what
 else the trace affords, and how heterogeneous evidence should be combined.
 
-We make four contributions. First, we introduce \textbf{SENTRY-Fuse}, a monitor
+We make five contributions. First, we introduce \textbf{SENTRY-Fuse}, a monitor
 that converts heterogeneous trace signals---one scoring the \emph{observation}
 stream, one auditing the \emph{action} stream---into conformal tail
 surprisals against a benign calibration split and fuses them by addition. The
@@ -99,7 +99,12 @@ this into an information-theoretic ceiling, and explain why an earlier version o
 this work was wrong to do so. Fourth, we document a
 label-polarity pitfall in the standard AgentDojo harness that inverts the
 compromised and resisted classes, which silently inverted our own results, and
-we give the ground-truth procedure that settles it. We report our negative
+we give the ground-truth procedure that settles it. Fifth, to anchor the evaluation
+externally we re-implement Task Shield and run it on the same traces with the same
+judge model: the fusion ranks better ($\TsPoolAuroc$ against $\PoolFuseAuroc$
+pooled AUROC), while Task Shield's published rule recovers more compromises
+($\TsPoolRuleTpr$) at a $\TsPoolRuleFprPct\%$ false-alarm rate and is too coarsely
+quantised to be held to any budget below that. We report our negative
 results in full, including five rejected components and the finding that a
 hand-picked threshold outperformed the anytime-valid e-detector we began from.
 All code, trajectories and scripts are released.
@@ -195,6 +200,21 @@ Remark~\ref{rem:noceiling} why we withdrew such a bound.
 The durable consequence is a benchmark-design point: corpora of this
 shape cannot exhibit a compromise that is invisible to a trace monitor, so they
 cannot test the hard case.
+
+\item \textbf{An external anchor, re-implemented rather than quoted}
+(Section~\ref{sec:baseline}). Comparing only against our own signal subsets would
+leave the evaluation a self-ablation, and comparing against published figures on
+other corpora settles nothing. We therefore re-implement Task
+Shield~\citep{jia2024taskshield}---the closest prior work to our action-side
+signal---and run it on our traces, under our splits, with the same judge model, so
+that the comparison isolates the method rather than the defender. The fusion ranks
+better ($\TsPoolAuroc$ against $\PoolFuseAuroc$ pooled, and on each corpus
+separately). Task Shield's published rule catches more compromises than we do
+($\TsPoolRuleTpr$ against $\PoolFuseTpr$) but flags $\TsPoolRuleFprPct\%$ of benign
+trajectories, and because its score takes only $\TsPoolDistinct$ distinct values
+with $\TsPoolFloorBen\%$ of benign traces tied at the floor, it has no operating
+point at any lower false-alarm rate. We report what this comparison does not
+support as carefully as what it does.
 
 \item \textbf{Methodological findings and honest negatives}
 (Sections~\ref{sec:polarity} and~\ref{sec:negatives}). We document a
@@ -1410,7 +1430,6 @@ that limitation in mind (Figure~\ref{fig:evidence}): the $8\%$ of compromises we
 score, not ones that were hidden from us.
 
 \subsection{Comparison with a re-implemented baseline}\label{sec:baseline}
-\ifnum\TaskShieldReady=0 \emph{(Baseline run pending.)}\else
 
 Every comparison so far has been between our own signal subsets, which makes the
 evaluation a self-ablation. To give it an external anchor we re-implemented a
@@ -1456,14 +1475,26 @@ published decision rule---flag when any call is misaligned---is a fixed operatin
 point rather than a tunable threshold, so we report it as a single (FPR, TPR) pair
 alongside its ROC.
 
+At its own operating point the method works: pooled, it catches $\TsPoolRuleTpr$ of
+compromises, which is above the $\PoolFuseTpr$ SENTRY-Fuse reaches. It does so at a
+false-alarm rate of $\TsPoolRuleFprPct\%$. That is the whole of the difference
+between the two methods, and it is a difference in what they are for. Task Shield
+was designed as an inline defence, where a false alarm costs an injected
+clarification and a retry; read as a monitor, where a false alarm costs an analyst's
+attention, $\TsPoolRuleFprPct\%$ is roughly ten times the budget we hold ourselves
+to. Alignment with the user's task is a demanding criterion, and benign agents fail
+it often---exploratory reads, retries and tool calls that set up later steps all
+look unmotivated in isolation.
+
 \begin{table}[htbp]
 \centering
 \caption{Task Shield~\citep{jia2024taskshield}, re-implemented and run on our
 trajectories under our protocol, against SENTRY-Fuse. Both use the same judge model
-(DeepSeek-V4-Flash, temperature $0$), so the comparison isolates the method. Task
-Shield's published rule is a fixed operating point, reported as one (FPR, TPR)
-pair; the AUROC column ranks trajectories by its minimum aggregate alignment score.
-The final columns apply our held-out $5\%$ target to both.}
+(DeepSeek-V4-Flash, temperature $0$), so the comparison isolates the method rather
+than the defender. Task Shield's published rule is a fixed operating point,
+reported as one (FPR, TPR) pair; the AUROC column instead ranks trajectories by
+their minimum aggregate alignment score. The $5\%$-target rows are reported for
+completeness but are not a measure of the method---see the text on quantisation.}
 \label{tab:baseline}
 \small
 \begin{tabular}{@{}llccc@{}}
@@ -1471,24 +1502,53 @@ The final columns apply our held-out $5\%$ target to both.}
 Corpus & Detector & AUROC & TPR & FPR \\
 \midrule
 \multirow{3}{*}{GPT-4o-mini}
- & Task Shield, published rule & --- & \TsGptRuleTpr & \TsGptRuleFpr \\
+ & Task Shield, published rule & --- & \TsGptRuleTpr & \TsGptRuleFprPct\% \\
  & Task Shield, at our target  & \TsGptAuroc & \TsGptTpr & \TsGptFpr\% \\
  & \textbf{SENTRY-Fuse}        & \textbf{\GptFuseAuroc} & \textbf{\GptFuseTpr} & \GptFuseFpr\% \\
 \midrule
 \multirow{3}{*}{DeepSeek}
- & Task Shield, published rule & --- & \TsDsRuleTpr & \TsDsRuleFpr \\
+ & Task Shield, published rule & --- & \TsDsRuleTpr & \TsDsRuleFprPct\% \\
  & Task Shield, at our target  & \TsDsAuroc & \TsDsTpr & \TsDsFpr\% \\
  & \textbf{SENTRY-Fuse}        & \textbf{\DsFuseAuroc} & \textbf{\DsFuseTpr} & \DsFuseFpr\% \\
 \midrule
 \multirow{3}{*}{Pooled}
- & Task Shield, published rule & --- & \TsPoolRuleTpr & \TsPoolRuleFpr \\
+ & Task Shield, published rule & --- & \TsPoolRuleTpr & \TsPoolRuleFprPct\% \\
  & Task Shield, at our target  & \TsPoolAuroc & \TsPoolTpr & \TsPoolFpr\% \\
  & \textbf{SENTRY-Fuse}        & \textbf{\PoolFuseAuroc} & \textbf{\PoolFuseTpr} & \PoolFuseFpr\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\fi
+\paragraph{The zero in the 5\% row is an artefact, not a defeat} Held to our own
+$5\%$ budget Task Shield returns $\TsPoolTpr$ recall on every corpus. We want to be
+explicit that this is not a finding about the method's discriminative power, for
+the same reason that S4's recall column reads $0.000$ in
+Table~\ref{tab:fused}. The aggregate $S(e)$ is a sum of a handful of judgments each
+drawn from $\{0, 0.5, 1\}$, so the trajectory score takes only $\TsPoolDistinct$
+distinct values on the pooled corpus, and $\TsPoolFloorBen\%$ of benign
+trajectories sit at its floor---tied there with $\TsPoolFloorComp\%$ of the
+compromised ones. A $5\%$ false-alarm budget puts the threshold below that tied
+block, so nothing at all is flagged and both TPR and realised FPR are zero. No
+threshold on this score can deliver a false-alarm rate between $0$ and
+$\TsPoolFloorBen\%$; the method has no operating point in the range we care
+about. That is a real limitation for monitoring use, but it is a limitation of
+resolution rather than of ranking, and reporting the $0.000$ without the
+explanation would misrepresent it.
+
+\paragraph{What the comparison supports} Two things, and not a third. As a ranker
+Task Shield reaches pooled $\mathrm{AUROC} = \TsPoolAuroc$ against SENTRY-Fuse's
+$\PoolFuseAuroc$, and the ordering holds on both corpora separately
+($\TsGptAuroc$ against $\GptFuseAuroc$, $\TsDsAuroc$ against $\DsFuseAuroc$); on
+the evidence available to a trace monitor, graded conformal surprisal separates
+these trajectories better than a binary alignment verdict does. And the
+quantisation argument above is a genuine obstacle to using an alignment checker at
+a chosen false-alarm rate. What the comparison does \emph{not} support is any
+claim that our method is the better \emph{defence}: Task Shield blocks the call it
+flags, we only raise a flag, and the third of our deviations removes one of its two
+checking layers. A reader should treat these numbers as locating the two methods
+relative to each other on our corpus under our reading, not as a verdict on the
+published system.
+
 
 \subsection{Negative results}\label{sec:negatives}
 

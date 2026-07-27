@@ -39,7 +39,7 @@ almost entirely on one kind of evidence: whether untrusted text \emph{looks like
 instruction}. This paper asks what else the trace affords, how heterogeneous
 evidence should be combined, and where the information in a trace runs out.
 
-The work makes four contributions. First, it introduces \textbf{SENTRY-Fuse}, a
+The work makes five contributions. First, it introduces \textbf{SENTRY-Fuse}, a
 monitor that converts heterogeneous trace signals---one scoring the observation
 stream, one auditing the action stream---into conformal tail surprisals against a
 benign calibration split and fuses them by addition. The construction is
@@ -72,11 +72,23 @@ earlier draft was wrong to do so---the quantity is not identified, and at the
 strictest criterion the bound it yields is violated by my own measured
 true-positive rate.
 
-I should be explicit that the paper does \emph{not} claim to beat the state of the
-art. The strongest reported trace-only figure ($95.75\%$ true positives at
+Fifth, because a comparison between one's own signal subsets is a self-ablation, I
+re-implemented \textbf{Task Shield}---the closest prior work to my action-side
+signal---and ran it on my own traces, under my own splits, with the same judge
+model, so that the comparison isolates the method rather than the defender. The
+fusion ranks better (0.764 against 0.953 pooled AUROC). Task Shield's published
+rule catches more compromises than mine does (0.933 against 0.898) but flags $39\%$
+of benign trajectories, and because its score takes only seven distinct values with
+$39\%$ of benign traces tied at the floor, it has no operating point at any lower
+false-alarm rate. I state plainly what this does not establish: it is not a verdict
+on Task Shield as a \emph{defence}, since it blocks the calls it flags and I only
+raise a flag, and one of its two checking layers has no counterpart in my traces.
+
+I should also be explicit that the paper does \emph{not} claim to beat the state of
+the art. The strongest reported trace-only figure ($95.75\%$ true positives at
 $3.66\%$ false positives) comes from a preprint version that later versions
-withdraw, was measured on a different corpus with a different agent, and I
-re-implemented no baseline on my own corpus.
+withdraw and was measured on a different corpus with a different agent; I cite it
+as a reference point for the regime, not as a baseline I outperform.
 
 I believe the work suits \emph{Computers \& Security} in particular. It is a
 security paper first: it defines a threat model, evaluates a defence against real

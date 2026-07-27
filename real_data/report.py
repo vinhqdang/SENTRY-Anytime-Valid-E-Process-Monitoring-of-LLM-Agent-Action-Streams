@@ -86,6 +86,25 @@ QUANT_CHECKS = [
      ("counterexamples", "below_half", "psi"), 0.333, 0.001),
 ]
 
+TASKSHIELD_CHECKS = [
+    ("Task Shield pooled AUROC (vs SENTRY-Fuse 0.953)",
+     ("pooled", "auroc"), 0.764, 0.002),
+    ("Task Shield pooled published-rule TPR",
+     ("pooled", "rule_tpr"), 0.933, 0.002),
+    ("Task Shield pooled published-rule FPR",
+     ("pooled", "rule_fpr"), 0.390, 0.002),
+    ("Task Shield pooled TPR at our 5% target (quantisation)",
+     ("pooled", "tpr_at_0.05_mean"), 0.000, 1e-9),
+    ("Task Shield pooled distinct score values",
+     ("pooled", "n_distinct_scores"), 7, 0),
+    ("Task Shield pooled benign fraction at score floor",
+     ("pooled", "frac_benign_at_floor"), 0.390, 0.002),
+    ("Task Shield GPT-4o-mini AUROC",
+     ("corpora", "GPT-4o-mini", "auroc"), 0.818, 0.002),
+    ("Task Shield DeepSeek AUROC",
+     ("corpora", "DeepSeek", "auroc"), 0.688, 0.002),
+]
+
 LONGHORIZON_CHECKS = [
     ("e-detector a=0.2   false alarms/1k",
      ("methods", "SENTRY (alpha=0.2)", "false_alarms_per_1k"), 45.6, 0.1),
@@ -259,6 +278,14 @@ def main() -> None:
     else:
         missing.append("results_distributions.json -- run: "
                        "python -m real_data.distributions")
+
+    p = ROOT / "results_taskshield.json"
+    if p.exists():
+        print("\n## Task Shield baseline, re-implemented on our corpus")
+        bad += _check(TASKSHIELD_CHECKS, json.loads(p.read_text()), _dig)
+    else:
+        missing.append("results_taskshield.json -- run: "
+                       "python -m real_data.baseline_taskshield")
 
     p = ROOT / "results_longhorizon.json"
     if p.exists():
