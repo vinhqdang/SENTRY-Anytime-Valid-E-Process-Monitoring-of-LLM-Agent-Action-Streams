@@ -19,7 +19,7 @@ Hung Yen, Vietnam\\
 \vspace{0.7em}
 \noindent
 The Editors\\
-\emph{Computers \& Security}\\
+\emph{Journal of Information Security and Applications}\\
 Elsevier
 
 \vspace{0.8em}
@@ -28,7 +28,8 @@ Elsevier
 \vspace{0.6em}
 I am pleased to submit my manuscript, \textbf{``Conformal Surprisal Fusion for
 Detecting Prompt-Injection Compromise in LLM Agent Traces,''} for consideration as
-a research article in \emph{Computers \& Security}.
+a research article in the \emph{Journal of Information Security and
+Applications}.
 
 Large language model agents that call external tools now read email, browse the
 web and move money on a user's behalf. Because they ingest untrusted content and
@@ -96,16 +97,22 @@ $3.66\%$ false positives) comes from a preprint version that later versions
 withdraw and was measured on a different corpus with a different agent; I cite it
 as a reference point for the regime, not as a baseline I outperform.
 
-I believe the work suits \emph{Computers \& Security} in particular. It is a
-security paper first: it defines a threat model, evaluates a defence against real
-attacks on real agent traces, and reports its limits rather than only its
-successes. It offers two things of direct use to others: a measurement showing that
-the benchmarks the field relies on cannot exhibit the hardest case, and a
-methodological warning about how results on a standard benchmark should be read.
-Its negative results are reported in full---five components I implemented and
-rejected, three of which an earlier draft presented as part of the method, and the
-finding that a hand-picked threshold outperformed the anytime-valid machinery from
-which the project began.
+I believe the work suits the \emph{Journal of Information Security and
+Applications} in particular. It is a security paper first, not a machine-learning
+paper: it defines a threat model, builds a runtime monitor, evaluates it against
+real attacks on real execution traces, and reports its operating limits rather than
+only its successes. The detector itself is a conformal hypothesis test over
+trace-derived scores; the language model appears only as a scorer, and the
+contribution is the calibration and fusion argument around it. This places the work
+alongside the journal's recent coverage of the security of learned systems and of
+learning-based detection under a stated false-alarm budget.
+
+The paper offers two things of direct use to others beyond the monitor: a
+measurement showing that the benchmark the field relies on cannot exhibit the
+hardest case, and a methodological warning about how results on that benchmark
+should be read. Its negative results are reported in full---five components I
+implemented and rejected, and the finding that a hand-picked threshold outperformed
+the anytime-valid machinery from which the project began.
 
 All code, the trajectory corpora, the cached model-judge scores and the analysis
 scripts that regenerate every number, table and figure are publicly released at\\

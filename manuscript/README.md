@@ -1,16 +1,16 @@
 # Manuscript
 
-Elsevier `elsarticle` manuscript for *Computers & Security*:
+Elsevier `elsarticle` manuscript for *Journal of Information Security and Applications*:
 **"Conformal Surprisal Fusion for Detecting Prompt-Injection Compromise in LLM
 Agent Traces."**
 
 ## Build
 
 ```bash
-pdflatex sentry_cose
-bibtex   sentry_cose
-pdflatex sentry_cose
-pdflatex sentry_cose
+pdflatex sentry_jisa
+bibtex   sentry_jisa
+pdflatex sentry_jisa
+pdflatex sentry_jisa
 ```
 
 Requires a TeX Live installation with `elsarticle`, `algorithm`/`algpseudocode`,
@@ -20,13 +20,13 @@ Requires a TeX Live installation with `elsarticle`, `algorithm`/`algpseudocode`,
 
 | File | Purpose |
 |---|---|
-| `sentry_cose.tex` | manuscript source |
-| `sentry_cose.pdf` | compiled output |
-| `references_cose.bib` | bibliography |
-| `cose_highlights.{tex,pdf,txt}` | Elsevier highlights (5 bullets) |
-| `cose_cover_letter.{tex,pdf}` | cover letter |
-| `cose_declarations.{tex,pdf}` | competing interests, funding, CRediT, data availability, ethics, generative-AI use |
-| `sentry_COSE_submission.zip` | everything above plus the included figures |
+| `sentry_jisa.tex` | manuscript source |
+| `sentry_jisa.pdf` | compiled output |
+| `references_jisa.bib` | bibliography |
+| `jisa_highlights.{tex,pdf,txt}` | Elsevier highlights (5 bullets) |
+| `jisa_cover_letter.{tex,pdf}` | cover letter |
+| `jisa_declarations.{tex,pdf}` | competing interests, funding, CRediT, data availability, ethics, generative-AI use |
+| `sentry_JISA_submission.zip` | everything above plus the included figures |
 | `figures/*.pdf` | figures |
 | `make_figures.py` | corpus-level figures, from the collected trajectories |
 | `make_paper_figures.py` | the pipeline diagram, the ablation and the evidence-channel figure, from committed JSON |

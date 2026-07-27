@@ -4,7 +4,7 @@
 > Sections are written as work happened and are NOT revised when later sections
 > supersede them. Earlier sections therefore contain claims the paper withdraws --
 > including a detectability-ceiling bound and a comparison against published
-> figures. Where an entry conflicts with `manuscript/sentry_cose.tex`, the
+> figures. Where an entry conflicts with `manuscript/sentry_jisa.tex`, the
 > manuscript is correct. The audit findings in later sections were acted on; see
 > the git history for the corrections.
 
@@ -454,7 +454,7 @@ swapped relative to Table 1. Same inverted `_load()` feeds `roc.pdf`,
   `evaluate_fused`, `longhorizon`, `compare_sota`, `evaluate_harm`. `report.py`
   still checks pre-label-fix targets (121/180/18, 0.99). So "every number and
   figure is reproducible" is false as shipped.
-- **Submission zip lacks `references_cose.bib` / `.bbl`** -- cannot compile its
+- **Submission zip lacks `references_jisa.bib` / `.bbl`** -- cannot compile its
   bibliography standalone.
 - **Public repo contradicts the paper**: README advertises IEEE TDSC, "99% at 2%
   FAR", "PAC certified", "no extra LLM call", and the *retracted* InjecAgent
