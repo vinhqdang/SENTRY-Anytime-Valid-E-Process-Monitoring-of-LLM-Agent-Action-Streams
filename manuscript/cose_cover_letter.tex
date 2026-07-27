@@ -72,11 +72,17 @@ earlier draft was wrong to do so---the quantity is not identified, and at the
 strictest criterion the bound it yields is violated by my own measured
 true-positive rate.
 
+Fourth, I document a label-polarity trap in the standard AgentDojo harness. Its
+per-trajectory \texttt{security} flag records whether the \emph{injection}
+succeeded, so reading it as ``the system was secure'' inverts the compromised and
+resisted classes. This inverted my own results for a substantial period, and the
+paper gives the in-trace ground-truth procedure that settles it.
+
 Fifth, because a comparison between one's own signal subsets is a self-ablation, I
 re-implemented \textbf{Task Shield}---the closest prior work to my action-side
 signal---and ran it on my own traces, under my own splits, with the same judge
 model, so that the comparison isolates the method rather than the defender. The
-fusion ranks better (0.764 against 0.953 pooled AUROC). Task Shield's published
+fusion ranks better (0.953 against 0.764 pooled AUROC). Task Shield's published
 rule catches more compromises than mine does (0.933 against 0.898) but flags $39\%$
 of benign trajectories, and because its score takes only seven distinct values with
 $39\%$ of benign traces tied at the floor, it has no operating point at any lower
@@ -102,8 +108,10 @@ finding that a hand-picked threshold outperformed the anytime-valid machinery fr
 which the project began.
 
 All code, the trajectory corpora, the cached model-judge scores and the analysis
-scripts that regenerate every number, table and figure are publicly released, and
-the evaluation reproduces offline without access to any model API.
+scripts that regenerate every number, table and figure are publicly released at\\
+\url{https://github.com/vinhqdang/SENTRY-Anytime-Valid-E-Process-Monitoring-of-LLM-Agent-Action-Streams}\\
+and the evaluation reproduces offline, via a single \texttt{./reproduce.sh}, without
+access to any model API.
 
 I confirm that this manuscript is original, has not been published previously and
 is not under consideration elsewhere. There are no competing interests and no
