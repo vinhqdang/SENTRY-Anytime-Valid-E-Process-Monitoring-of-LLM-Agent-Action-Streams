@@ -53,20 +53,57 @@ recall in 2 of 10 splits. A ±0.36 standard deviation means the detector's recal
 a fixed false-alarm budget is close to unpredictable across calibration draws;
 ±0.020 is deployable.
 
-Resampling trajectories (2000 replicates), the AUROC gain over the single-signal
-baseline is **+0.0161, 95% CI [+0.0082, +0.0244]**. We report bootstrap intervals rather
-than a t-statistic over re-splits, because the splits permute one fixed sample and
-so describe calibration-draw variance rather than sampling error.
+Resampling trajectories (2000 replicates), the recall gain over the single-signal
+baseline is **+0.1706, 95% CI [+0.0033, +0.3533]** and the AUROC gain **+0.0163, 95%
+CI [-0.0006, +0.0351]**. The AUROC interval only marginally excludes no effect, and
+90 positives cannot resolve a difference of that size, so we do not present the
+AUROC gain as established — the stability result above is the claim we rest on.
+
+We report bootstrap intervals rather than a t-statistic over re-splits, because the
+splits permute one fixed sample and so describe calibration-draw variance rather
+than sampling error. One resample is drawn per replicate and reused across the ten
+splits; resampling independently inside each split and averaging estimates the
+variance of a mean of ten draws and shrinks the corpus-sampling variance by roughly
+a factor of ten, which turns this borderline effect into an apparently decisive one.
 
 We report the *realised* false-positive rate because with `n` held-out negatives
 only multiples of `1/n` are attainable, so a nominal target such as 3.66% cannot
 be hit exactly and quoting it would misstate the operating point.
 
+### Against a re-implemented baseline
+
+Comparing our own signal subsets is a self-ablation, so we re-implemented **Task
+Shield** — the closest prior work to our action-side signal — and ran it on the same
+trajectories, with the same splits and the same judge model, so the comparison
+isolates the method rather than the defender (`real_data/baseline_taskshield.py`).
+
+| detector | AUROC | TPR | FPR |
+|---|---|---|---|
+| Task Shield, published rule (flag if any call misaligned) | — | 0.933 | 39.0% |
+| Task Shield, ranked by minimum alignment score | 0.764 | 0.000 | 0.0% |
+| **SENTRY-Fuse** | **0.953** | **0.898** | 3.8% |
+
+Task Shield's own rule *catches more compromises than we do*. It buys that with a
+39% false-alarm rate, which is the real difference between the two: it was designed
+as an inline defence, where a false alarm costs a retry, not as a monitor, where it
+costs an analyst.
+
+The 0.000 in its second row is **an artefact, not a defeat**. Its aggregate score is
+a sum of {0, 0.5, 1} judgments, so the trajectory score takes only 7 distinct values
+and 39% of benign traces tie at the floor. A 5% budget puts the threshold below that
+tied block and nothing is flagged. No threshold on that score yields a false-alarm
+rate strictly between 0 and 39% — a real limitation for monitoring use, but one of
+resolution rather than of ranking.
+
+This is **not** a verdict on Task Shield as a defence: it blocks the calls it flags
+and we only raise a flag, and our traces contain no assistant prose, so one of its
+two checking layers has no counterpart here.
+
 **We do not claim to beat the state of the art.** The strongest reported
 trace-only figure (AgentArmor, 95.75% TPR at 3.66% FPR) appears only in v1 of that
-preprint — later versions withdraw it — was measured on a different corpus with a
-different agent, and we re-implemented no baseline here. Our numbers are in the
-same regime; that is all the evidence supports.
+preprint — later versions withdraw it — and was measured on a different corpus with
+a different agent. Our numbers are in the same regime; that is all the evidence
+supports.
 
 ## Negative results
 
@@ -99,7 +136,7 @@ save someone else time.
   this shape cannot contain a compromise invisible to a trace monitor, and cannot
   test the hard case.
 - **A third signal did not earn inclusion.** Sink provenance is well motivated and
-  precise, but adding it moves pooled AUROC by +0.0005, 95% CI [-0.0028, +0.0040] — an
+  precise, but adding it moves pooled AUROC by +0.0004, 95% CI [-0.0043, +0.0056] — an
   interval containing zero — and recovers fewer than two extra positives out of 90.
   It is reported as an ablation, not as part of the method.
 - **The anytime-valid machinery did not earn its place.** A fixed benign quantile
@@ -154,9 +191,10 @@ seeds 0–9), so every number, table and figure in the manuscript reproduces
 ```
 
 This runs the tests, then every table's generator — compromise detection and the
-signal ablation, the evidence-channel measurement, the normalisation ablation,
-attempt detection and generalisation, and the long-horizon e-detector comparison —
-regenerates `manuscript/figures/*.pdf`, and finally runs
+signal ablation, the evidence-channel measurement, the normalisation ablation, the
+re-implemented Task Shield baseline, attempt detection and generalisation, and the
+long-horizon e-detector comparison — regenerates `manuscript/figures/*.pdf`, and
+finally runs
 `python -m real_data.report`, which checks each reproduced value against the number
 printed in the paper and exits non-zero on any mismatch.
 
