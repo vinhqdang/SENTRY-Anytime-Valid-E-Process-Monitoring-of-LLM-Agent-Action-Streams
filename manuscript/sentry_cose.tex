@@ -191,8 +191,8 @@ in a tool output it read---for the structural reason that AgentDojo delivers
 payloads \emph{through} tool outputs. We deliberately stop short of converting
 this into an information-theoretic ceiling: the quantity is not identified (three
 defensible matching criteria give three different answers), and we explain in
-Remark~\ref{rem:noceiling} why we withdrew such a bound from an earlier version of
-this work. The durable consequence is a benchmark-design point: corpora of this
+Remark~\ref{rem:noceiling} why we withdrew such a bound.
+The durable consequence is a benchmark-design point: corpora of this
 shape cannot exhibit a compromise that is invisible to a trace monitor, so they
 cannot test the hard case.
 
@@ -510,9 +510,8 @@ We implemented five per-action signals and adopted two. Exactly one, S3, scores 
 \emph{observation} stream, asking whether untrusted content is behaving like an
 instruction; the other four score the \emph{action} stream.
 \textbf{SENTRY-Fuse is the fusion of S3 and S4}---one signal from each channel.
-The remaining three are reported because we implemented them, earlier versions of
-this work included three of them in the method, and their failure modes are
-informative: S1 and S2 ask only whether behaviour is statistically \emph{unusual}
+The remaining three are reported because we implemented them and their failure
+modes are informative: S1 and S2 ask only whether behaviour is statistically \emph{unusual}
 and are near-chance under a protocol that fits the reference out-of-sample
 (Section~\ref{sec:negatives}); S5 is well motivated and precise but its measured
 contribution does not survive a trajectory bootstrap (Section~\ref{sec:results}).
@@ -655,11 +654,10 @@ $\beta = 1$ and $\phi_{\max}$ is \emph{identically} zero---giving
 $\AblJudgeMaxInjAuroc$ against $\AblJudgeConfInjAuroc$ on InjecAgent and
 $\AblJudgeMaxImpAuroc$ against $\AblJudgeConfImpAuroc$ on
 \texttt{important\_instructions}, a loss of roughly a quarter of an AUROC on the
-better scorer. An earlier,
-unpublished draft of this work reported that collapse and attributed it to the
-attack being subtly phrased. That explanation was wrong---the InjecAgent payloads
-are imperative and appear in the trace in every case---and the cause was our own
-normalisation.
+better scorer. It would be natural to read that collapse as evidence that the
+attack is subtly phrased. That reading is wrong---the InjecAgent payloads are
+imperative and appear in the trace in every case---and the cause is the
+normalisation, not the attack.
 
 The lesson is about \emph{resolution}, not merely about monotonicity. Both
 $\phi_{\max}$ and the conformal transform below are many-to-one; the difference is
@@ -917,8 +915,7 @@ in-sample and systematically less surprising than a fresh benign draw, so the
 conformal $p$-values are anti-conservative and the stated false-alarm level is not
 delivered. Fitting on a separate third makes the calibration values and the
 held-out negatives both out-of-sample with respect to the reference, which is what
-exchangeability requires. An earlier version of this evaluation split the benign
-set only in half and drew calibration values from the fitting half.
+exchangeability requires.
 
 \begin{remark}[Leakage matters]
 An earlier version of this evaluation fitted the reference on all benign
@@ -959,8 +956,7 @@ distribution-free---if loose---a-priori bound.
 This is worth being explicit about because interpolating an empirical quantile, as
 is conventional, silently produces a different rate: at a nominal $3.66\%$ on $35$
 negatives the realised rate is $2/35 = 5.71\%$, and a TPR quoted at ``$3.66\%$''
-would then have been measured at over $5\%$. An earlier, unpublished draft of this work
-reported its headline number that way.
+would then have been measured at over $5\%$.
 
 \paragraph{On comparison with published figures}
 AgentArmor~\citep{wang2025agentarmor} is the strongest reported trace-only
@@ -1167,8 +1163,7 @@ $\nComp$ positives are byte-identical in every seed, so a paired $t$ across seed
 describes how much the answer moves with the calibration draw---a real and
 important quantity, reported as the $\pm$ column of Table~\ref{tab:fused}---but not
 the sampling error in the corpus, which is what a claim about the \emph{method}
-requires. An earlier version of this work quoted the former as evidence for the
-latter.
+requires.
 
 The gain is not explained by the action signal being individually strong: alone, S4
 reaches only $\PoolSfourAuroc$ AUROC. Its recall column reads $0.000$, but that is a
@@ -1779,7 +1774,10 @@ removes that failure entirely. A detector that silently returns nothing on a fif
 of calibration draws cannot be deployed at a stated operating point; that is the
 practical contribution. These figures sit in the same regime as the strongest
 reported trace-only detector, but we claim no comparison with it: the corpora,
-agents and operating points differ, and we re-implemented no baseline.
+agents and operating points differ, and its program-dependence analysis is not
+something we re-implemented. The external anchor we do provide is a
+re-implementation of Task Shield run on our own trajectories under our own
+protocol (Section~\ref{sec:baseline}).
 
 Our expectation going in was that an information limit would explain the residual
 error, and an earlier version of this work reported one. We withdraw it. The
