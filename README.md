@@ -5,8 +5,9 @@ compromised by an **indirect prompt injection**, using only the agent's black-bo
 execution trace: no model weights, no activations, no retraining, no agent
 re-execution.
 
-Three heterogeneous signals are computed per action, each converted to its
-**conformal tail surprisal** against a benign calibration split and then summed:
+Two heterogeneous signals are computed per action — one per channel — each
+converted to its **conformal tail surprisal** against a benign calibration split
+and then summed:
 
 | signal | channel | what it asks |
 |---|---|---|
@@ -33,9 +34,9 @@ score, a binary flag) commensurable, so the sum needs **no tuned weights**.
 Compromise detection over **90 genuinely compromised trajectories** (AgentDojo,
 two agents), ten seeds, mean ± std. Benign trajectories are split three
 ways per seed — one third fits the reference, one third supplies conformal
-calibration values, one third the held-out negatives — The operating point is read off the
-evaluation negatives, so the reported false-positive rate is descriptive of them
-rather than an out-of-sample guarantee; `results_fused.json` also carries a
+calibration values, one third the held-out negatives. The operating point is read
+off the evaluation negatives, so the reported false-positive rate is descriptive
+of them rather than an out-of-sample guarantee; `results_fused.json` also carries a
 four-way split in which the threshold is fitted on a disjoint fourth part.
 
 | corpus | detector | AUROC | TPR@5% | realised FPR |

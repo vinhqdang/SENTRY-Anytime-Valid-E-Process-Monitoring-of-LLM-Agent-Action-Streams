@@ -111,9 +111,9 @@ def fig_overview():
 
 ROWS = ["S3 instruction only", "S4 audit only", "S5 provenance only",
         "S1 + S2 behavioural", "SENTRY-Fuse (S3+S4)",
-        "S3+S4+S5 (adds provenance)"]
+        "S3+S4+S5 (adds provenance)", "all five signals"]
 SHORT = ["S3\nonly", "S4\nonly", "S5\nonly", "S1+S2\nbehav.", "SENTRY-\nFuse",
-         "+S5\n(not\nadopted)"]
+         "+S5\n(not\nadopted)", "all\nfive"]
 
 
 def fig_fusion():
@@ -121,7 +121,7 @@ def fig_fusion():
     panels = [("GPT-4o-mini", FUSED["corpora"]["GPT-4o-mini"]),
               ("DeepSeek-V4-Flash", FUSED["corpora"]["DeepSeek"]),
               ("Pooled", FUSED["pooled"])]
-    fig, axes = plt.subplots(1, 3, figsize=(10.4, 3.5), sharey=True)
+    fig, axes = plt.subplots(1, 3, figsize=(10.4, 4.3), sharey=True)
     x = np.arange(len(ROWS))
     w = 0.38
     for ax, (name, blk) in zip(axes, panels):
@@ -139,18 +139,18 @@ def fig_fusion():
         b2 = ax.bar(x + w / 2, tpr, w, yerr=tpr_e, capsize=2.5,
                     color=C["act"], label="TPR")
         ax.set_xticks(x)
-        ax.set_xticklabels(SHORT, fontsize=7.5)
+        ax.set_xticklabels(SHORT, fontsize=8.5)
         ax.set_ylim(0, 1.08)
         ax.set_title(f"{name}\n{blk['n_compromised']} compromised, "
                      f"{blk['n_test']} held-out benign\n"
-                     f"SENTRY-Fuse realised FPR {realised:.1%}", fontsize=8.5)
+                     f"SENTRY-Fuse realised FPR {realised:.1%}", fontsize=9.5)
         ax.axhline(1.0, color=C["muted"], lw=0.5, ls=":")
     axes[0].set_ylabel("score (mean $\\pm$ std, 10 seeds)")
     fig.legend([b1, b2], ["AUROC", "TPR at a 5% target"],
                frameon=False, fontsize=8.5, ncol=2,
                loc="lower center", bbox_to_anchor=(0.5, -0.055))
     fig.suptitle("Signal ablation: the behavioural signals are near-chance, and "
-                 "adding them costs accuracy", fontsize=9.5, y=1.03)
+                 "adding them costs accuracy", fontsize=11, y=1.02)
     fig.tight_layout()
     fig.savefig(FIG / "fusion.pdf")
     plt.close(fig)

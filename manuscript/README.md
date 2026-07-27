@@ -56,7 +56,7 @@ from later versions — a `note` field records this.
 
 ## A note on earlier versions
 
-Earlier drafts targeted other venues and are retained in git history only. They
+Earlier drafts are retained in git history only. They
 report numbers computed with an **inverted** attack-success label (AgentDojo's
 `security` flag is the injection task's success, so `security=True` means the
 agent was compromised). Those numbers were therefore measured on the resisted

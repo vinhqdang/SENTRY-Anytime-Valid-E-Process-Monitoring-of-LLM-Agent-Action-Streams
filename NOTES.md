@@ -209,15 +209,6 @@ Consequences:
 
 Fixed in `real_data/evaluate.py` and `real_data/evaluate_generalization.py`.
 
-## 12. Venue history
-
-Earlier drafts targeted other venues and were not accepted. The substantive
-criticism we took from that process, and acted on, is recorded in the technical
-sections rather than here: the anytime-valid theory was imported rather than
-extended (see section 7), and the original headline number came from a keyword
-counter matched to a single attack template (sections 5 and 10). Correspondence
-and reviewer text are kept outside this repository.
-
 ## 13. SENTRY-Fuse — the working algorithm
 
 With labels corrected, effect-based signals are finally scored against the right
