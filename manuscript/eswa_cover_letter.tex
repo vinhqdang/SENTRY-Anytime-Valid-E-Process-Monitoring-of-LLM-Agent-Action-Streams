@@ -1,0 +1,157 @@
+\documentclass[10pt]{article}
+\usepackage[a4paper,margin=0.7in]{geometry}
+\linespread{0.97}
+\usepackage{parskip}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\pagestyle{empty}
+
+\begin{document}
+
+\noindent
+Quang-Vinh Dang\\
+British University Vietnam\\
+Hung Yen, Vietnam\\
+\href{mailto:vinh.dq4@buv.edu.vn}{vinh.dq4@buv.edu.vn}
+
+\vspace{0.6em}
+\noindent 27 July 2026
+
+\vspace{0.6em}
+\noindent
+The Editors\\
+\emph{Expert Systems with Applications}\\
+Elsevier
+
+\vspace{0.7em}
+\noindent Dear Editors,
+
+\vspace{0.5em}
+I submit for your consideration a research article entitled \textbf{``Conformal
+Surprisal Fusion for Detecting Prompt-Injection Compromise in LLM Agent
+Traces.''}
+
+Large language model agents that call external tools now read email, browse the
+web and move money on a user's behalf. Because they ingest untrusted content and
+fold it into the context that drives their next action, they are exposed to
+indirect prompt injection: an instruction hidden in a document or a web page that
+the agent then follows as though the user had issued it. The applied problem this
+paper addresses is how an operator can watch such an agent at run time, using only
+the execution trace, and be given a detector that honours a false-alarm budget the
+operator chooses in advance.
+
+\vspace{0.4em}
+\noindent\textbf{Novel contribution relative to the published literature}
+
+\vspace{0.3em}
+The published trace-based detectors rest almost entirely on one kind of evidence:
+whether a span of untrusted text \emph{looks like an instruction}. This paper's
+contributions are the following, none of which we have found in the prior
+literature.
+
+\begin{enumerate}[leftmargin=1.4em,itemsep=0.25em]
+\item \textbf{A fusion rule for heterogeneous trace evidence that needs no tuned
+weights.} Trace signals live on incommensurable scales---a bounded judge score, a
+log-probability in nats, a binary flag---so summing them raw lets the
+widest-ranged term dominate, and weighting them by hand is what practitioners
+currently do. We map each signal to its \emph{conformal tail surprisal} against a
+benign calibration split and add the results. The rule is scale-free, monotone in
+every component, free of tuned weights, and distribution-free valid: the
+false-alarm guarantee needs only exchangeability, not a distributional model. We
+prove this, and we prove that the intuitive alternative---subtracting the maximum
+benign value seen in training---is many-to-one and can drive an entire attack
+family to chance performance. That failure is not hypothetical; we measure it at a
+cost of $0.25$ AUROC.
+
+\item \textbf{Evidence that action-side auditing is complementary, not redundant,
+with a careful statement of how strongly.} Adding a signal that audits
+\emph{what the agent did} to one that scores \emph{what the agent read} raises
+pooled AUROC from $0.937$ to $0.953$ and recall from $0.709$ to $0.898$ over $90$
+genuinely compromised trajectories. A trajectory bootstrap leaves the AUROC gain
+only marginally clear of zero, and we say so rather than assert significance. The
+effect we do defend is the one that matters for deployment: the single signal
+returns \emph{zero} recall in 2 of 10 calibration draws, because a saturating
+judge and a discrete operating point put its threshold at the ceiling, and the
+fusion removes that collapse entirely. A detector that silently returns nothing on
+a fifth of calibration draws cannot be given a stated operating point; that is the
+practical contribution.
+
+\item \textbf{An external baseline, re-implemented rather than quoted.} We
+re-implemented Task Shield---the closest prior method to our action-side
+signal---and ran it on our own traces, under our own splits, with the same judge
+model, so that the comparison isolates the method rather than the model. The
+fusion ranks better ($0.953$ against $0.764$ pooled AUROC). Task Shield's
+published rule catches more compromises than ours does ($0.933$ against $0.898$)
+but flags $39\%$ of benign trajectories, and because its score takes only seven
+distinct values with $39\%$ of benign traces tied at the floor, it has no
+operating point at any lower false-alarm rate. We report what this comparison does
+not establish as carefully as what it does.
+
+\item \textbf{Two findings about evaluation practice that transfer beyond this
+paper.} First, the benchmark the field relies on delivers its payloads through
+tool outputs that a successful injection must have read, so its observation
+channel is close to saturated and corpora of that shape cannot contain a
+compromise invisible to a trace monitor---they cannot test the hard case. Second,
+the standard harness reports a per-trajectory flag that is naturally, and wrongly,
+read as ``the system was secure''; it actually records whether the \emph{injection}
+succeeded, so reading it the intuitive way inverts the compromised and resisted
+classes. It inverted our own results for a substantial period. We give the
+in-trace ground-truth procedure that settles it.
+\end{enumerate}
+
+\vspace{0.3em}
+The paper also reports its negative results in full: five components we
+implemented and rejected on the evidence, and the finding that a hand-picked
+threshold outperformed the anytime-valid change-detection machinery from which the
+project began. We think these are the more transferable half of the work, and we
+would rather publish them than quietly drop them.
+
+\vspace{0.4em}
+\noindent\textbf{Fit with \emph{Expert Systems with Applications}}
+
+\vspace{0.3em}
+The work is an applied intelligent-systems contribution. It takes a class of
+system now being deployed in industry, identifies a failure mode that already
+occurs in the wild, and delivers a monitor that an operator can actually run: it
+needs no model weights, no activations, no retraining and no re-execution of the
+agent, it costs one cached model call per distinct observation and tool call, and
+its false-alarm rate is calibrated rather than tuned. The evaluation is on real
+agent traces collected from two commercial models, not on simulation. Every
+number, table and figure in the paper is regenerated by released scripts from
+released data, without any model API access.
+
+\vspace{0.4em}
+\noindent\textbf{The journal's mandatory submission requirements}
+
+\vspace{0.3em}
+\begin{enumerate}[leftmargin=1.4em,itemsep=0.2em]
+\item \emph{Institutional e-mail addresses.} This is a single-author manuscript.
+My institutional address, \texttt{vinh.dq4@buv.edu.vn} (British University
+Vietnam), is given in the submission system and on the title page. No
+non-institutional address is used, so no explanation is required here.
+\item \emph{Cover letter stating the novel contribution.} Provided above.
+\item \emph{Previously rejected manuscripts.} This manuscript has not previously
+been submitted to, reviewed by, or rejected by \emph{Expert Systems with
+Applications}, in this or any earlier form. The resubmission clause therefore does
+not apply.
+\item \emph{Approval by all authors.} As sole author I approve this manuscript for
+consideration, and will confirm approval through the link sent on submission.
+\end{enumerate}
+
+\vspace{0.3em}
+I confirm that the manuscript is original, has not been published previously, and
+is not under consideration elsewhere. There are no competing interests and no
+external funding was received. A blinded manuscript is supplied with all author
+and affiliation details removed, including the repository address, which names me;
+that address is given on the title page and will appear in the published version.
+
+\vspace{0.5em}
+\noindent Thank you for your consideration.
+
+\vspace{0.5em}
+\noindent Sincerely,
+
+\vspace{0.4em}
+\noindent Quang-Vinh Dang
+
+\end{document}

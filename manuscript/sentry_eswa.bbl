@@ -1,0 +1,381 @@
+\begin{thebibliography}{34}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\href}[2]{#2}
+\providecommand{\path}[1]{#1}
+\providecommand{\DOIprefix}{doi:}
+\providecommand{\ArXivprefix}{arXiv:}
+\providecommand{\URLprefix}{URL: }
+\providecommand{\Pubmedprefix}{pmid:}
+\providecommand{\doi}[1]{\href{http://dx.doi.org/#1}{\path{#1}}}
+\providecommand{\Pubmed}[1]{\href{pmid:#1}{\path{#1}}}
+\providecommand{\bibinfo}[2]{#2}
+\ifx\xfnm\relax \def\xfnm[#1]{\unskip,\space#1}\fi
+%Type = Inproceedings
+\bibitem[{Andriushchenko et~al.(2025)Andriushchenko, Souly, Dziemian, Duenas,
+  Lin, Wang, Hendrycks, Zou, Kolter, Fredrikson, Winsor, Wynne, Gal and
+  Davies}]{andriushchenko2025agentharm}
+\bibinfo{author}{Andriushchenko, M.}, \bibinfo{author}{Souly, A.},
+  \bibinfo{author}{Dziemian, M.}, \bibinfo{author}{Duenas, D.},
+  \bibinfo{author}{Lin, M.}, \bibinfo{author}{Wang, J.},
+  \bibinfo{author}{Hendrycks, D.}, \bibinfo{author}{Zou, A.},
+  \bibinfo{author}{Kolter, Z.}, \bibinfo{author}{Fredrikson, M.},
+  \bibinfo{author}{Winsor, E.}, \bibinfo{author}{Wynne, J.},
+  \bibinfo{author}{Gal, Y.}, \bibinfo{author}{Davies, X.},
+  \bibinfo{year}{2025}.
+\newblock \bibinfo{title}{{AgentHarm: A Benchmark for Measuring Harmfulness of
+  LLM Agents}}, in: \bibinfo{booktitle}{{The Thirteenth International
+  Conference on Learning Representations (ICLR)}}.
+\newblock \URLprefix \url{https://openreview.net/forum?id=AC5n7xHuR1}.
+%Type = Article
+\bibitem[{Belenky et~al.(2026)Belenky, Itria and Johns}]{belenky2026cheap}
+\bibinfo{author}{Belenky, I.}, \bibinfo{author}{Itria, J.},
+  \bibinfo{author}{Johns, S.}, \bibinfo{year}{2026}.
+\newblock \bibinfo{title}{{Cheap Reward Hacking Detection}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2606.08893} \URLprefix
+  \url{https://arxiv.org/abs/2606.08893},
+  \DOIprefix\doi{10.48550/arXiv.2606.08893}.
+%Type = Inproceedings
+\bibitem[{Chen et~al.(2025a)Chen, Piet, Sitawarin and Wagner}]{chen2025struq}
+\bibinfo{author}{Chen, S.}, \bibinfo{author}{Piet, J.},
+  \bibinfo{author}{Sitawarin, C.}, \bibinfo{author}{Wagner, D.},
+  \bibinfo{year}{2025}a.
+\newblock \bibinfo{title}{{StruQ: Defending Against Prompt Injection with
+  Structured Queries}}, in: \bibinfo{booktitle}{{34th USENIX Security Symposium
+  (USENIX Security '25)}}, \bibinfo{publisher}{USENIX Association}.
+\newblock \URLprefix
+  \url{https://www.usenix.org/conference/usenixsecurity25/presentation/chen-sizhe}.
+%Type = Inproceedings
+\bibitem[{Chen et~al.(2025b)Chen, Zharmagambetov, Mahloujifar, Chaudhuri,
+  Wagner and Guo}]{chen2025secalign}
+\bibinfo{author}{Chen, S.}, \bibinfo{author}{Zharmagambetov, A.},
+  \bibinfo{author}{Mahloujifar, S.}, \bibinfo{author}{Chaudhuri, K.},
+  \bibinfo{author}{Wagner, D.}, \bibinfo{author}{Guo, C.},
+  \bibinfo{year}{2025}b.
+\newblock \bibinfo{title}{{SecAlign: Defending Against Prompt Injection with
+  Preference Optimization}}, in: \bibinfo{booktitle}{{Proceedings of the 2025
+  ACM SIGSAC Conference on Computer and Communications Security (CCS '25)}},
+  \bibinfo{publisher}{Association for Computing Machinery},
+  \bibinfo{address}{Taipei, Taiwan}. pp. \bibinfo{pages}{2833--2847}.
+\newblock \DOIprefix\doi{10.1145/3719027.3744836}.
+%Type = Article
+\bibitem[{Das et~al.(2025)Das, Beurer-Kellner, Fischer and
+  Baader}]{das2025commandsans}
+\bibinfo{author}{Das, D.}, \bibinfo{author}{Beurer-Kellner, L.},
+  \bibinfo{author}{Fischer, M.}, \bibinfo{author}{Baader, M.},
+  \bibinfo{year}{2025}.
+\newblock \bibinfo{title}{{CommandSans: Securing AI Agents with Surgical
+  Precision Prompt Sanitization}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2510.08829} \URLprefix
+  \url{https://arxiv.org/abs/2510.08829},
+  \DOIprefix\doi{10.48550/arXiv.2510.08829}.
+%Type = Article
+\bibitem[{Debenedetti et~al.(2025)Debenedetti, Shumailov, Fan, Hayes, Carlini,
+  Fabian, Kern, Shi, Terzis and Tramèr}]{debenedetti2025camel}
+\bibinfo{author}{Debenedetti, E.}, \bibinfo{author}{Shumailov, I.},
+  \bibinfo{author}{Fan, T.}, \bibinfo{author}{Hayes, J.},
+  \bibinfo{author}{Carlini, N.}, \bibinfo{author}{Fabian, D.},
+  \bibinfo{author}{Kern, C.}, \bibinfo{author}{Shi, C.},
+  \bibinfo{author}{Terzis, A.}, \bibinfo{author}{Tramèr, F.},
+  \bibinfo{year}{2025}.
+\newblock \bibinfo{title}{{Defeating Prompt Injections by Design}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2503.18813} \URLprefix
+  \url{https://arxiv.org/abs/2503.18813},
+  \DOIprefix\doi{10.48550/arXiv.2503.18813}.
+%Type = Inproceedings
+\bibitem[{Debenedetti et~al.(2024)Debenedetti, Zhang, Balunović,
+  Beurer-Kellner, Fischer and Tramèr}]{debenedetti2024agentdojo}
+\bibinfo{author}{Debenedetti, E.}, \bibinfo{author}{Zhang, J.},
+  \bibinfo{author}{Balunović, M.}, \bibinfo{author}{Beurer-Kellner, L.},
+  \bibinfo{author}{Fischer, M.}, \bibinfo{author}{Tramèr, F.},
+  \bibinfo{year}{2024}.
+\newblock \bibinfo{title}{{AgentDojo: A Dynamic Environment to Evaluate Prompt
+  Injection Attacks and Defenses for LLM Agents}}, in:
+  \bibinfo{booktitle}{{Advances in Neural Information Processing Systems 37
+  (NeurIPS 2024) Datasets and Benchmarks Track}}.
+\newblock \URLprefix
+  \url{https://proceedings.neurips.cc/paper_files/paper/2024/hash/97091a5177d8dc64b1da8bf3e1f6fb54-Abstract-Datasets_and_Benchmarks_Track.html}.
+%Type = Article
+\bibitem[{Feng et~al.(2026)Feng, Sui, Hou, Wu and
+  Cresswell}]{feng2026conformalattribution}
+\bibinfo{author}{Feng, N.}, \bibinfo{author}{Sui, Y.}, \bibinfo{author}{Hou,
+  S.}, \bibinfo{author}{Wu, G.}, \bibinfo{author}{Cresswell, J.C.},
+  \bibinfo{year}{2026}.
+\newblock \bibinfo{title}{{Conformal Agent Error Attribution}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2605.06788} \URLprefix
+  \url{https://arxiv.org/abs/2605.06788},
+  \DOIprefix\doi{10.48550/arXiv.2605.06788}.
+%Type = Article
+\bibitem[{Gauthier et~al.(2026)Gauthier, Bach and
+  Jordan}]{gauthier2026strategic}
+\bibinfo{author}{Gauthier, E.}, \bibinfo{author}{Bach, F.},
+  \bibinfo{author}{Jordan, M.I.}, \bibinfo{year}{2026}.
+\newblock \bibinfo{title}{{Anytime Detection of Strategic Deviations in
+  Multi-Agent Systems}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2601.05427} \URLprefix
+  \url{https://arxiv.org/abs/2601.05427},
+  \DOIprefix\doi{10.48550/arXiv.2601.05427}.
+%Type = Inproceedings
+\bibitem[{Greshake et~al.(2023)Greshake, Abdelnabi, Mishra, Endres, Holz and
+  Fritz}]{greshake2023notwhat}
+\bibinfo{author}{Greshake, K.}, \bibinfo{author}{Abdelnabi, S.},
+  \bibinfo{author}{Mishra, S.}, \bibinfo{author}{Endres, C.},
+  \bibinfo{author}{Holz, T.}, \bibinfo{author}{Fritz, M.},
+  \bibinfo{year}{2023}.
+\newblock \bibinfo{title}{{Not What You've Signed Up For: Compromising
+  Real-World LLM-Integrated Applications with Indirect Prompt Injection}}, in:
+  \bibinfo{booktitle}{{Proceedings of the 16th ACM Workshop on Artificial
+  Intelligence and Security (AISec '23)}}, \bibinfo{publisher}{Association for
+  Computing Machinery}, \bibinfo{address}{Copenhagen, Denmark}. pp.
+  \bibinfo{pages}{79--90}.
+\newblock \DOIprefix\doi{10.1145/3605764.3623985}.
+%Type = Article
+\bibitem[{Gr\"unwald et~al.(2024)Gr\"unwald, de~Heide and
+  Koolen}]{grunwald2024safetesting}
+\bibinfo{author}{Gr\"unwald, P.}, \bibinfo{author}{de~Heide, R.},
+  \bibinfo{author}{Koolen, W.M.}, \bibinfo{year}{2024}.
+\newblock \bibinfo{title}{{Safe testing}}.
+\newblock \bibinfo{journal}{Journal of the Royal Statistical Society Series B:
+  Statistical Methodology} \bibinfo{volume}{86}, \bibinfo{pages}{1091--1128}.
+\newblock \DOIprefix\doi{10.1093/jrsssb/qkae011}.
+%Type = Inproceedings
+\bibitem[{Hines et~al.(2024)Hines, Lopez, Hall, Zarfati, Zunger and
+  K{\i}c{\i}man}]{hines2024spotlighting}
+\bibinfo{author}{Hines, K.}, \bibinfo{author}{Lopez, G.},
+  \bibinfo{author}{Hall, M.}, \bibinfo{author}{Zarfati, F.},
+  \bibinfo{author}{Zunger, Y.}, \bibinfo{author}{K{\i}c{\i}man, E.},
+  \bibinfo{year}{2024}.
+\newblock \bibinfo{title}{{Defending Against Indirect Prompt Injection Attacks
+  With Spotlighting}}, in: \bibinfo{booktitle}{{Proceedings of the Conference
+  on Applied Machine Learning in Information Security (CAMLIS 2024)}},
+  \bibinfo{address}{Arlington, Virginia, USA}. pp. \bibinfo{pages}{48--62}.
+\newblock \URLprefix \url{https://ceur-ws.org/Vol-3920/paper3.pdf}.
+%Type = Inproceedings
+\bibitem[{Jia et~al.(2025)Jia, Wu, Qin and Squicciarini}]{jia2024taskshield}
+\bibinfo{author}{Jia, F.}, \bibinfo{author}{Wu, T.}, \bibinfo{author}{Qin, X.},
+  \bibinfo{author}{Squicciarini, A.}, \bibinfo{year}{2025}.
+\newblock \bibinfo{title}{{The Task Shield: Enforcing Task Alignment to Defend
+  Against Indirect Prompt Injection in LLM Agents}}, in:
+  \bibinfo{booktitle}{{Proceedings of the 63rd Annual Meeting of the
+  Association for Computational Linguistics (Volume 1: Long Papers)}},
+  \bibinfo{publisher}{Association for Computational Linguistics},
+  \bibinfo{address}{Vienna, Austria}. pp. \bibinfo{pages}{29680--29697}.
+\newblock \URLprefix \url{https://aclanthology.org/2025.acl-long.1435/},
+  \DOIprefix\doi{10.18653/v1/2025.acl-long.1435}.
+%Type = Article
+\bibitem[{Li et~al.(2026)Li, Fung, Li, Ismail and Iqbal}]{li2026taxonomy}
+\bibinfo{author}{Li, M.Q.}, \bibinfo{author}{Fung, B.C.M.},
+  \bibinfo{author}{Li, B.}, \bibinfo{author}{Ismail, H.},
+  \bibinfo{author}{Iqbal, F.}, \bibinfo{year}{2026}.
+\newblock \bibinfo{title}{{Taxonomy and Consistency Analysis of Safety
+  Benchmarks for AI Agents}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2605.16282} \URLprefix
+  \url{https://arxiv.org/abs/2605.16282},
+  \DOIprefix\doi{10.48550/arXiv.2605.16282}.
+%Type = Article
+\bibitem[{Li(2026)}]{li2026whodrifted}
+\bibinfo{author}{Li, Y.}, \bibinfo{year}{2026}.
+\newblock \bibinfo{title}{{Who Drifted: the System or the Judge? Anytime-Valid
+  Attribution in LLM Evaluation Pipelines}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2606.15474} \URLprefix
+  \url{https://arxiv.org/abs/2606.15474},
+  \DOIprefix\doi{10.48550/arXiv.2606.15474}.
+%Type = Inproceedings
+\bibitem[{Liu et~al.(2025)Liu, Jia, Jia, Song and Gong}]{liu2025datasentinel}
+\bibinfo{author}{Liu, Y.}, \bibinfo{author}{Jia, Y.}, \bibinfo{author}{Jia,
+  J.}, \bibinfo{author}{Song, D.}, \bibinfo{author}{Gong, N.Z.},
+  \bibinfo{year}{2025}.
+\newblock \bibinfo{title}{{DataSentinel: A Game-Theoretic Detection of Prompt
+  Injection Attacks}}, in: \bibinfo{booktitle}{{2025 IEEE Symposium on Security
+  and Privacy (SP)}}, \bibinfo{publisher}{IEEE}, \bibinfo{address}{San
+  Francisco, CA, USA}. pp. \bibinfo{pages}{2190--2208}.
+\newblock \URLprefix \url{https://doi.org/10.1109/SP61157.2025.00250},
+  \DOIprefix\doi{10.1109/SP61157.2025.00250}.
+%Type = Article
+\bibitem[{Lorden(1971)}]{lorden1971procedures}
+\bibinfo{author}{Lorden, G.}, \bibinfo{year}{1971}.
+\newblock \bibinfo{title}{{Procedures for Reacting to a Change in
+  Distribution}}.
+\newblock \bibinfo{journal}{The Annals of Mathematical Statistics}
+  \bibinfo{volume}{42}, \bibinfo{pages}{1897--1908}.
+\newblock \DOIprefix\doi{10.1214/aoms/1177693055}.
+%Type = Article
+\bibitem[{Nasr et~al.(2025)Nasr, Carlini, Sitawarin, Schulhoff, Hayes, Ilie,
+  Pluto, Song, Chaudhari, Shumailov, Thakurta, Xiao, Terzis and
+  Tramèr}]{nasr2025attackersecond}
+\bibinfo{author}{Nasr, M.}, \bibinfo{author}{Carlini, N.},
+  \bibinfo{author}{Sitawarin, C.}, \bibinfo{author}{Schulhoff, S.V.},
+  \bibinfo{author}{Hayes, J.}, \bibinfo{author}{Ilie, M.},
+  \bibinfo{author}{Pluto, J.}, \bibinfo{author}{Song, S.},
+  \bibinfo{author}{Chaudhari, H.}, \bibinfo{author}{Shumailov, I.},
+  \bibinfo{author}{Thakurta, A.}, \bibinfo{author}{Xiao, K.Y.},
+  \bibinfo{author}{Terzis, A.}, \bibinfo{author}{Tramèr, F.},
+  \bibinfo{year}{2025}.
+\newblock \bibinfo{title}{{The Attacker Moves Second: Stronger Adaptive Attacks
+  Bypass Defenses Against LLM Jailbreaks and Prompt Injections}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2510.09023} \URLprefix
+  \url{https://arxiv.org/abs/2510.09023},
+  \DOIprefix\doi{10.48550/arXiv.2510.09023}.
+%Type = Article
+\bibitem[{Opoku and Banahene(2026)}]{opoku2026toolchain}
+\bibinfo{author}{Opoku, J.}, \bibinfo{author}{Banahene, D.},
+  \bibinfo{year}{2026}.
+\newblock \bibinfo{title}{{ToolChain-CRC: Conformal Risk Control for Agentic AI
+  Under Retrieval and Tool-Use Drift}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2606.18467} \URLprefix
+  \url{https://arxiv.org/abs/2606.18467},
+  \DOIprefix\doi{10.48550/arXiv.2606.18467}.
+%Type = Article
+\bibitem[{Page(1954)}]{page1954cusum}
+\bibinfo{author}{Page, E.S.}, \bibinfo{year}{1954}.
+\newblock \bibinfo{title}{{Continuous Inspection Schemes}}.
+\newblock \bibinfo{journal}{Biometrika} \bibinfo{volume}{41},
+  \bibinfo{pages}{100--115}.
+\newblock \DOIprefix\doi{10.1093/biomet/41.1-2.100}.
+%Type = Article
+\bibitem[{Ramdas et~al.(2023)Ramdas, Gr\"unwald, Vovk and
+  Shafer}]{ramdas2023gametheoretic}
+\bibinfo{author}{Ramdas, A.}, \bibinfo{author}{Gr\"unwald, P.},
+  \bibinfo{author}{Vovk, V.}, \bibinfo{author}{Shafer, G.},
+  \bibinfo{year}{2023}.
+\newblock \bibinfo{title}{{Game-Theoretic Statistics and Safe Anytime-Valid
+  Inference}}.
+\newblock \bibinfo{journal}{Statistical Science} \bibinfo{volume}{38},
+  \bibinfo{pages}{576--601}.
+\newblock \DOIprefix\doi{10.1214/23-sts894}.
+%Type = Article
+\bibitem[{Sadhuka et~al.(2025)Sadhuka, Prinster, Fannjiang, Scalia, Berger,
+  Regev and Wang}]{sadhuka2025evaluator}
+\bibinfo{author}{Sadhuka, S.}, \bibinfo{author}{Prinster, D.},
+  \bibinfo{author}{Fannjiang, C.}, \bibinfo{author}{Scalia, G.},
+  \bibinfo{author}{Berger, B.}, \bibinfo{author}{Regev, A.},
+  \bibinfo{author}{Wang, H.}, \bibinfo{year}{2025}.
+\newblock \bibinfo{title}{{E-valuator: Reliable Agent Verifiers with Sequential
+  Hypothesis Testing}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2512.03109} \URLprefix
+  \url{https://arxiv.org/abs/2512.03109},
+  \DOIprefix\doi{10.48550/arXiv.2512.03109}.
+%Type = Article
+\bibitem[{Shin et~al.(2024)Shin, Ramdas and Rinaldo}]{shin2023edetectors}
+\bibinfo{author}{Shin, J.}, \bibinfo{author}{Ramdas, A.},
+  \bibinfo{author}{Rinaldo, A.}, \bibinfo{year}{2024}.
+\newblock \bibinfo{title}{{E-detectors: A Nonparametric Framework for
+  Sequential Change Detection}}.
+\newblock \bibinfo{journal}{The New England Journal of Statistics in Data
+  Science} \bibinfo{volume}{2}, \bibinfo{pages}{229--260}.
+\newblock \DOIprefix\doi{10.51387/23-nejsds51}.
+%Type = Article
+\bibitem[{Thaman(2026)}]{thaman2026rewardhacking}
+\bibinfo{author}{Thaman, K.}, \bibinfo{year}{2026}.
+\newblock \bibinfo{title}{{Reward Hacking Benchmark: Measuring Exploits in LLM
+  Agents with Tool Use}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2605.02964} \URLprefix
+  \url{https://arxiv.org/abs/2605.02964},
+  \DOIprefix\doi{10.48550/arXiv.2605.02964}.
+%Type = Book
+\bibitem[{Vovk et~al.(2022)Vovk, Gammerman and Shafer}]{vovk2022algorithmic}
+\bibinfo{author}{Vovk, V.}, \bibinfo{author}{Gammerman, A.},
+  \bibinfo{author}{Shafer, G.}, \bibinfo{year}{2022}.
+\newblock \bibinfo{title}{{Algorithmic Learning in a Random World}}.
+\newblock \bibinfo{edition}{2nd} ed., \bibinfo{publisher}{Springer},
+  \bibinfo{address}{Cham, Switzerland}.
+\newblock \DOIprefix\doi{10.1007/978-3-031-06649-8}.
+%Type = Article
+\bibitem[{Vovk and Wang(2021)}]{vovk2021evalues}
+\bibinfo{author}{Vovk, V.}, \bibinfo{author}{Wang, R.}, \bibinfo{year}{2021}.
+\newblock \bibinfo{title}{{E-values: Calibration, combination and
+  applications}}.
+\newblock \bibinfo{journal}{The Annals of Statistics} \bibinfo{volume}{49},
+  \bibinfo{pages}{1736--1754}.
+\newblock \DOIprefix\doi{10.1214/20-aos2020}.
+%Type = Article
+\bibitem[{Wallace et~al.(2024)Wallace, Xiao, Leike, Weng, Heidecke and
+  Beutel}]{wallace2024instructionhierarchy}
+\bibinfo{author}{Wallace, E.}, \bibinfo{author}{Xiao, K.},
+  \bibinfo{author}{Leike, R.}, \bibinfo{author}{Weng, L.},
+  \bibinfo{author}{Heidecke, J.}, \bibinfo{author}{Beutel, A.},
+  \bibinfo{year}{2024}.
+\newblock \bibinfo{title}{{The Instruction Hierarchy: Training LLMs to
+  Prioritize Privileged Instructions}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2404.13208} \URLprefix
+  \url{https://arxiv.org/abs/2404.13208},
+  \DOIprefix\doi{10.48550/arXiv.2404.13208}.
+%Type = Article
+\bibitem[{Wang et~al.(2025)Wang, Liu, Lu, Cai, Chen, Yang, Zhang, Hong and
+  Wu}]{wang2025agentarmor}
+\bibinfo{author}{Wang, P.}, \bibinfo{author}{Liu, Y.}, \bibinfo{author}{Lu,
+  Y.}, \bibinfo{author}{Cai, Y.}, \bibinfo{author}{Chen, H.},
+  \bibinfo{author}{Yang, Q.}, \bibinfo{author}{Zhang, J.},
+  \bibinfo{author}{Hong, J.}, \bibinfo{author}{Wu, Y.}, \bibinfo{year}{2025}.
+\newblock \bibinfo{title}{{AgentArmor: Enforcing Program Analysis on Agent
+  Runtime Trace to Defend Against Prompt Injection}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2508.01249v1} \URLprefix
+  \url{https://arxiv.org/abs/2508.01249v1},
+  \DOIprefix\doi{10.48550/arXiv.2508.01249}. \bibinfo{note}{version 1. The
+  95.75\%/3.66\% operating point cited here appears in v1 and is not present in
+  later versions}.
+%Type = Article
+\bibitem[{Waudby-Smith and Ramdas(2024)}]{waudbysmith2023betting}
+\bibinfo{author}{Waudby-Smith, I.}, \bibinfo{author}{Ramdas, A.},
+  \bibinfo{year}{2024}.
+\newblock \bibinfo{title}{{Estimating means of bounded random variables by
+  betting}}.
+\newblock \bibinfo{journal}{Journal of the Royal Statistical Society Series B:
+  Statistical Methodology} \bibinfo{volume}{86}, \bibinfo{pages}{1--27}.
+\newblock \DOIprefix\doi{10.1093/jrsssb/qkad009}.
+%Type = Article
+\bibitem[{Xie(2026)}]{xie2026sequential}
+\bibinfo{author}{Xie, Y.}, \bibinfo{year}{2026}.
+\newblock \bibinfo{title}{{Sequential statistical inference for Large Language
+  Models: Representation, validity, and monitoring}}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2606.07624} \URLprefix
+  \url{https://arxiv.org/abs/2606.07624},
+  \DOIprefix\doi{10.48550/arXiv.2606.07624}. \bibinfo{note}{{Prepared for an
+  invited discussion in \emph{The American Statistician}}}.
+%Type = Inproceedings
+\bibitem[{Yao et~al.(2025)Yao, Shinn, Razavi and Narasimhan}]{yao2024taubench}
+\bibinfo{author}{Yao, S.}, \bibinfo{author}{Shinn, N.},
+  \bibinfo{author}{Razavi, P.}, \bibinfo{author}{Narasimhan, K.},
+  \bibinfo{year}{2025}.
+\newblock \bibinfo{title}{{$\tau$-bench: A Benchmark for Tool-Agent-User
+  Interaction in Real-World Domains}}, in: \bibinfo{booktitle}{{The Thirteenth
+  International Conference on Learning Representations (ICLR)}}.
+\newblock \URLprefix \url{https://iclr.cc/virtual/2025/poster/28170}.
+%Type = Inproceedings
+\bibitem[{Zhan et~al.(2024)Zhan, Liang, Ying and Kang}]{zhan2024injecagent}
+\bibinfo{author}{Zhan, Q.}, \bibinfo{author}{Liang, Z.}, \bibinfo{author}{Ying,
+  Z.}, \bibinfo{author}{Kang, D.}, \bibinfo{year}{2024}.
+\newblock \bibinfo{title}{{InjecAgent: Benchmarking Indirect Prompt Injections
+  in Tool-Integrated Large Language Model Agents}}, in:
+  \bibinfo{booktitle}{{Findings of the Association for Computational
+  Linguistics: ACL 2024}}, \bibinfo{publisher}{Association for Computational
+  Linguistics}, \bibinfo{address}{Bangkok, Thailand}. pp.
+  \bibinfo{pages}{10471--10506}.
+\newblock \URLprefix \url{https://aclanthology.org/2024.findings-acl.624/},
+  \DOIprefix\doi{10.18653/v1/2024.findings-acl.624}.
+%Type = Inproceedings
+\bibitem[{Zhou et~al.(2024)Zhou, Xu, Zhu, Zhou, Lo, Sridhar, Cheng, Ou, Bisk,
+  Fried, Alon and Neubig}]{zhou2023webarena}
+\bibinfo{author}{Zhou, S.}, \bibinfo{author}{Xu, F.F.}, \bibinfo{author}{Zhu,
+  H.}, \bibinfo{author}{Zhou, X.}, \bibinfo{author}{Lo, R.},
+  \bibinfo{author}{Sridhar, A.}, \bibinfo{author}{Cheng, X.},
+  \bibinfo{author}{Ou, T.}, \bibinfo{author}{Bisk, Y.}, \bibinfo{author}{Fried,
+  D.}, \bibinfo{author}{Alon, U.}, \bibinfo{author}{Neubig, G.},
+  \bibinfo{year}{2024}.
+\newblock \bibinfo{title}{{WebArena: A Realistic Web Environment for Building
+  Autonomous Agents}}, in: \bibinfo{booktitle}{{The Twelfth International
+  Conference on Learning Representations (ICLR)}}.
+\newblock \URLprefix \url{https://openreview.net/forum?id=oKn9c6ytLx}.
+%Type = Inproceedings
+\bibitem[{Zhu et~al.(2025)Zhu, Yang, Wang, Guo and Wang}]{zhu2025melon}
+\bibinfo{author}{Zhu, K.}, \bibinfo{author}{Yang, X.}, \bibinfo{author}{Wang,
+  J.}, \bibinfo{author}{Guo, W.}, \bibinfo{author}{Wang, W.Y.},
+  \bibinfo{year}{2025}.
+\newblock \bibinfo{title}{{MELON: Provable Defense Against Indirect Prompt
+  Injection Attacks in AI Agents}}, in: \bibinfo{booktitle}{{Proceedings of the
+  42nd International Conference on Machine Learning (ICML)}},
+  \bibinfo{publisher}{PMLR}, \bibinfo{address}{Vancouver, Canada}. pp.
+  \bibinfo{pages}{80310--80329}.
+\newblock \URLprefix \url{https://proceedings.mlr.press/v267/zhu25z.html}.
+
+\end{thebibliography}
