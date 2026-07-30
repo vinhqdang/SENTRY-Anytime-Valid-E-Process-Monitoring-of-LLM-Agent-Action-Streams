@@ -1,0 +1,133 @@
+\documentclass[10pt]{article}
+\usepackage[a4paper,margin=0.75in]{geometry}
+\linespread{0.99}
+\usepackage{parskip}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage{enumitem}
+\pagestyle{empty}
+
+\begin{document}
+
+\noindent
+Quang-Vinh Dang\\
+British University Vietnam\\
+Hung Yen, Vietnam\\
+\href{mailto:vinh.dq4@buv.edu.vn}{vinh.dq4@buv.edu.vn}\\
+ORCID \href{https://orcid.org/0000-0002-3877-8024}{0000-0002-3877-8024}
+
+\vspace{0.7em}
+\noindent 30 July 2026
+
+\vspace{0.7em}
+\noindent
+The Editors\\
+\emph{Machine Learning}\\
+Springer
+
+\vspace{0.8em}
+\noindent Dear Editors,
+
+\vspace{0.5em}
+I submit for your consideration a research article entitled \textbf{``When
+Conformal Fusion Cannot Be Calibrated: Attainability Limits for Trace-Based
+Detection of Prompt-Injection Compromise.''}
+
+The paper is a methodological contribution about combining conformal $p$-values,
+motivated and evaluated on a security problem. Language-model agents that call
+external tools ingest untrusted content and fold it into the context that drives
+their next action, so an instruction hidden in a document can be followed as though
+the user had issued it. Runtime monitors for this compute several trace-derived
+signals and merge them into one alarm. Every paper I am aware of treats the merging
+step as plumbing. The central result here is that it is the binding constraint, and
+that the constraint is a sample-size law.
+
+\vspace{0.4em}
+\noindent\textbf{Main result}
+
+\vspace{0.3em}
+A conformal $p$-value computed from $n$ calibration values cannot fall below
+$1/(n{+}1)$. That floor caps the evidence any calibrator in the standard family
+$f_\lambda(p) = \lambda p^{\lambda-1}$ can express, at exactly $e^{u-1}/u$ with
+$u = \log(n{+}1)$, attained at $\lambda = 1/u$. Averaging calibrated e-values is
+the only merging rule that remains valid when the signals are arbitrarily
+dependent, and an average never exceeds its largest term. The level-$\alpha$
+dependence-robust test therefore has an \emph{empty} rejection region---power
+exactly zero, on every conceivable data set---unless $e^{u-1}/u \ge 1/\alpha$. At
+$\alpha = 0.05$ that first holds at $n = 312$ calibration examples. A companion
+proposition gives the corresponding turn-on for the Bonferroni-style rules,
+$n \ge K/\alpha - 1$, which is $39$ for two signals.
+
+Both statements are elementary once posed, and I have not found either in the
+conformal-prediction or e-value literature, which studies merging functions under
+the assumption that the underlying $p$-values are continuous. Discreteness is
+unavoidable for split-conformal $p$-values, and the consequence is a hard
+sample-size requirement rather than a loss of efficiency.
+
+\vspace{0.4em}
+\noindent\textbf{Supporting empirical work}
+
+\vspace{0.3em}
+On $90$ genuinely compromised trajectories collected from two commercial agents,
+eight combination rules produce pooled AUROC within $0.010$ of one another while
+their a-priori true-positive rates span $0.000$ to $0.867$. Discrimination is
+nearly rule-independent; the ability to honour a stated false-alarm rate is almost
+entirely determined by the rule, which is an axis a literature reporting AUROC
+alone cannot see. The three dependence-robust rules behave exactly as the
+propositions require---the e-average, mean-$p$ and the union bound are inert, and
+Bonferroni is the only one that fires, with power equal to the fraction of
+positives carrying one signal at the $p$-value floor, $0.416$, to three decimals.
+That is an identity rather than a coincidence: the two signals are at the floor
+together in $0.000$ of cases. Injection evidence in these traces is therefore
+dense in the bulk, where additive fusion ranks best, and sparse in the tail, where
+only a minimum-based rule can be calibrated, and those two facts select opposite
+rules.
+
+The argument also explains, from one cause, a negative result the project had
+recorded without explanation: an anytime-valid e-process detector was outperformed
+by a hand-picked benign quantile. Time-uniform guarantees and dependence-robust
+merging both purchase safety with a multiplicative budget, and both need more
+calibration evidence than corpora of this size can express.
+
+\vspace{0.4em}
+\noindent\textbf{Why \emph{Machine Learning}}
+
+\vspace{0.3em}
+The contribution is statistical methodology---conformal $p$-values, e-values and
+their combination under dependence---and its audience is readers who care about
+calibration and validity rather than about one application domain. The security
+setting supplies the motivation, a real corpus and a concrete consequence for
+people building such corpora, but the propositions apply to any conformal monitor
+that fuses several scores, which is now a common construction in machine-learning
+systems monitoring. The paper also reports its negative results in full: five
+components implemented and rejected on the evidence, a proof that the intuitive
+normalisation of subtracting the largest benign training value caps AUROC at one
+half, and a label-polarity trap in a standard evaluation harness that inverted my
+own conclusions for a period.
+
+Every number, table and figure is regenerated by released scripts from released
+data, without any model API access, because the model-judge scores are cached and
+committed. A verification script re-derives each reported value and fails on any
+mismatch.
+
+\vspace{0.4em}
+\noindent\textbf{Declarations}
+
+\vspace{0.3em}
+The manuscript is original, has not been published previously, and is not under
+consideration elsewhere. As sole author I am responsible for all aspects of the
+work and I approve it for submission. There are no competing interests and no
+external funding was received. The work involves no human participants, human data
+or animals. All code and data are public:\\
+\url{https://github.com/vinhqdang/SENTRY-Anytime-Valid-E-Process-Monitoring-of-LLM-Agent-Action-Streams}
+
+\vspace{0.6em}
+\noindent Thank you for your consideration.
+
+\vspace{0.5em}
+\noindent Sincerely,
+
+\vspace{0.4em}
+\noindent Quang-Vinh Dang
+
+\end{document}

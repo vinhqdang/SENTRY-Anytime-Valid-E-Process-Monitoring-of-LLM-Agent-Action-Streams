@@ -1,0 +1,231 @@
+\begin{thebibliography}{34}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{{#1}}
+\providecommand{\urlprefix}{URL }
+\providecommand{\doi}[1]{\url{https://doi.org/#1}}
+\providecommand{\eprint}[2][]{\url{#2}}
+ \bibcommenthead
+
+\bibitem[{Andriushchenko et~al.(2025)Andriushchenko, Souly, Dziemian, Duenas,
+  Lin, Wang, Hendrycks, Zou, Kolter, Fredrikson, Winsor, Wynne, Gal, and
+  Davies}]{andriushchenko2025agentharm}
+Andriushchenko M, Souly A, Dziemian M, et~al (2025) {AgentHarm: A Benchmark for
+  Measuring Harmfulness of LLM Agents}. In: {The Thirteenth International
+  Conference on Learning Representations (ICLR)},
+  \urlprefix\url{https://openreview.net/forum?id=AC5n7xHuR1}
+
+\bibitem[{Belenky et~al.(2026)Belenky, Itria, and Johns}]{belenky2026cheap}
+Belenky I, Itria J, Johns S (2026) {Cheap Reward Hacking Detection}. arXiv
+  preprint arXiv:260608893 \doi{10.48550/arXiv.2606.08893},
+  \urlprefix\url{https://arxiv.org/abs/2606.08893}
+
+\bibitem[{Chen et~al.(2025{\natexlab{a}})Chen, Piet, Sitawarin, and
+  Wagner}]{chen2025struq}
+Chen S, Piet J, Sitawarin C, et~al (2025{\natexlab{a}}) {StruQ: Defending
+  Against Prompt Injection with Structured Queries}. In: {34th USENIX Security
+  Symposium (USENIX Security '25)}. USENIX Association,
+  \urlprefix\url{https://www.usenix.org/conference/usenixsecurity25/presentation/chen-sizhe}
+
+\bibitem[{Chen et~al.(2025{\natexlab{b}})Chen, Zharmagambetov, Mahloujifar,
+  Chaudhuri, Wagner, and Guo}]{chen2025secalign}
+Chen S, Zharmagambetov A, Mahloujifar S, et~al (2025{\natexlab{b}}) {SecAlign:
+  Defending Against Prompt Injection with Preference Optimization}. In:
+  {Proceedings of the 2025 ACM SIGSAC Conference on Computer and Communications
+  Security (CCS '25)}. Association for Computing Machinery, Taipei, Taiwan, pp
+  2833--2847, \doi{10.1145/3719027.3744836}
+
+\bibitem[{Das et~al.(2025)Das, Beurer-Kellner, Fischer, and
+  Baader}]{das2025commandsans}
+Das D, Beurer-Kellner L, Fischer M, et~al (2025) {CommandSans: Securing AI
+  Agents with Surgical Precision Prompt Sanitization}. arXiv preprint
+  arXiv:251008829 \doi{10.48550/arXiv.2510.08829},
+  \urlprefix\url{https://arxiv.org/abs/2510.08829}
+
+\bibitem[{Debenedetti et~al.(2024)Debenedetti, Zhang, Balunović,
+  Beurer-Kellner, Fischer, and Tramèr}]{debenedetti2024agentdojo}
+Debenedetti E, Zhang J, Balunović M, et~al (2024) {AgentDojo: A Dynamic
+  Environment to Evaluate Prompt Injection Attacks and Defenses for LLM
+  Agents}. In: {Advances in Neural Information Processing Systems 37 (NeurIPS
+  2024) Datasets and Benchmarks Track},
+  \urlprefix\url{https://proceedings.neurips.cc/paper_files/paper/2024/hash/97091a5177d8dc64b1da8bf3e1f6fb54-Abstract-Datasets_and_Benchmarks_Track.html}
+
+\bibitem[{Debenedetti et~al.(2025)Debenedetti, Shumailov, Fan, Hayes, Carlini,
+  Fabian, Kern, Shi, Terzis, and Tramèr}]{debenedetti2025camel}
+Debenedetti E, Shumailov I, Fan T, et~al (2025) {Defeating Prompt Injections by
+  Design}. arXiv preprint arXiv:250318813 \doi{10.48550/arXiv.2503.18813},
+  \urlprefix\url{https://arxiv.org/abs/2503.18813}
+
+\bibitem[{Feng et~al.(2026)Feng, Sui, Hou, Wu, and
+  Cresswell}]{feng2026conformalattribution}
+Feng N, Sui Y, Hou S, et~al (2026) {Conformal Agent Error Attribution}. arXiv
+  preprint arXiv:260506788 \doi{10.48550/arXiv.2605.06788},
+  \urlprefix\url{https://arxiv.org/abs/2605.06788}
+
+\bibitem[{Gauthier et~al.(2026)Gauthier, Bach, and
+  Jordan}]{gauthier2026strategic}
+Gauthier E, Bach F, Jordan MI (2026) {Anytime Detection of Strategic Deviations
+  in Multi-Agent Systems}. arXiv preprint arXiv:260105427
+  \doi{10.48550/arXiv.2601.05427},
+  \urlprefix\url{https://arxiv.org/abs/2601.05427}
+
+\bibitem[{Greshake et~al.(2023)Greshake, Abdelnabi, Mishra, Endres, Holz, and
+  Fritz}]{greshake2023notwhat}
+Greshake K, Abdelnabi S, Mishra S, et~al (2023) {Not What You've Signed Up For:
+  Compromising Real-World LLM-Integrated Applications with Indirect Prompt
+  Injection}. In: {Proceedings of the 16th ACM Workshop on Artificial
+  Intelligence and Security (AISec '23)}. Association for Computing Machinery,
+  Copenhagen, Denmark, pp 79--90, \doi{10.1145/3605764.3623985}
+
+\bibitem[{Gr\"unwald et~al.(2024)Gr\"unwald, de~Heide, and
+  Koolen}]{grunwald2024safetesting}
+Gr\"unwald P, de~Heide R, Koolen WM (2024) {Safe testing}. Journal of the Royal
+  Statistical Society Series B: Statistical Methodology 86(5):1091--1128.
+  \doi{10.1093/jrsssb/qkae011}
+
+\bibitem[{Hines et~al.(2024)Hines, Lopez, Hall, Zarfati, Zunger, and
+  K{\i}c{\i}man}]{hines2024spotlighting}
+Hines K, Lopez G, Hall M, et~al (2024) {Defending Against Indirect Prompt
+  Injection Attacks With Spotlighting}. In: {Proceedings of the Conference on
+  Applied Machine Learning in Information Security (CAMLIS 2024)}, Arlington,
+  Virginia, USA, pp 48--62,
+  \urlprefix\url{https://ceur-ws.org/Vol-3920/paper3.pdf}
+
+\bibitem[{Jia et~al.(2025)Jia, Wu, Qin, and Squicciarini}]{jia2024taskshield}
+Jia F, Wu T, Qin X, et~al (2025) {The Task Shield: Enforcing Task Alignment to
+  Defend Against Indirect Prompt Injection in LLM Agents}. In: {Proceedings of
+  the 63rd Annual Meeting of the Association for Computational Linguistics
+  (Volume 1: Long Papers)}. Association for Computational Linguistics, Vienna,
+  Austria, pp 29680--29697, \doi{10.18653/v1/2025.acl-long.1435},
+  \urlprefix\url{https://aclanthology.org/2025.acl-long.1435/}
+
+\bibitem[{Li et~al.(2026)Li, Fung, Li, Ismail, and Iqbal}]{li2026taxonomy}
+Li MQ, Fung BCM, Li B, et~al (2026) {Taxonomy and Consistency Analysis of
+  Safety Benchmarks for AI Agents}. arXiv preprint arXiv:260516282
+  \doi{10.48550/arXiv.2605.16282},
+  \urlprefix\url{https://arxiv.org/abs/2605.16282}
+
+\bibitem[{Li(2026)}]{li2026whodrifted}
+Li Y (2026) {Who Drifted: the System or the Judge? Anytime-Valid Attribution in
+  LLM Evaluation Pipelines}. arXiv preprint arXiv:260615474
+  \doi{10.48550/arXiv.2606.15474},
+  \urlprefix\url{https://arxiv.org/abs/2606.15474}
+
+\bibitem[{Liu et~al.(2025)Liu, Jia, Jia, Song, and Gong}]{liu2025datasentinel}
+Liu Y, Jia Y, Jia J, et~al (2025) {DataSentinel: A Game-Theoretic Detection of
+  Prompt Injection Attacks}. In: {2025 IEEE Symposium on Security and Privacy
+  (SP)}. IEEE, San Francisco, CA, USA, pp 2190--2208,
+  \doi{10.1109/SP61157.2025.00250},
+  \urlprefix\url{https://doi.org/10.1109/SP61157.2025.00250}
+
+\bibitem[{Lorden(1971)}]{lorden1971procedures}
+Lorden G (1971) {Procedures for Reacting to a Change in Distribution}. The
+  Annals of Mathematical Statistics 42(6):1897--1908.
+  \doi{10.1214/aoms/1177693055}
+
+\bibitem[{Nasr et~al.(2025)Nasr, Carlini, Sitawarin, Schulhoff, Hayes, Ilie,
+  Pluto, Song, Chaudhari, Shumailov, Thakurta, Xiao, Terzis, and
+  Tramèr}]{nasr2025attackersecond}
+Nasr M, Carlini N, Sitawarin C, et~al (2025) {The Attacker Moves Second:
+  Stronger Adaptive Attacks Bypass Defenses Against LLM Jailbreaks and Prompt
+  Injections}. arXiv preprint arXiv:251009023 \doi{10.48550/arXiv.2510.09023},
+  \urlprefix\url{https://arxiv.org/abs/2510.09023}
+
+\bibitem[{Opoku and Banahene(2026)}]{opoku2026toolchain}
+Opoku J, Banahene D (2026) {ToolChain-CRC: Conformal Risk Control for Agentic
+  AI Under Retrieval and Tool-Use Drift}. arXiv preprint arXiv:260618467
+  \doi{10.48550/arXiv.2606.18467},
+  \urlprefix\url{https://arxiv.org/abs/2606.18467}
+
+\bibitem[{Page(1954)}]{page1954cusum}
+Page ES (1954) {Continuous Inspection Schemes}. Biometrika 41(1/2):100--115.
+  \doi{10.1093/biomet/41.1-2.100}
+
+\bibitem[{Ramdas et~al.(2023)Ramdas, Gr\"unwald, Vovk, and
+  Shafer}]{ramdas2023gametheoretic}
+Ramdas A, Gr\"unwald P, Vovk V, et~al (2023) {Game-Theoretic Statistics and
+  Safe Anytime-Valid Inference}. Statistical Science 38(4):576--601.
+  \doi{10.1214/23-sts894}
+
+\bibitem[{Sadhuka et~al.(2025)Sadhuka, Prinster, Fannjiang, Scalia, Berger,
+  Regev, and Wang}]{sadhuka2025evaluator}
+Sadhuka S, Prinster D, Fannjiang C, et~al (2025) {E-valuator: Reliable Agent
+  Verifiers with Sequential Hypothesis Testing}. arXiv preprint arXiv:251203109
+  \doi{10.48550/arXiv.2512.03109},
+  \urlprefix\url{https://arxiv.org/abs/2512.03109}
+
+\bibitem[{Shin et~al.(2024)Shin, Ramdas, and Rinaldo}]{shin2023edetectors}
+Shin J, Ramdas A, Rinaldo A (2024) {E-detectors: A Nonparametric Framework for
+  Sequential Change Detection}. The New England Journal of Statistics in Data
+  Science 2(2):229--260. \doi{10.51387/23-nejsds51}
+
+\bibitem[{Thaman(2026)}]{thaman2026rewardhacking}
+Thaman K (2026) {Reward Hacking Benchmark: Measuring Exploits in LLM Agents
+  with Tool Use}. arXiv preprint arXiv:260502964
+  \doi{10.48550/arXiv.2605.02964},
+  \urlprefix\url{https://arxiv.org/abs/2605.02964}
+
+\bibitem[{Vovk and Wang(2021)}]{vovk2021evalues}
+Vovk V, Wang R (2021) {E-values: Calibration, combination and applications}.
+  The Annals of Statistics 49(3):1736--1754. \doi{10.1214/20-aos2020}
+
+\bibitem[{Vovk et~al.(2022)Vovk, Gammerman, and Shafer}]{vovk2022algorithmic}
+Vovk V, Gammerman A, Shafer G (2022) {Algorithmic Learning in a Random World},
+  2nd edn. Springer, Cham, Switzerland, \doi{10.1007/978-3-031-06649-8}
+
+\bibitem[{Wallace et~al.(2024)Wallace, Xiao, Leike, Weng, Heidecke, and
+  Beutel}]{wallace2024instructionhierarchy}
+Wallace E, Xiao K, Leike R, et~al (2024) {The Instruction Hierarchy: Training
+  LLMs to Prioritize Privileged Instructions}. arXiv preprint arXiv:240413208
+  \doi{10.48550/arXiv.2404.13208},
+  \urlprefix\url{https://arxiv.org/abs/2404.13208}
+
+\bibitem[{Wang et~al.(2025)Wang, Liu, Lu, Cai, Chen, Yang, Zhang, Hong, and
+  Wu}]{wang2025agentarmor}
+Wang P, Liu Y, Lu Y, et~al (2025) {AgentArmor: Enforcing Program Analysis on
+  Agent Runtime Trace to Defend Against Prompt Injection}. arXiv preprint
+  arXiv:250801249v1 \doi{10.48550/arXiv.2508.01249},
+  \urlprefix\url{https://arxiv.org/abs/2508.01249v1}, version 1. The
+  95.75\%/3.66\% operating point cited here appears in v1 and is not present in
+  later versions
+
+\bibitem[{Waudby-Smith and Ramdas(2024)}]{waudbysmith2023betting}
+Waudby-Smith I, Ramdas A (2024) {Estimating means of bounded random variables
+  by betting}. Journal of the Royal Statistical Society Series B: Statistical
+  Methodology 86(1):1--27. \doi{10.1093/jrsssb/qkad009}
+
+\bibitem[{Xie(2026)}]{xie2026sequential}
+Xie Y (2026) {Sequential statistical inference for Large Language Models:
+  Representation, validity, and monitoring}. arXiv preprint arXiv:260607624
+  \doi{10.48550/arXiv.2606.07624},
+  \urlprefix\url{https://arxiv.org/abs/2606.07624}, {Prepared for an invited
+  discussion in \emph{The American Statistician}}
+
+\bibitem[{Yao et~al.(2025)Yao, Shinn, Razavi, and Narasimhan}]{yao2024taubench}
+Yao S, Shinn N, Razavi P, et~al (2025) {$\tau$-bench: A Benchmark for
+  Tool-Agent-User Interaction in Real-World Domains}. In: {The Thirteenth
+  International Conference on Learning Representations (ICLR)},
+  \urlprefix\url{https://iclr.cc/virtual/2025/poster/28170}
+
+\bibitem[{Zhan et~al.(2024)Zhan, Liang, Ying, and Kang}]{zhan2024injecagent}
+Zhan Q, Liang Z, Ying Z, et~al (2024) {InjecAgent: Benchmarking Indirect Prompt
+  Injections in Tool-Integrated Large Language Model Agents}. In: {Findings of
+  the Association for Computational Linguistics: ACL 2024}. Association for
+  Computational Linguistics, Bangkok, Thailand, pp 10471--10506,
+  \doi{10.18653/v1/2024.findings-acl.624},
+  \urlprefix\url{https://aclanthology.org/2024.findings-acl.624/}
+
+\bibitem[{Zhou et~al.(2024)Zhou, Xu, Zhu, Zhou, Lo, Sridhar, Cheng, Ou, Bisk,
+  Fried, Alon, and Neubig}]{zhou2023webarena}
+Zhou S, Xu FF, Zhu H, et~al (2024) {WebArena: A Realistic Web Environment for
+  Building Autonomous Agents}. In: {The Twelfth International Conference on
+  Learning Representations (ICLR)},
+  \urlprefix\url{https://openreview.net/forum?id=oKn9c6ytLx}
+
+\bibitem[{Zhu et~al.(2025)Zhu, Yang, Wang, Guo, and Wang}]{zhu2025melon}
+Zhu K, Yang X, Wang J, et~al (2025) {MELON: Provable Defense Against Indirect
+  Prompt Injection Attacks in AI Agents}. In: {Proceedings of the 42nd
+  International Conference on Machine Learning (ICML)}, Proceedings of Machine
+  Learning Research, vol 267. PMLR, Vancouver, Canada, pp 80310--80329,
+  \urlprefix\url{https://proceedings.mlr.press/v267/zhu25z.html}
+
+\end{thebibliography}
