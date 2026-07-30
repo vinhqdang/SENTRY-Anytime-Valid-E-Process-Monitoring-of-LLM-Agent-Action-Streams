@@ -86,6 +86,33 @@ QUANT_CHECKS = [
      ("counterexamples", "below_half", "psi"), 0.333, 0.001),
 ]
 
+COMBINATION_CHECKS = [
+    ("e-average test inert below n_cal (alpha=0.05)",
+     ("n_required_for_e_test",), 312, 0),
+    ("max attainable e-value at n_cal=47",
+     ("attainability", "47"), 4.56, 0.01),
+    ("positives with BOTH signals at the p-value floor",
+     ("floor_diagnostic", "both_at_floor"), 0.000, 1e-9),
+    ("positives with exactly ONE signal at the floor",
+     ("floor_diagnostic", "one_at_floor"), 0.416, 0.002),
+    ("min_p a-priori TPR equals the one-at-floor rate",
+     ("pooled", "rules", "min_p (Bonferroni)", "tpr_apriori_threshold"), 0.416, 0.002),
+    ("sum_log union-bound a-priori TPR (inert)",
+     ("pooled", "rules", "sum_log (Fisher), union bound", "tpr_apriori_threshold"), 0.000, 1e-9),
+    ("e_avg a-priori TPR (inert)",
+     ("pooled", "rules", "e_avg (calibrated)", "tpr_apriori_threshold"), 0.000, 1e-9),
+    ("Fisher chi2 a-priori TPR (assumes independence)",
+     ("pooled", "rules", "sum_log (Fisher), chi2", "tpr_apriori_threshold"), 0.850, 0.005),
+    ("Fisher chi2 realised FPR under that threshold",
+     ("pooled", "rules", "sum_log (Fisher), chi2", "fpr_apriori_threshold"), 0.026, 0.005),
+    ("Stouffer a-priori TPR", 
+     ("pooled", "rules", "stouffer", "tpr_apriori_threshold"), 0.867, 0.005),
+    ("sum_log AUROC (ranking, pooled)",
+     ("pooled", "rules", "sum_log (Fisher), union bound", "auroc_mean"), 0.953, 0.002),
+    ("min_p AUROC (ranking, pooled)",
+     ("pooled", "rules", "min_p (Bonferroni)", "auroc_mean"), 0.943, 0.002),
+]
+
 TASKSHIELD_CHECKS = [
     ("Task Shield pooled AUROC (vs SENTRY-Fuse 0.953)",
      ("pooled", "auroc"), 0.764, 0.002),
@@ -278,6 +305,14 @@ def main() -> None:
     else:
         missing.append("results_distributions.json -- run: "
                        "python -m real_data.distributions")
+
+    p = ROOT / "results_combination.json"
+    if p.exists():
+        print("\n## Combination rules: validity, attainability, and the mechanism")
+        bad += _check(COMBINATION_CHECKS, json.loads(p.read_text()), _dig)
+    else:
+        missing.append("results_combination.json -- run: "
+                       "python -m real_data.combination_rules")
 
     p = ROOT / "results_taskshield.json"
     if p.exists():

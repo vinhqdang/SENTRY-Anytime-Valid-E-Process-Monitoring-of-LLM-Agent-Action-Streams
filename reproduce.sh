@@ -23,7 +23,7 @@ export SENTRY_JUSTIFY=1
 export PYTHONPATH=.
 
 if [[ "${1:-}" == "--collect" ]]; then
-  echo "### [0/8] Re-collecting real trajectories from OpenRouter ..."
+  echo "### [0/12] Re-collecting real trajectories from OpenRouter ..."
   python real_data/agentdojo/run.py --max
   SENTRY_ATTACK=injecagent SENTRY_LOGDIR=logs_deepseek_injecagent \
     python real_data/agentdojo/run.py --attack-expansion
@@ -32,50 +32,54 @@ if [[ "${1:-}" == "--collect" ]]; then
   python real_data/tau_bench/run.py
 fi
 
-echo "### [1/11] Unit + end-to-end synthetic tests ..."
+echo "### [1/12] Unit + end-to-end synthetic tests ..."
 pytest -q
 
-echo "### [2/11] Synthetic ARL/FAR + detection-delay validation ..."
+echo "### [2/12] Synthetic ARL/FAR + detection-delay validation ..."
 python examples/run_synthetic_validation.py
 
-echo "### [3/11] Compromise detection and the signal ablation"
+echo "### [3/12] Compromise detection and the signal ablation"
 echo "          (writes real_data/results_fused.json) ..."
 python -m real_data.evaluate_fused
 
-echo "### [4/11] Evidence channels / detectability"
+echo "### [4/12] Evidence channels / detectability"
 echo "          (writes real_data/results_ceiling_per_corpus.json) ..."
 python -m real_data.ceiling
 
-echo "### [5/11] Normalisation ablation"
+echo "### [5/12] Normalisation ablation"
 echo "          (writes real_data/results_signal_ablation.json) ..."
 python -m real_data.normalisation_ablation
 
-echo "### [6/11] Corpus composition, label polarity, and quantisation loss"
+echo "### [6/12] Corpus composition, label polarity, and quantisation loss"
 echo "          (writes real_data/results_{corpus,quantisation}.json) ..."
 python -m real_data.corpus_table
 python -m real_data.quantisation_demo
 python -m real_data.distributions
 
-echo "### [7/11] Task Shield baseline, re-implemented on our corpus"
+echo "### [7/12] Combination-rule study: validity and attainability"
+echo "          (writes real_data/results_combination.json) ..."
+python -m real_data.combination_rules
+
+echo "### [8/12] Task Shield baseline, re-implemented on our corpus"
 echo "          (writes real_data/results_taskshield.json; uses the committed"
 echo "           judgment cache, so no API access is needed) ..."
 python -m real_data.baseline_taskshield
 
-echo "### [8/11] Attempt detection and generalisation"
+echo "### [9/12] Attempt detection and generalisation"
 echo "          (writes real_data/results{,_generalization}.json) ..."
 python -m real_data.evaluate
 python -m real_data.evaluate_generalization
 
-echo "### [9/11] Long-horizon e-detector comparison (negative result)"
+echo "### [10/12] Long-horizon e-detector comparison (negative result)"
 echo "          (writes real_data/results_longhorizon.json) ..."
 python -m real_data.longhorizon
 
-echo "### [10/11] Regenerating figures ..."
+echo "### [11/12] Regenerating figures ..."
 python manuscript/make_numbers.py   # regenerates the manuscript's number macros
 python manuscript/make_figures.py
 python manuscript/make_paper_figures.py
 
-echo "### [11/11] Checking every reproduced value against the manuscript ..."
+echo "### [12/12] Checking every reproduced value against the manuscript ..."
 python -m real_data.report
 echo
 echo "Figures are in manuscript/figures/."

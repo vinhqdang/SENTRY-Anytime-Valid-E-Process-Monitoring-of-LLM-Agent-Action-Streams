@@ -1,0 +1,353 @@
+{
+  "alpha": 0.05,
+  "n_required_for_e_test": 312,
+  "attainability": {
+    "23": 2.7781488481420626,
+    "47": 4.561430193491284,
+    "95": 7.7374522869389475,
+    "141": 10.54090064870619,
+    "299": 19.349235852141245,
+    "500": 29.647623965547517,
+    "1000": 53.30154743878657
+  },
+  "floor_diagnostic": {
+    "both_at_floor": 0.0,
+    "one_at_floor": 0.41555555555555557,
+    "neither_at_floor": 0.5844444444444444,
+    "n": 900
+  },
+  "ncal_sensitivity": {
+    "10": {
+      "sum_log (Fisher), union bound": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "min_p (Bonferroni)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "mean_p (Vovk-Wang)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "e_avg (calibrated)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      }
+    },
+    "15": {
+      "sum_log (Fisher), union bound": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "min_p (Bonferroni)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "mean_p (Vovk-Wang)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "e_avg (calibrated)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      }
+    },
+    "23": {
+      "sum_log (Fisher), union bound": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "min_p (Bonferroni)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "mean_p (Vovk-Wang)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "e_avg (calibrated)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      }
+    },
+    "35": {
+      "sum_log (Fisher), union bound": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "min_p (Bonferroni)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "mean_p (Vovk-Wang)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "e_avg (calibrated)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      }
+    },
+    "47": {
+      "sum_log (Fisher), union bound": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "min_p (Bonferroni)": {
+        "tpr": 0.4155555555555555,
+        "fpr": 0.014893617021276595
+      },
+      "mean_p (Vovk-Wang)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      },
+      "e_avg (calibrated)": {
+        "tpr": 0.0,
+        "fpr": 0.0
+      }
+    }
+  },
+  "corpora": {
+    "GPT-4o-mini": {
+      "n_calibration": 23,
+      "n_compromised": 72,
+      "alpha": 0.05,
+      "calibrator_lambda": 0.31465798044412485,
+      "rules": {
+        "sum_log (Fisher), union bound": {
+          "dependence": "arbitrary",
+          "auroc_mean": 0.9810763888888889,
+          "auroc_std": 0.009068491999976344,
+          "tpr_empirical_threshold": 0.913888888888889,
+          "fpr_empirical_threshold": 0.025,
+          "tpr_apriori_threshold": 0.0,
+          "fpr_apriori_threshold": 0.0
+        },
+        "sum_log (Fisher), chi2": {
+          "dependence": "independence",
+          "auroc_mean": 0.9810763888888889,
+          "auroc_std": 0.009068491999976344,
+          "tpr_empirical_threshold": 0.913888888888889,
+          "fpr_empirical_threshold": 0.025,
+          "tpr_apriori_threshold": 0.6805555555555556,
+          "fpr_apriori_threshold": 0.0125
+        },
+        "min_p (Bonferroni)": {
+          "dependence": "arbitrary",
+          "auroc_mean": 0.9407407407407407,
+          "auroc_std": 0.033038052023625364,
+          "tpr_empirical_threshold": 0.2916666666666667,
+          "fpr_empirical_threshold": 0.0125,
+          "tpr_apriori_threshold": 0.0,
+          "fpr_apriori_threshold": 0.0
+        },
+        "simes": {
+          "dependence": "positive",
+          "auroc_mean": 0.9596064814814815,
+          "auroc_std": 0.029625786426099875,
+          "tpr_empirical_threshold": 0.5430555555555555,
+          "fpr_empirical_threshold": 0.016666666666666666,
+          "tpr_apriori_threshold": 0.07638888888888888,
+          "fpr_apriori_threshold": 0.004166666666666667
+        },
+        "harmonic mean p": {
+          "dependence": "asymptotic",
+          "auroc_mean": 0.9805555555555555,
+          "auroc_std": 0.009211937815196237,
+          "tpr_empirical_threshold": 0.9097222222222221,
+          "fpr_empirical_threshold": 0.025,
+          "tpr_apriori_threshold": 0.07638888888888888,
+          "fpr_apriori_threshold": 0.004166666666666667
+        },
+        "stouffer": {
+          "dependence": "independence",
+          "auroc_mean": 0.9810763888888889,
+          "auroc_std": 0.009068491999976344,
+          "tpr_empirical_threshold": 0.913888888888889,
+          "fpr_empirical_threshold": 0.025,
+          "tpr_apriori_threshold": 0.875,
+          "fpr_apriori_threshold": 0.0125
+        },
+        "mean_p (Vovk-Wang)": {
+          "dependence": "arbitrary",
+          "auroc_mean": 0.9810763888888889,
+          "auroc_std": 0.009068491999976344,
+          "tpr_empirical_threshold": 0.913888888888889,
+          "fpr_empirical_threshold": 0.025,
+          "tpr_apriori_threshold": 0.0,
+          "fpr_apriori_threshold": 0.0
+        },
+        "e_avg (calibrated)": {
+          "dependence": "arbitrary",
+          "auroc_mean": 0.9805555555555555,
+          "auroc_std": 0.009211937815196237,
+          "tpr_empirical_threshold": 0.9097222222222221,
+          "fpr_empirical_threshold": 0.025,
+          "tpr_apriori_threshold": 0.0,
+          "fpr_apriori_threshold": 0.0
+        }
+      }
+    },
+    "DeepSeek": {
+      "n_calibration": 23,
+      "n_compromised": 18,
+      "alpha": 0.05,
+      "calibrator_lambda": 0.31465798044412485,
+      "rules": {
+        "sum_log (Fisher), union bound": {
+          "dependence": "arbitrary",
+          "auroc_mean": 0.8424444444444443,
+          "auroc_std": 0.0064940618649788765,
+          "tpr_empirical_threshold": 0.7777777777777778,
+          "fpr_empirical_threshold": 0.039999999999999994,
+          "tpr_apriori_threshold": 0.0,
+          "fpr_apriori_threshold": 0.0
+        },
+        "sum_log (Fisher), chi2": {
+          "dependence": "independence",
+          "auroc_mean": 0.8424444444444443,
+          "auroc_std": 0.0064940618649788765,
+          "tpr_empirical_threshold": 0.7777777777777778,
+          "fpr_empirical_threshold": 0.039999999999999994,
+          "tpr_apriori_threshold": 0.5833333333333333,
+          "fpr_apriori_threshold": 0.008
+        },
+        "min_p (Bonferroni)": {
+          "dependence": "arbitrary",
+          "auroc_mean": 0.8180000000000002,
+          "auroc_std": 0.022953522551688324,
+          "tpr_empirical_threshold": 0.4666666666666667,
+          "fpr_empirical_threshold": 0.024,
+          "tpr_apriori_threshold": 0.0,
+          "fpr_apriori_threshold": 0.0
+        },
+        "simes": {
+          "dependence": "positive",
+          "auroc_mean": 0.8180000000000002,
+          "auroc_std": 0.022953522551688324,
+          "tpr_empirical_threshold": 0.4666666666666667,
+          "fpr_empirical_threshold": 0.024,
+          "tpr_apriori_threshold": 0.0,
+          "fpr_apriori_threshold": 0.0
+        },
+        "harmonic mean p": {
+          "dependence": "asymptotic",
+          "auroc_mean": 0.8424444444444443,
+          "auroc_std": 0.0064940618649788765,
+          "tpr_empirical_threshold": 0.7777777777777778,
+          "fpr_empirical_threshold": 0.039999999999999994,
+          "tpr_apriori_threshold": 0.0,
+          "fpr_apriori_threshold": 0.0
+        },
+        "stouffer": {
+          "dependence": "independence",
+          "auroc_mean": 0.8424444444444443,
+          "auroc_std": 0.0064940618649788765,
+          "tpr_empirical_threshold": 0.7777777777777778,
+          "fpr_empirical_threshold": 0.039999999999999994,
+          "tpr_apriori_threshold": 0.7444444444444445,
+          "fpr_apriori_threshold": 0.02
+        },
+        "mean_p (Vovk-Wang)": {
+          "dependence": "arbitrary",
+          "auroc_mean": 0.8422222222222222,
+          "auroc_std": 0.0064597519349994,
+          "tpr_empirical_threshold": 0.7777777777777778,
+          "fpr_empirical_threshold": 0.039999999999999994,
+          "tpr_apriori_threshold": 0.0,
+          "fpr_apriori_threshold": 0.0
+        },
+        "e_avg (calibrated)": {
+          "dependence": "arbitrary",
+          "auroc_mean": 0.8424444444444443,
+          "auroc_std": 0.0064940618649788765,
+          "tpr_empirical_threshold": 0.7777777777777778,
+          "fpr_empirical_threshold": 0.039999999999999994,
+          "tpr_apriori_threshold": 0.0,
+          "fpr_apriori_threshold": 0.0
+        }
+      }
+    }
+  },
+  "pooled": {
+    "n_calibration": 47,
+    "n_compromised": 90,
+    "alpha": 0.05,
+    "calibrator_lambda": 0.25831776680732876,
+    "rules": {
+      "sum_log (Fisher), union bound": {
+        "dependence": "arbitrary",
+        "auroc_mean": 0.95322695035461,
+        "auroc_std": 0.005063477151636764,
+        "tpr_empirical_threshold": 0.8977777777777778,
+        "fpr_empirical_threshold": 0.03829787234042553,
+        "tpr_apriori_threshold": 0.0,
+        "fpr_apriori_threshold": 0.0
+      },
+      "sum_log (Fisher), chi2": {
+        "dependence": "independence",
+        "auroc_mean": 0.95322695035461,
+        "auroc_std": 0.005063477151636764,
+        "tpr_empirical_threshold": 0.8977777777777778,
+        "fpr_empirical_threshold": 0.03829787234042553,
+        "tpr_apriori_threshold": 0.8500000000000002,
+        "fpr_apriori_threshold": 0.02553191489361702
+      },
+      "min_p (Bonferroni)": {
+        "dependence": "arbitrary",
+        "auroc_mean": 0.9427541371158391,
+        "auroc_std": 0.011595624187554587,
+        "tpr_empirical_threshold": 0.7088888888888889,
+        "fpr_empirical_threshold": 0.02553191489361702,
+        "tpr_apriori_threshold": 0.4155555555555555,
+        "fpr_apriori_threshold": 0.014893617021276595
+      },
+      "simes": {
+        "dependence": "positive",
+        "auroc_mean": 0.943498817966903,
+        "auroc_std": 0.012077463296750024,
+        "tpr_empirical_threshold": 0.7288888888888889,
+        "fpr_empirical_threshold": 0.02978723404255319,
+        "tpr_apriori_threshold": 0.4155555555555555,
+        "fpr_apriori_threshold": 0.014893617021276595
+      },
+      "harmonic mean p": {
+        "dependence": "asymptotic",
+        "auroc_mean": 0.953096926713948,
+        "auroc_std": 0.0050653393860054146,
+        "tpr_empirical_threshold": 0.9022222222222223,
+        "fpr_empirical_threshold": 0.03829787234042553,
+        "tpr_apriori_threshold": 0.4155555555555555,
+        "fpr_apriori_threshold": 0.014893617021276595
+      },
+      "stouffer": {
+        "dependence": "independence",
+        "auroc_mean": 0.9532624113475178,
+        "auroc_std": 0.004986778959218985,
+        "tpr_empirical_threshold": 0.8977777777777778,
+        "fpr_empirical_threshold": 0.03829787234042553,
+        "tpr_apriori_threshold": 0.8666666666666668,
+        "fpr_apriori_threshold": 0.02978723404255319
+      },
+      "mean_p (Vovk-Wang)": {
+        "dependence": "arbitrary",
+        "auroc_mean": 0.9532505910165485,
+        "auroc_std": 0.00508006141843897,
+        "tpr_empirical_threshold": 0.8966666666666667,
+        "fpr_empirical_threshold": 0.03829787234042553,
+        "tpr_apriori_threshold": 0.0,
+        "fpr_apriori_threshold": 0.0
+      },
+      "e_avg (calibrated)": {
+        "dependence": "arbitrary",
+        "auroc_mean": 0.9530023640661938,
+        "auroc_std": 0.0050383458811136,
+        "tpr_empirical_threshold": 0.9022222222222223,
+        "fpr_empirical_threshold": 0.03829787234042553,
+        "tpr_apriori_threshold": 0.0,
+        "fpr_apriori_threshold": 0.0
+      }
+    }
+  }
+}
