@@ -1,5 +1,5 @@
-Fuses observation- and action-side trace signals by conformal surprisal
-Raises AUROC 0.937 to 0.953; the gain in stability is the more robust effect
-Outranks a re-implemented Task Shield run on the same traces, 0.953 to 0.764
+Conformal p-value floors cap the evidence any e-value calibrator can express
+Dependence-robust conformal fusion is inert below 312 calibration traces
+Eight merging rules rank alike but differ hugely in a-priori false-alarm control
+Bonferroni alone fires; injection evidence is sparse in the tail, dense in bulk
 Subtracting the benign maximum provably caps AUROC at one half
-AgentDojo hides almost no compromise, so it cannot test the hard case

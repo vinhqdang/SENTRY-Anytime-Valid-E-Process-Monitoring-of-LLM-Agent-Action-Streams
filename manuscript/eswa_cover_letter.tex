@@ -27,9 +27,9 @@ Elsevier
 \noindent Dear Editors,
 
 \vspace{0.5em}
-I submit for your consideration a research article entitled \textbf{``Conformal
-Surprisal Fusion for Detecting Prompt-Injection Compromise in LLM Agent
-Traces.''}
+I submit for your consideration a research article entitled \textbf{``When
+Conformal Fusion Cannot Be Calibrated: Attainability Limits for Trace-Based
+Detection of Prompt-Injection Compromise.''}
 
 Large language model agents that call external tools now read email, browse the
 web and move money on a user's behalf. Because they ingest untrusted content and
@@ -44,69 +44,65 @@ operator chooses in advance.
 \noindent\textbf{Novel contribution relative to the published literature}
 
 \vspace{0.3em}
-The published trace-based detectors rest almost entirely on one kind of evidence:
-whether a span of untrusted text \emph{looks like an instruction}. This paper's
-contributions are the following, none of which we have found in the prior
-literature.
+Runtime monitors for such agents compute several trace-derived signals and merge
+them into one alarm. The merging step is universally treated as plumbing. The
+central claim of this paper is that it is the binding constraint, and that the
+constraint is a sample-size law which no published corpus in this area satisfies.
 
-\begin{enumerate}[leftmargin=1.4em,itemsep=0.25em]
-\item \textbf{A fusion rule for heterogeneous trace evidence that needs no tuned
-weights.} Trace signals live on incommensurable scales---a bounded judge score, a
-log-probability in nats, a binary flag---so summing them raw lets the
-widest-ranged term dominate, and weighting them by hand is what practitioners
-currently do. We map each signal to its \emph{conformal tail surprisal} against a
-benign calibration split and add the results. The rule is scale-free, monotone in
-every component, free of tuned weights, and distribution-free valid: the
-false-alarm guarantee needs only exchangeability, not a distributional model. We
-prove this, and we prove that the intuitive alternative---subtracting the maximum
-benign value seen in training---is many-to-one and can drive an entire attack
-family to chance performance. That failure is not hypothetical; we measure it at a
-cost of $0.25$ AUROC.
+\begin{enumerate}[leftmargin=1.4em,itemsep=0.3em]
+\item \textbf{An attainability theorem for dependence-robust conformal fusion.} A
+conformal p-value computed from $n$ calibration values cannot fall below
+$1/(n{+}1)$. That floor caps the evidence any calibrator in the standard family
+$f_\lambda(p) = \lambda p^{\lambda-1}$ can express, at exactly $e^{u-1}/u$ where
+$u = \log(n{+}1)$, attained at $\lambda = 1/u$. Averaging calibrated e-values is
+the only merging rule that remains valid when the signals are arbitrarily
+dependent---as trace signals derived from one trajectory and one judge model
+are---and an average never exceeds its largest term. The level-$\alpha$
+dependence-robust test therefore has an \emph{empty} rejection region, power
+exactly zero on every conceivable data set, unless $e^{u-1}/u \ge 1/\alpha$. At
+$\alpha = 0.05$ that first holds at $n = 312$ calibration trajectories. A companion
+result gives the corresponding turn-on for the Bonferroni-style rules,
+$n \ge K/\alpha - 1$, which is $39$ for two signals. I am not aware of any prior
+statement of either bound, and the gap between $39$ and $312$ is the entire design
+question for a fused conformal monitor.
 
-\item \textbf{Evidence that action-side auditing is complementary, not redundant,
-with a careful statement of how strongly.} Adding a signal that audits
-\emph{what the agent did} to one that scores \emph{what the agent read} raises
-pooled AUROC from $0.937$ to $0.953$ and recall from $0.709$ to $0.898$ over $90$
-genuinely compromised trajectories. A trajectory bootstrap leaves the AUROC gain
-only marginally clear of zero, and we say so rather than assert significance. The
-effect we do defend is the one that matters for deployment: the single signal
-returns \emph{zero} recall in 2 of 10 calibration draws, because a saturating
-judge and a discrete operating point put its threshold at the ceiling, and the
-fusion removes that collapse entirely. A detector that silently returns nothing on
-a fifth of calibration draws cannot be given a stated operating point; that is the
-practical contribution.
+\item \textbf{An empirical separation of ranking from calibration.} On $90$
+genuinely compromised trajectories from two commercial agents, eight combination
+rules produce pooled AUROC within $0.010$ of one another, while their a-priori
+true-positive rates span $0.000$ to $0.867$. Discrimination is nearly
+rule-independent; the ability to honour a stated false-alarm rate is almost
+entirely determined by the rule. A literature that reports AUROC alone cannot see
+this axis, which is why the choice has gone unexamined.
 
-\item \textbf{An external baseline, re-implemented rather than quoted.} We
-re-implemented Task Shield---the closest prior method to our action-side
-signal---and ran it on our own traces, under our own splits, with the same judge
-model, so that the comparison isolates the method rather than the model. The
-fusion ranks better ($0.953$ against $0.764$ pooled AUROC). Task Shield's
-published rule catches more compromises than ours does ($0.933$ against $0.898$)
-but flags $39\%$ of benign trajectories, and because its score takes only seven
-distinct values with $39\%$ of benign traces tied at the floor, it has no
-operating point at any lower false-alarm rate. We report what this comparison does
-not establish as carefully as what it does.
+\item \textbf{The mechanism, measured rather than conjectured.} The three
+dependence-robust rules behave exactly as the theorems require: the e-average,
+mean-$p$ and the union bound are inert, and Bonferroni is the only one that fires.
+Its power equals the fraction of positives carrying one signal at the p-value
+floor, $0.416$, to three decimals---an identity, because the two signals are at the
+floor together in $0.000$ of cases. Injection evidence in these traces is therefore
+dense in the bulk, where additive fusion ranks best, and sparse in the tail, where
+only a minimum-based rule can be calibrated. Those two facts select opposite rules.
 
-\item \textbf{Two findings about evaluation practice that transfer beyond this
-paper.} First, the benchmark the field relies on delivers its payloads through
-tool outputs that a successful injection must have read, so its observation
-channel is close to saturated and corpora of that shape cannot contain a
-compromise invisible to a trace monitor---they cannot test the hard case. Second,
-the standard harness reports a per-trajectory flag that is naturally, and wrongly,
-read as ``the system was secure''; it actually records whether the \emph{injection}
-succeeded, so reading it the intuitive way inverts the compromised and resisted
-classes. It inverted our own results for a substantial period. We give the
-in-trace ground-truth procedure that settles it.
+\item \textbf{A single explanation for a standing negative result.} An earlier
+part of this project found that an anytime-valid e-process detector was
+outperformed by a hand-picked benign quantile, and reported it without an
+explanation. The attainability argument supplies one: time-uniform guarantees and
+dependence-robust merging both purchase safety with a multiplicative budget, and
+both need more calibration evidence than corpora of this size can express. The
+guarantees are sound; the corpora cannot pay for them.
+
+\item \textbf{Supporting results on the monitor the limits were established on.}
+A proof that the intuitive normalisation---subtracting the largest benign value
+seen in training---is many-to-one and caps AUROC at one half for any attack class
+below that maximum, measured at a cost of $0.25$ AUROC; a re-implementation of Task
+Shield run on the same traces with the same judge model; a benchmark-design
+finding, that the standard corpus delivers payloads through tool outputs a
+successful injection must have read and so cannot exhibit a compromise invisible to
+a trace monitor; and a label-polarity trap in the standard harness that inverts the
+compromised and resisted classes. Five components are reported as rejected on the
+evidence.
 \end{enumerate}
 
-\vspace{0.3em}
-The paper also reports its negative results in full: five components we
-implemented and rejected on the evidence, and the finding that a hand-picked
-threshold outperformed the anytime-valid change-detection machinery from which the
-project began. We think these are the more transferable half of the work, and we
-would rather publish them than quietly drop them.
-
-\vspace{0.4em}
 \noindent\textbf{Fit with \emph{Expert Systems with Applications}}
 
 \vspace{0.3em}
@@ -130,10 +126,22 @@ My institutional address, \texttt{vinh.dq4@buv.edu.vn} (British University
 Vietnam), is given in the submission system and on the title page. No
 non-institutional address is used, so no explanation is required here.
 \item \emph{Cover letter stating the novel contribution.} Provided above.
-\item \emph{Previously rejected manuscripts.} This manuscript has not previously
-been submitted to, reviewed by, or rejected by \emph{Expert Systems with
-Applications}, in this or any earlier form. The resubmission clause therefore does
-not apply.
+\item \emph{Previously rejected manuscripts, and the justification for this
+resubmission.} I must declare this openly. An earlier version of this work was
+submitted to \emph{Expert Systems with Applications} and declined, with the comment
+that it fell within scope but lacked sufficient novelty. I accepted that
+assessment. The earlier version's positive contribution reduced, after several
+rounds of removing overclaims, to combining conformal signals by addition---which
+is Fisher's 1932 rule applied to a new domain---and the editor was right that this
+is not enough. The present manuscript is submitted under the journal's provision
+for substantially re-written work. What is new is not presentation: it is the
+attainability theorem and its companion turn-on result, both stated and proved
+here for the first time; a new study of eight combination rules that separates
+ranking from calibration; the measured mechanism behind it; and a new figure and
+table reporting all of it. The abstract, title, contributions, and conclusion are
+rewritten around that result, and the previous headline---a monitor with a modest
+AUROC gain---is now a supporting section. I would rather state the history plainly
+and let the editor judge whether the change is sufficient than have it discovered.
 \item \emph{Approval by all authors.} As sole author I approve this manuscript for
 consideration, and will confirm approval through the link sent on submission.
 \end{enumerate}

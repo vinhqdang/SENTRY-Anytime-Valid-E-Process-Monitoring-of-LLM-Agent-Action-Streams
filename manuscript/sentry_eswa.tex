@@ -27,6 +27,7 @@
 % overruns the right margin by ~236pt in the data-availability statement.
 \usepackage{xurl}
 \usepackage{needspace}
+\usepackage{enumitem}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{proposition}[theorem]{Proposition}
@@ -52,42 +53,42 @@
 
 \begin{frontmatter}
 
-\title{Conformal Surprisal Fusion for Detecting Prompt-Injection
-Compromise in LLM Agent Traces}
+\title{When Conformal Fusion Cannot Be Calibrated: Attainability Limits
+for Trace-Based Detection of Prompt-Injection Compromise}
 
 \begin{abstract}
-Large language model (LLM) agents that call external tools ingest untrusted
-content and fold it into the context driving their next action, exposing them to
-indirect prompt injection. Trace-based monitors are model-agnostic and cheap, but the
-literature has converged on one family of evidence: whether untrusted text
-\emph{looks like an instruction}.
+Runtime monitors for tool-calling language-model agents merge several
+trace-derived signals into one alarm, and how they are merged is treated as an
+implementation detail. We show it is the binding constraint, and that the
+constraint is a sample-size law.
 
-We introduce \textbf{SENTRY-Fuse}, which converts heterogeneous trace
-signals---one scoring the \emph{observation} stream, one auditing the
-\emph{action} stream---into conformal tail surprisals against a benign
-calibration split and fuses them by addition. The rule is scale-free, monotone,
-weight-free and distribution-free valid; we prove that the alternative of
-subtracting the benign maximum can drive an entire attack family to chance.
+Conformal tail surprisals make incommensurable scales comparable, after which any
+standard rule can merge them. Our main result is that a conformal p-value from $n$
+calibration values never falls below $1/(n{+}1)$, capping the evidence any e-value
+calibrator can express at $e^{u-1}/u$, $u = \log(n{+}1)$. Since averaging is the
+only merging rule valid under arbitrary dependence, the dependence-robust
+level-$\alpha$ test has an \emph{empty} rejection region unless
+$e^{u-1}/u \ge 1/\alpha$---inert below $n = \NCalReq$ trajectories at
+$\alpha = \CombAlpha$, while Bonferroni-style rules turn on at
+$n \ge K/\alpha - 1$. No published prompt-injection corpus reaches the first
+threshold.
 
-Over $\nComp$ compromised trajectories from two agents, the audit raises
-$\mathrm{AUROC}$ from $\PoolSthreeAuroc$ to $\PoolFuseAuroc$ and recall from
-$\PoolSthreeTpr$ to $\PoolFuseTpr$. A trajectory bootstrap leaves that gain only
-marginally clear of zero. The robust effect is stability: the single signal returns \emph{zero} recall in $\SthreeZeroSplits$ of
-$\nSeeds$ calibration draws, and fusion removes that collapse. Against a
-re-implemented Task Shield the fusion ranks better ($\TsPoolAuroc$ against
-$\PoolFuseAuroc$), though Task Shield's own rule recovers more compromises at a
-$\TsPoolRuleFprPct\%$ false-alarm rate.
+On $\nComp$ compromised trajectories from two commercial agents, eight rules give
+pooled AUROC within $0.010$ of each other while their a-priori true-positive rates
+span $\CmbPoolEAvgTprA$ to $\CmbPoolStoufTprA$. The e-average, mean-$p$ and the
+union bound are inert as predicted; Bonferroni alone fires, with power equal to the
+fraction of positives having one signal at the p-value floor ($\FloorOne$), because
+both are never there together ($\FloorBoth$). Injection evidence is dense in the
+bulk and sparse in the tail, and those facts select opposite rules.
 
-Two findings concern evaluation itself. AgentDojo delivers payloads through tool
-outputs a successful injection must have read, so corpora of this shape cannot
-exhibit a compromise invisible to a trace monitor. Its \texttt{security} flag
-inverts the compromised and resisted classes, silently inverting our own results.
-Code and data are released.
+The same budget argument explains why an anytime-valid detector lost to a
+hand-picked quantile. We give the corpus-design requirement that follows, and
+release all code and data.
 \end{abstract}
 
 \begin{keyword}
-LLM agents \sep indirect prompt injection \sep runtime monitoring \sep
-conformal prediction \sep anomaly detection \sep AI agent security
+LLM agent security \sep indirect prompt injection \sep runtime monitoring \sep
+conformal prediction \sep e-values \sep multiple testing \sep calibration
 \end{keyword}
 
 \end{frontmatter}
@@ -127,9 +128,28 @@ own normalisation step. Diagnosing that failure honestly led us to a more
 general question, which organises this paper:
 
 \begin{quote}
-\emph{What, exactly, can a monitor learn from a black-box agent trace, and where
-does that information run out?}
+\emph{Given several heterogeneous trace signals, how should they be combined into
+one alarm, and what does that choice cost?}
 \end{quote}
+
+The literature treats this as plumbing. It is not. Making signals on
+incommensurable scales comparable is what conformal p-values are for, and once
+each signal has one, a century of multiple-testing theory offers a dozen ways to
+merge them---Fisher's sum of log p-values, Bonferroni's minimum, Simes, Stouffer,
+the harmonic mean, the mean, and the average of calibrated e-values. We find that
+the choice barely affects how well the monitor \emph{ranks} trajectories, and
+decides almost entirely whether it can be given a stated false-alarm rate at all.
+We also find a hard obstruction: because a conformal p-value from $n$ calibration
+values cannot fall below $1/(n{+}1)$, the rules that remain valid when the signals
+are arbitrarily dependent---which ours are---have an empty rejection region below a
+calibration size that no prompt-injection corpus currently reaches. That
+obstruction, and not any property of the signals, is what limits distribution-free
+false-alarm control for fused trace monitors today.
+
+Reaching that question required first answering a narrower one, which still
+organises Sections~\ref{sec:signals} to~\ref{sec:ceiling}:
+\emph{what can a monitor learn from a black-box agent trace, and where does that
+information run out?}
 
 Answering it requires separating two objectives that the literature routinely
 conflates. \emph{Attempt detection} asks whether untrusted instructions entered
@@ -141,7 +161,36 @@ tuned for the first is not automatically good at the second.
 \paragraph{Contributions} Our contributions are as follows.
 
 \begin{enumerate}
-\item \textbf{SENTRY-Fuse, a conformal fusion monitor}
+\item \textbf{An attainability limit on dependence-robust conformal fusion}
+(Section~\ref{sec:attainability}). Our main result is a sample-size law.
+A conformal p-value built from $n$ calibration values cannot fall below
+$1/(n{+}1)$, which caps the evidence any calibrator in the standard family can
+express at $e^{u-1}/u$ with $u = \log(n{+}1)$
+(Proposition~\ref{prop:attain}). Averaging calibrated e-values is the only merging
+rule that survives arbitrary dependence between signals, and an average never
+exceeds its largest term, so the level-$\alpha$ test has an \emph{empty} rejection
+region---power exactly zero, on every conceivable data set---unless
+$e^{u-1}/u \ge 1/\alpha$. At $\alpha = \CombAlpha$ that first holds at
+$n = \NCalReq$ benign calibration trajectories. The Bonferroni-style rules turn on
+much earlier, at $n \ge K/\alpha - 1$ (Proposition~\ref{prop:turnon}). The gap
+between those two numbers is the whole design question, and no published
+prompt-injection corpus sits above the larger one.
+
+\item \textbf{A measurement of which rule to use, and why}
+(Section~\ref{sec:combination}). Eight combination rules on the same corpus give
+pooled AUROC within $0.010$ of one another, so \emph{ranking} is almost
+rule-independent; their a-priori true-positive rates span
+$\CmbPoolEAvgTprA$ to $\CmbPoolStoufTprA$, so \emph{calibration} is not. The three
+dependence-robust rules behave exactly as the propositions require: the e-average,
+mean-$p$ and the union bound are inert, and Bonferroni fires with power equal to
+the fraction of positives carrying one signal at the p-value floor
+($\FloorOne$)---an identity, not a coincidence, because both signals are at the
+floor together in $\FloorBoth$ of cases. Injection evidence turns out to be dense
+in the bulk and sparse in the tail, and those two facts select opposite rules. The
+thresholds that perform best are the ones assuming an independence these signals
+do not have, which we report without endorsing.
+
+\item \textbf{The monitor these limits were established on}
 (Section~\ref{sec:method}). We combine two trace signals---one scoring the
 observation stream, one auditing the action stream---by mapping each to its
 conformal tail surprisal against a benign calibration split and summing. We show
@@ -800,14 +849,127 @@ Only \emph{domination} holds, not equality: since each $p_k$ is supported on the
 finite grid $\{1/(n{+}1),\dots,1\}$, the statistic $S$ is discrete and bounded
 above by $K\log(n{+}1)$, so it cannot be exactly Gamma-distributed.
 
-\begin{remark}
-We report empirical operating points throughout rather than relying on
-Proposition~\ref{prop:fusebound}, because the assumption-light union bound is
-loose and independence across our signals is not credible: S3 and S4 both respond
-to the presence of an injection, albeit through different channels. The bound's
-role is to establish that the fused statistic admits distribution-free
-false-alarm control at all, and to make explicit what would be needed for a sharp
-one.
+Independence across our signals is not credible---S3 and S4 both respond to the
+presence of an injection, and in the judge variants both are computed by one
+model---so~\eqref{eq:fisherbound} does not apply and the union bound is what
+remains. That bound is loose. The natural question is whether some other
+combination rule does better, and the rest of this section answers it. The answer
+is not the one we expected: the obstruction is not looseness but
+\emph{attainability}, and it disqualifies every dependence-robust rule at the
+calibration sizes this literature works with.
+
+\subsection{Which combination rule? Attainability, not looseness}
+\label{sec:attainability}
+
+Additive fusion is one point in a design space. Writing $p_{(1)} \le \dots \le
+p_{(K)}$ for the sorted p-values, the standard candidates are
+\begin{align*}
+\text{sum-log (Fisher)}:&\;\; \textstyle\sum_k -\log p_k,
+&\text{Bonferroni}:&\;\; \min_k p_k \le \alpha/K, \\
+\text{Simes}:&\;\; \min_i (K/i)\, p_{(i)},
+&\text{harmonic}:&\;\; K / \textstyle\sum_k p_k^{-1}, \\
+\text{Stouffer}:&\;\; \textstyle\sum_k \Phi^{-1}(1 - p_k)/\sqrt{K},
+&\text{mean-}p:&\;\; 2\,\overline{p} \le \alpha,
+\end{align*}
+together with the \emph{e-value} route: convert each $p_k$ to an e-value through a
+calibrator and average. A calibrator is a decreasing $f:[0,1] \to [0,\infty]$ with
+$\int_0^1 f = 1$; the standard family is
+\begin{equation}\label{eq:calibrator}
+f_\lambda(p) = \lambda\, p^{\lambda - 1}, \qquad \lambda \in (0,1).
+\end{equation}
+Averaging e-values is the one merging rule that stays valid under
+\emph{arbitrary} dependence---by linearity of expectation and Markov's
+inequality---and \citet{vovk2021evalues} show that essentially every symmetric
+arbitrary-dependence e-merging function is dominated by that average. It is
+therefore the principled choice for signals whose dependence we cannot model.
+
+It is also, on corpora of the size this field uses, incapable of firing.
+
+\begin{proposition}[Attainable evidence is capped by the calibration size]
+\label{prop:attain}
+Let $p$ be a conformal p-value computed from $n$ calibration values, so that
+$p \in \{1/(n{+}1), 2/(n{+}1), \dots, 1\}$ and in particular $p \ge 1/(n{+}1)$.
+Put $u = \log(n{+}1)$. Then over the family~\eqref{eq:calibrator},
+\begin{equation}\label{eq:maxe}
+\sup_{\lambda \in (0,1)} f_\lambda\!\left(\tfrac{1}{n+1}\right)
+\;=\; \frac{e^{\,u-1}}{u},
+\qquad\text{attained at } \lambda = 1/u .
+\end{equation}
+Consequently, for any $K$ and any calibrator in the family, the
+arbitrary-dependence test that rejects when
+$\overline{e} = K^{-1}\sum_k f(p_k) \ge 1/\alpha$ has an \emph{empty} rejection
+region---power exactly zero, for every possible data set---unless
+\begin{equation}\label{eq:attaincond}
+\frac{e^{\,u-1}}{u} \;\ge\; \frac{1}{\alpha}.
+\end{equation}
+At $\alpha = \CombAlpha$ condition~\eqref{eq:attaincond} first holds at
+$n = \NCalReq$.
+\end{proposition}
+
+\begin{proof}
+Write $g(\lambda) = f_\lambda(1/(n{+}1)) = \lambda (n{+}1)^{1-\lambda} = \lambda
+e^{(1-\lambda)u}$. Then $g'(\lambda) = e^{(1-\lambda)u}(1 - \lambda u)$, which
+vanishes only at $\lambda = 1/u$ and changes sign from positive to negative there,
+so that point is the maximum; substituting gives $g(1/u) = u^{-1}e^{\,u-1}$, which
+is~\eqref{eq:maxe}. Each $f_\lambda$ is decreasing and every $p_k \ge 1/(n{+}1)$,
+so $f(p_k) \le u^{-1}e^{\,u-1}$ for all $k$. An arithmetic mean never exceeds its
+largest term, hence $\overline{e} \le u^{-1}e^{\,u-1}$ identically. If that
+quantity is below $1/\alpha$ the event $\{\overline{e} \ge 1/\alpha\}$ is empty.
+Numerically, $u^{-1}e^{\,u-1} \ge 20$ first holds at $u = 5.746$, i.e.\
+$n + 1 \ge 313$.
+\end{proof}
+
+The same arithmetic applies, with a different constant, to the rules that do not
+go through e-values.
+
+\begin{proposition}[Turn-on thresholds for the dependence-robust rules]
+\label{prop:turnon}
+Let $p_1,\dots,p_K$ be conformal p-values from $n$ calibration values. Each of the
+following level-$\alpha$ tests, all valid under arbitrary dependence, has a
+non-empty rejection region if and only if the stated condition holds:
+\begin{enumerate}[label=(\roman*)]
+\item Bonferroni, $\min_k p_k \le \alpha/K$: \quad $n \ge K/\alpha - 1$;
+\item mean-$p$, $2\overline{p} \le \alpha$: \quad $n \ge 2/\alpha - 1$;
+\item sum-log against the union bound of Proposition~\ref{prop:fusebound},
+$\sum_k -\log p_k \ge K\log(K/\alpha)$: \quad $n \ge K/\alpha - 1$.
+\end{enumerate}
+At $K = 2$ and $\alpha = \CombAlpha$ all three require $n \ge \MinPTurnOn$, against
+$n \ge \NCalReq$ for the e-average.
+\end{proposition}
+
+\begin{proof}
+In each case the statistic is monotone in the $p_k$ and attains its most extreme
+value when every $p_k$ sits at the floor $1/(n{+}1)$. (i) $\min_k p_k \ge
+1/(n{+}1)$, so the region is non-empty iff $1/(n{+}1) \le \alpha/K$. (ii)
+$\overline{p} \ge 1/(n{+}1)$, so the condition is $2/(n{+}1) \le \alpha$. (iii)
+$\sum_k -\log p_k \le K\log(n{+}1)$, so the condition is $K\log(n{+}1) \ge
+K\log(K/\alpha)$, i.e.\ $n + 1 \ge K/\alpha$.
+\end{proof}
+
+Two consequences are worth separating. The first is a \emph{sample-size
+requirement}, and it is the practical one: a monitor that wants an
+\emph{a-priori} operating point under arbitrary signal dependence needs a benign
+calibration set of at least $\MinPTurnOn$ trajectories for the Bonferroni-style
+rules and at least $\NCalReq$ for the e-value average. Our pooled calibration
+split supplies $\nCombCal$. No published prompt-injection corpus we are aware of
+supplies $\NCalReq$.
+
+The second is that the conditions in Proposition~\ref{prop:turnon} are necessary
+but far from sufficient. Bonferroni needs only \emph{one} p-value at the floor;
+sum-log and mean-$p$ need the evidence spread across all $K$. Which of those the
+data provides is an empirical question about where injection evidence
+concentrates, and Section~\ref{sec:combination} measures it.
+
+\begin{remark}[Why this paper reports empirical operating points]
+\label{rem:whyempirical}
+Propositions~\ref{prop:attain} and~\ref{prop:turnon} explain a choice that would
+otherwise look like a shortcut. Every operating point in this paper is read off
+held-out benign trajectories, which makes the reported false-alarm rate
+descriptive of that sample rather than a guarantee. That is not a preference: at
+$\nCombCal$ calibration trajectories the dependence-robust alternatives are
+either inert or, as Section~\ref{sec:combination} shows, weaker. The honest
+statement is that distribution-free \emph{a-priori} false-alarm control over fused
+signals is available in principle and out of reach at this corpus size.
 \end{remark}
 
 \begin{algorithm}[t]
@@ -1415,6 +1577,143 @@ that limitation in mind (Figure~\ref{fig:evidence}): the roughly one in ten
 compromises we miss are ones we failed to score, not ones that were hidden from
 us.
 
+\subsection{Which combination rule, and can it be calibrated?}
+\label{sec:combination}
+
+Section~\ref{sec:attainability} predicts that at $\nCombCal$ calibration
+trajectories the e-average is inert, and that Bonferroni-style rules turn on but
+only if the evidence is concentrated in one signal. Table~\ref{tab:combination}
+tests all of it on the pooled corpus, under the protocol of
+Section~\ref{sec:protocol} and the same $\nSeeds$ splits.
+
+Two thresholds are reported for every rule. The \emph{empirical} one is read off
+the held-out negatives, as everywhere else in this paper, and carries no
+guarantee. The \emph{a-priori} one is fixed from $\alpha$ and the rule's
+dependence assumption before any negative is seen; it is the only kind that
+constitutes false-alarm control.
+
+\begin{table}[htbp]
+\centering
+\caption{Combination rules for the two adopted conformal signals, pooled corpus,
+$\nSeeds$ splits, $\alpha = \CombAlpha$. ``Dependence'' is what the a-priori
+threshold assumes. Empirical columns read the threshold off held-out negatives and
+guarantee nothing; a-priori columns fix it in advance. A dash means the rule has
+no a-priori threshold of this kind. The three rules valid under arbitrary
+dependence are marked $\dagger$.}
+\label{tab:combination}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}llccccc@{}}
+\toprule
+& & & \multicolumn{2}{c}{empirical thr.}
+    & \multicolumn{2}{c}{a-priori thr.} \\
+\cmidrule(l){4-5}\cmidrule(l){6-7}
+Rule & Dep. & AUROC & TPR & FPR & TPR & FPR \\
+\midrule
+sum-log, union bd$^\dagger$ & arb. & \CmbPoolSumUAuroc
+  & \CmbPoolSumUTprE & \CmbPoolSumUFprE\% & \CmbPoolSumUTprA & \CmbPoolSumUFprA\% \\
+sum-log, $\chi^2$ & indep. & \CmbPoolSumChiAuroc
+  & \CmbPoolSumChiTprE & \CmbPoolSumChiFprE\% & \CmbPoolSumChiTprA & \CmbPoolSumChiFprA\% \\
+Bonferroni$^\dagger$ & arb. & \CmbPoolMinPAuroc
+  & \CmbPoolMinPTprE & \CmbPoolMinPFprE\% & \textbf{\CmbPoolMinPTprA} & \CmbPoolMinPFprA\% \\
+Simes & positive & \CmbPoolSimesAuroc
+  & \CmbPoolSimesTprE & \CmbPoolSimesFprE\% & \CmbPoolSimesTprA & \CmbPoolSimesFprA\% \\
+harmonic mean $p$ & asympt. & \CmbPoolHarmAuroc
+  & \CmbPoolHarmTprE & \CmbPoolHarmFprE\% & \CmbPoolHarmTprA & \CmbPoolHarmFprA\% \\
+Stouffer & indep. & \CmbPoolStoufAuroc
+  & \CmbPoolStoufTprE & \CmbPoolStoufFprE\% & \CmbPoolStoufTprA & \CmbPoolStoufFprA\% \\
+mean-$p^\dagger$ & arb. & \CmbPoolMeanPAuroc
+  & \CmbPoolMeanPTprE & \CmbPoolMeanPFprE\% & \CmbPoolMeanPTprA & \CmbPoolMeanPFprA\% \\
+e-average$^\dagger$ & arb. & \CmbPoolEAvgAuroc
+  & \CmbPoolEAvgTprE & \CmbPoolEAvgFprE\% & \CmbPoolEAvgTprA & \CmbPoolEAvgFprA\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Ranking is almost insensitive to the rule; calibration is not}
+Five of the eight rules---sum-log, harmonic mean, Stouffer, mean-$p$ and the
+e-average---give pooled $\mathrm{AUROC} = \CmbPoolSumUAuroc$, identical to three
+decimals. Bonferroni and Simes give $\CmbPoolMinPAuroc$, slightly lower. As a
+\emph{ranker}, in other words, it barely matters how the two signals are combined.
+What the choice decides is whether the detector can be given a stated operating
+point at all: across the same eight rules the a-priori true-positive rate ranges
+from $\CmbPoolEAvgTprA$ to $\CmbPoolStoufTprA$. Papers that report AUROC alone
+cannot see this axis.
+
+\paragraph{The dependence-robust rules behave exactly as predicted}
+The e-average returns $\CmbPoolEAvgTprA$ at an a-priori threshold: inert, as
+Proposition~\ref{prop:attain} requires, since $\nCombCal \ll \NCalReq$. So does
+mean-$p$, and so does sum-log against its union bound, at
+$\CmbPoolMeanPTprA$ and $\CmbPoolSumUTprA$. Bonferroni is the one
+arbitrary-dependence rule that fires, at $\CmbPoolMinPTprA$ true positives for a
+realised $\CmbPoolMinPFprA\%$ false-alarm rate---inside the $5\%$ budget, and with
+a genuine distribution-free guarantee behind it, which no other row in this paper
+can claim.
+
+\paragraph{Why Bonferroni fires and the others do not}
+The mechanism is measurable rather than conjectural. Across the pooled positives,
+both signals reach the p-value floor $1/(\nCombCal{+}1)$ in $\FloorBoth$ of
+trajectories; exactly one reaches it in $\FloorOne$; neither does in
+$\FloorNeither$. Bonferroni needs one p-value at the floor and therefore fires on
+precisely that $\FloorOne$---its a-priori TPR equals the one-at-floor rate to
+three decimals, which is not a coincidence but an identity. Sum-log and mean-$p$
+need the evidence spread across both signals, and the evidence is never spread
+that way: the both-at-floor rate is exactly zero.
+
+This resolves an apparent contradiction in the table. Additive fusion ranks better
+than Bonferroni, so both signals must contribute across the bulk of the
+distribution; yet only Bonferroni fires a priori, so in the extreme tail the
+evidence sits in one channel. Both are true. Injection evidence in these traces is
+\emph{dense in the bulk and sparse in the tail}, and the two facts select opposite
+combination rules.
+
+\paragraph{The usable a-priori thresholds are the unjustified ones}
+The largest a-priori true-positive rates in Table~\ref{tab:combination} belong to
+Stouffer ($\CmbPoolStoufTprA$ at $\CmbPoolStoufFprA\%$) and to sum-log against
+Fisher's $\chi^2$ ($\CmbPoolSumChiTprA$ at $\CmbPoolSumChiFprA\%$). Both assume
+independence between S3 and S4, which is false: the two signals respond to the
+same injection and, here, are computed by the same model. Both nevertheless keep
+their realised false-alarm rate inside the nominal $\CombAlpha$ on this corpus. We
+report that because it is what we measured, not because we can justify it. The
+prudent reading is that the independence assumption is not \emph{badly} violated
+for these two particular signals on these two corpora, and that a monitor relying
+on it has no argument to offer when it is.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.86\textwidth]{figures/attainability.pdf}
+\caption{Left: the largest e-value any calibrator in
+family~\eqref{eq:calibrator} can produce from $n$ calibration values,
+$e^{u-1}/u$ with $u = \log(n{+}1)$, against the evidence
+$1/\alpha = \EBudget$ that a level-$\CombAlpha$ test demands. Below the crossing
+at $n = \NCalReq$ the arbitrary-dependence e-value test cannot reject any data
+set whatsoever. The corpora used in this literature, and ours at $\nCombCal$, sit
+far to the left of it. Right: measured a-priori true-positive rate of the three
+arbitrary-dependence rules as the calibration split is subsampled. Bonferroni
+turns on between $35$ and $\nCombCal$, as Proposition~\ref{prop:turnon} predicts
+($n \ge \MinPTurnOn$); the other two remain at zero throughout.}
+\label{fig:attainability}
+\end{figure}
+
+Figure~\ref{fig:attainability} puts the two propositions and the measurements on
+one pair of axes. The left panel is exact arithmetic, not an estimate: the curve is
+$e^{u-1}/u$ and the crossing is where an entire class of methods becomes usable.
+The practical reading for corpus builders is a number---a benign calibration set of
+$\NCalReq$ trajectories at $\alpha = \CombAlpha$---and for monitor designers it is
+that Bonferroni, usually dismissed as the conservative option, is the only
+dependence-robust rule available below that size.
+
+\begin{remark}[This also explains the anytime-valid negative result]
+\label{rem:sameroot}
+Section~\ref{sec:negatives} reports that the e-process detector this project began
+from was outperformed by a hand-picked benign quantile. That result and
+Proposition~\ref{prop:attain} have one cause. Both the time-uniform machinery and
+the dependence-robust merging rules buy their guarantees with a multiplicative
+budget---over time in the first case, over signals in the second---and both need
+more calibration evidence than $\nCombCal$ trajectories can express. The
+guarantees are not wrong; the corpora are too small to pay for them.
+\end{remark}
+
 \subsection{Comparison with a re-implemented baseline}\label{sec:baseline}
 
 Every comparison so far has been between our own signal subsets, which makes the
@@ -1792,16 +2091,48 @@ retained signals are the decisive robustness test.
 
 \subsection{Conclusion}\label{sec:conclusion}
 
-We set out to build a better trace-only monitor for prompt-injection compromise
-in LLM agents, and to establish where the information in a trace runs out.
-SENTRY-Fuse converts heterogeneous trace signals into conformal tail surprisals
-and fuses them by addition; the construction is scale-free, non-decreasing in
-every component and free of tuned weights, and we proved that the natural
-alternative of subtracting the benign training maximum is many-to-one and, for any
-attack class lying below that maximum, drives AUROC to at most one half---as it
-did, measurably, in an earlier and unpublished draft of this work, where it cost
-$0.25$ AUROC on the composite score and produced an explanation of the failure that
-was confidently wrong.
+We set out to build a better trace-only monitor for prompt-injection compromise in
+LLM agents. The durable result is about the step we expected to be routine.
+
+Combining conformal signals is not an implementation detail. A conformal p-value
+built from $n$ calibration values cannot fall below $1/(n{+}1)$, and that floor caps
+the evidence any e-value calibrator can express at $e^{u-1}/u$ for $u =
+\log(n{+}1)$. Because averaging is the only merging rule that survives arbitrary
+dependence between signals, and an average never exceeds its largest term, the
+dependence-robust level-$\alpha$ test is not merely underpowered below a certain
+calibration size---it is \emph{inert}, with an empty rejection region on every
+conceivable data set. At $\alpha = \CombAlpha$ the crossing is $n = \NCalReq$
+trajectories. Bonferroni-style rules cross at $n \ge K/\alpha - 1$, which is
+$\MinPTurnOn$ here. Our pooled calibration split holds $\nCombCal$, and no
+prompt-injection corpus we know of reaches $\NCalReq$. The consequence for anyone
+building such a corpus is a number rather than an exhortation.
+
+The measurements agree with the arithmetic and add something we did not anticipate.
+Eight combination rules rank almost identically---pooled AUROC within $0.010$---while
+their a-priori true-positive rates run from $\CmbPoolEAvgTprA$ to
+$\CmbPoolStoufTprA$, so a paper reporting only AUROC cannot see the axis on which
+the rules actually differ. Bonferroni is the sole dependence-robust rule that
+fires, and it fires on exactly the $\FloorOne$ of positives that carry one signal at
+the p-value floor, because the two signals are never at the floor together. So
+injection evidence in these traces is dense in the bulk, where additive fusion
+ranks best, and sparse in the tail, where only a minimum-based rule can be
+calibrated. Those two facts pull toward different rules, and which one matters
+depends on whether an operator needs a ranking or a guarantee. The uncomfortable
+corollary is that the a-priori thresholds with the most power here are the ones
+assuming an independence that S3 and S4 plainly lack.
+
+This also settles, from a single cause, a negative result we had reported without
+explanation: the anytime-valid e-process detector this project began from was
+outperformed by a hand-picked benign quantile. Time-uniform guarantees and
+dependence-robust merging both buy safety with a multiplicative budget, and both
+need more calibration evidence than these corpora can express. The guarantees are
+sound. The corpora cannot pay for them.
+
+On the monitor itself we proved that the natural alternative of subtracting the
+benign training maximum is many-to-one and, for any attack class lying below that
+maximum, drives AUROC to at most one half---as it did, measurably, at a cost of
+$0.25$ AUROC, together with an explanation of the failure that was confidently
+wrong.
 
 Fusing one observation-side signal with one action-side audit attains
 $\mathrm{AUROC} = \GptFuseAuroc \pm \GptFuseAurocSd$ and a true-positive rate of

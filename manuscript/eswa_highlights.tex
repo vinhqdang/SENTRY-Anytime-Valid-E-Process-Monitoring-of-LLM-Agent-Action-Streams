@@ -5,15 +5,15 @@
 \begin{document}
 \begin{center}
 {\large\bfseries Highlights}\\[0.5em]
-\emph{Conformal Surprisal Fusion for Detecting Prompt-Injection Compromise in
-LLM Agent Traces}
+\emph{When Conformal Fusion Cannot Be Calibrated: Attainability Limits
+for Trace-Based Detection of Prompt-Injection Compromise}
 \end{center}
 \vspace{1em}
 \begin{itemize}\itemsep0.5em
-\item Fuses observation- and action-side trace signals by conformal surprisal
-\item Raises AUROC 0.937 to 0.953; the gain in stability is the more robust effect
-\item Outranks a re-implemented Task Shield run on the same traces, 0.953 to 0.764
+\item Conformal p-value floors cap the evidence any e-value calibrator can express
+\item Dependence-robust conformal fusion is inert below 312 calibration traces
+\item Eight merging rules rank alike but differ hugely in a-priori false-alarm control
+\item Bonferroni alone fires; injection evidence is sparse in the tail, dense in bulk
 \item Subtracting the benign maximum provably caps AUROC at one half
-\item AgentDojo hides almost no compromise, so it cannot test the hard case
 \end{itemize}
 \end{document}

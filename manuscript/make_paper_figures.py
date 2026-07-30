@@ -200,10 +200,82 @@ def fig_evidence():
     plt.close(fig)
 
 
+# --------------------------------------------------------------------------- #
+# attainability.pdf
+# --------------------------------------------------------------------------- #
+
+def fig_attainability():
+    """Why the dependence-robust rules are inert below a calibration size.
+
+    Left panel is exact arithmetic: the largest e-value the calibrator family can
+    produce from n calibration values, against the 1/alpha a level-alpha test
+    demands. Right panel is the measured a-priori TPR of the three
+    arbitrary-dependence rules as the calibration split is subsampled.
+    """
+    CB = json.loads((ROOT / "real_data" / "results_combination.json").read_text())
+    alpha = CB["alpha"]
+    n_req = CB["n_required_for_e_test"]
+    n_here = CB["pooled"]["n_calibration"]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.2, 3.9))
+
+    n = np.arange(5, 1201)
+    u = np.log(n + 1.0)
+    max_e = np.exp(u - 1.0) / u
+    ax1.plot(n, max_e, color=C["obs"], lw=2,
+             label=r"largest attainable e-value  $e^{u-1}/u$")
+    ax1.axhline(1.0 / alpha, color=C["act"], lw=1.6, ls="--",
+                label=rf"evidence a level-{alpha:g} test needs  $1/\alpha={1/alpha:.0f}$")
+    ax1.axvline(n_req, color=C["muted"], lw=1.0, ls=":")
+    ax1.annotate(f"usable from\n$n={n_req}$", xy=(n_req, 1.0 / alpha),
+                 xytext=(n_req + 90, 1.0 / alpha * 0.42), fontsize=8.5,
+                 color=C["muted"],
+                 arrowprops=dict(arrowstyle="->", color=C["muted"], lw=0.8))
+    ax1.axvspan(5, n_req, color=C["act"], alpha=0.06)
+    ax1.annotate(f"inert: no data set\ncan trigger a rejection",
+                 xy=(30, 1.0 / alpha * 1.7), fontsize=8.5, color=C["act"])
+    ax1.scatter([n_here], [np.exp(np.log(n_here + 1) - 1) / np.log(n_here + 1)],
+                s=42, zorder=5, color=C["accent"], edgecolor="white",
+                label=f"this corpus ($n={n_here}$)")
+    ax1.set_xscale("log")
+    ax1.set_xlabel("benign calibration trajectories $n$")
+    ax1.set_ylabel("evidence (e-value)")
+    ax1.set_ylim(0, 1.0 / alpha * 3.0)
+    ax1.legend(frameon=False, fontsize=8, loc="upper left")
+    ax1.set_title("Attainable evidence is capped by $n$", fontsize=10)
+
+    ns = CB["ncal_sensitivity"]
+    sizes = sorted(int(k) for k in ns)
+    rules = [("min_p (Bonferroni)", "Bonferroni", C["obs"], "o"),
+             ("mean_p (Vovk-Wang)", r"mean-$p$", C["act"], "s"),
+             ("e_avg (calibrated)", "e-average", C["accent"], "^"),
+             ("sum_log (Fisher), union bound", "sum-log, union bound",
+              C["purple"], "D")]
+    for key, lbl, col, mk in rules:
+        ys = [ns[str(s)].get(key, {}).get("tpr", np.nan) for s in sizes]
+        ax2.plot(sizes, ys, marker=mk, color=col, lw=1.6, ms=5, label=lbl)
+    ax2.axvline(int(round(2 / alpha - 1)), color=C["muted"], lw=1.0, ls=":")
+    ax2.annotate(rf"turn-on $n\geq K/\alpha-1={int(round(2/alpha-1))}$",
+                 xy=(int(round(2 / alpha - 1)), 0.24), fontsize=8.5,
+                 color=C["muted"], rotation=90, va="center", ha="right")
+    ax2.set_xlabel("benign calibration trajectories $n$")
+    ax2.set_ylabel("a-priori TPR")
+    ax2.set_ylim(-0.03, 0.62)
+    ax2.legend(frameon=False, fontsize=8, loc="upper left")
+    ax2.set_title("Measured: only Bonferroni turns on", fontsize=10)
+
+    fig.suptitle("Dependence-robust conformal fusion is inert below a calibration "
+                 "size the field does not reach", fontsize=10.5, y=1.04)
+    fig.tight_layout()
+    fig.savefig(FIG / "attainability.pdf")
+    plt.close(fig)
+
+
 def main() -> None:
     fig_overview(); print("  overview.pdf")
     fig_fusion(); print("  fusion.pdf")
     fig_evidence(); print("  evidence.pdf")
+    fig_attainability(); print("  attainability.pdf")
     print(f"figures in {FIG}")
 
 
