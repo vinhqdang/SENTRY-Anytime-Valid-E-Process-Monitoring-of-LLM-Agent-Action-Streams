@@ -64,7 +64,7 @@ Prompt-Injection Compromise}
 \affil*[1]{\orgname{British University Vietnam},
   \orgaddress{\city{Hung Yen}, \country{Vietnam}}}
 
-\abstract{Runtime monitors for tool-calling language-model agents merge several trace-derived signals into one alarm, and how they are merged is treated as an implementation detail. We show it is the binding constraint, and that the constraint is a sample-size law. Conformal tail surprisals make incommensurable scales comparable, after which any standard rule can merge them. Our main result is that a conformal p-value from $n$ calibration values never falls below $1/(n{+}1)$, capping the evidence any e-value calibrator can express at $e^{u-1}/u$, $u = \log(n{+}1)$. Since averaging is the only merging rule valid under arbitrary dependence, the dependence-robust level-$\alpha$ test has an \emph{empty} rejection region unless $e^{u-1}/u \ge 1/\alpha$---inert below $n = \NCalReq$ trajectories at $\alpha = \CombAlpha$, while Bonferroni-style rules turn on at $n \ge K/\alpha - 1$. No published prompt-injection corpus reaches the first threshold. On $\nComp$ compromised trajectories from two commercial agents, eight rules give pooled AUROC within $0.010$ of each other while their a-priori true-positive rates span $\CmbPoolEAvgTprA$ to $\CmbPoolStoufTprA$. The e-average, mean-$p$ and the union bound are inert as predicted; Bonferroni alone fires, with power equal to the fraction of positives having one signal at the p-value floor ($\FloorOne$), because both are never there together ($\FloorBoth$). Injection evidence is dense in the bulk and sparse in the tail, and those facts select opposite rules. The same budget argument explains why an anytime-valid detector lost to a hand-picked quantile. We give the corpus-design requirement that follows, and release all code and data.}
+\abstract{Runtime monitors for tool-calling language-model agents merge several trace-derived signals into one alarm, and how they are merged is treated as an implementation detail. We show it is the binding constraint, and that the constraint is a sample-size law. Conformal tail surprisals make incommensurable scales comparable, after which any standard rule can merge them. Our main result is that a conformal p-value from $n$ calibration values never falls below $1/(n{+}1)$, capping the evidence any e-value calibrator can express at $e^{u-1}/u$, $u = \log(n{+}1)$. Since averaging is the only merging rule valid under arbitrary dependence, the dependence-robust level-$\alpha$ test has an empty rejection region unless $e^{u-1}/u \ge 1/\alpha$---inert below $n = \NCalReq$ trajectories at $\alpha = \CombAlpha$, while Bonferroni-style rules turn on at $n \ge K/\alpha - 1$. No published prompt-injection corpus reaches the first threshold. On $\nComp$ compromised trajectories from two commercial agents, eight rules give pooled AUROC within $0.010$ of each other while their a-priori true-positive rates span $\CmbPoolEAvgTprA$ to $\CmbPoolStoufTprA$. The e-average, mean-$p$ and the union bound are inert as predicted; Bonferroni alone fires, with power equal to the fraction of positives having one signal at the p-value floor ($\FloorOne$), because both are never there together ($\FloorBoth$). Injection evidence is dense in the bulk and sparse in the tail, and those facts select opposite rules. The same budget argument explains why an anytime-valid detector lost to a hand-picked quantile. We give the corpus-design requirement that follows, and release all code and data.}
 
 % A keyword list beginning with a bare ``LL'' makes sn-jnl drop the whole
 % title block onto a second page and print the keywords alone on page 1.
@@ -113,16 +113,17 @@ general question, which organises this paper:
 one alarm, and what does that choice cost?}
 \end{quote}
 
-The literature treats this as plumbing. It is not. Making signals on
-incommensurable scales comparable is what conformal p-values are for, and once
-each signal has one, a century of multiple-testing theory offers a dozen ways to
+Although the literature treats this as plumbing, it is nothing of the kind.
+Making signals on incommensurable scales comparable is what conformal p-values are
+for, and once each signal has one, a century of multiple-testing theory offers a
+dozen ways to
 merge them---Fisher's sum of log p-values, Bonferroni's minimum, Simes, Stouffer,
 the harmonic mean, the mean, and the average of calibrated e-values. We find that
 the choice barely affects how well the monitor \emph{ranks} trajectories, and
 decides almost entirely whether it can be given a stated false-alarm rate at all.
 We also find a hard obstruction: because a conformal p-value from $n$ calibration
 values cannot fall below $1/(n{+}1)$, the rules that remain valid when the signals
-are arbitrarily dependent---which ours are---have an empty rejection region below a
+are arbitrarily dependent, which ours are---have an empty rejection region below a
 calibration size that no prompt-injection corpus currently reaches. That
 obstruction, and not any property of the signals, is what limits distribution-free
 false-alarm control for fused trace monitors today.
@@ -136,7 +137,7 @@ Answering it requires separating two objectives that the literature routinely
 conflates. \emph{Attempt detection} asks whether untrusted instructions entered
 the agent's context at all; \emph{compromise detection} asks whether the agent
 actually did the attacker's bidding. They have different positive classes,
-different ceilings, and---as we show---different optimal evidence. A monitor
+different ceilings and, as we show, different optimal evidence. A monitor
 tuned for the first is not automatically good at the second.
 
 \paragraph{Contributions} Our contributions are as follows.
@@ -149,8 +150,8 @@ $1/(n{+}1)$, which caps the evidence any calibrator in the standard family can
 express at $e^{u-1}/u$ with $u = \log(n{+}1)$
 (Proposition~\ref{prop:attain}). Averaging calibrated e-values is the only merging
 rule that survives arbitrary dependence between signals, and an average never
-exceeds its largest term, so the level-$\alpha$ test has an \emph{empty} rejection
-region---power exactly zero, on every conceivable data set---unless
+exceeds its largest term, so the level-$\alpha$ test has an empty rejection
+region---power exactly zero, on every conceivable data set, unless
 $e^{u-1}/u \ge 1/\alpha$. At $\alpha = \CombAlpha$ that first holds at
 $n = \NCalReq$ benign calibration trajectories. The Bonferroni-style rules turn on
 much earlier, at $n \ge K/\alpha - 1$ (Proposition~\ref{prop:turnon}). The gap
@@ -165,7 +166,7 @@ $\CmbPoolEAvgTprA$ to $\CmbPoolStoufTprA$, so \emph{calibration} is not. The thr
 dependence-robust rules behave exactly as the propositions require: the e-average,
 mean-$p$ and the union bound are inert, and Bonferroni fires with power equal to
 the fraction of positives carrying one signal at the p-value floor
-($\FloorOne$)---an identity, not a coincidence, because both signals are at the
+($\FloorOne$), an identity, not a coincidence, because both signals are at the
 floor together in $\FloorBoth$ of cases. Injection evidence turns out to be dense
 in the bulk and sparse in the tail, and those two facts select opposite rules. The
 thresholds that perform best are the ones assuming an independence these signals
@@ -178,7 +179,7 @@ conformal tail surprisal against a benign calibration split and summing. We show
 (Propositions~\ref{prop:clip}--\ref{prop:mono}) that the construction is
 distribution-free valid, scale-free and non-decreasing in every component, and
 that the excess-over-maximum normalisation it replaces is many-to-one and can
-collapse an entire attack family to a point---which it did, measurably
+collapse an entire attack family to a point, which it did, measurably
 (Section~\ref{sec:clipping}).
 
 \item \textbf{Action-side evidence is complementary, not redundant}
@@ -186,10 +187,10 @@ collapse an entire attack family to a point---which it did, measurably
 information that a signal scoring \emph{what the agent read} does not. Adding
 an action-side audit lifts pooled $\mathrm{AUROC}$ from $\PoolSthreeAuroc$ to
 $\PoolFuseAuroc$ and recall at a fixed budget from $\PoolSthreeTpr$ to
-$\PoolFuseTpr$---a bootstrap gain of $\BootGainAuroc$
+$\PoolFuseTpr$, a bootstrap gain of $\BootGainAuroc$
 $[\BootGainAurocLo, \BootGainAurocHi]$ in AUROC. It also removes most of the
 variance the single signal shows across calibration draws, where that signal
-collapses to \emph{zero} recall in $\SthreeZeroSplits$ of $\nSeeds$ splits. A third
+collapses to zero recall in $\SthreeZeroSplits$ of $\nSeeds$ splits. A third
 signal, sink provenance, did not reach significance and is reported as such rather
 than folded into the method.
 
@@ -210,8 +211,8 @@ cannot test the hard case.
 (Section~\ref{sec:baseline}). Comparing only against our own signal subsets would
 leave the evaluation a self-ablation, and comparing against published figures on
 other corpora settles nothing. We therefore re-implement Task
-Shield~\citep{jia2024taskshield}---the closest prior work to our action-side
-signal---and run it on our traces, under our splits, with the same judge model, so
+Shield~\citep{jia2024taskshield}, the closest prior work to our action-side
+signal, and run it on our traces, under our splits, with the same judge model, so
 that the comparison isolates the method rather than the defender. The fusion ranks
 better ($\TsPoolAuroc$ against $\PoolFuseAuroc$ pooled, and on each corpus
 separately). Task Shield's published rule catches more compromises than we do
@@ -250,7 +251,7 @@ retrieval, \emph{processing} untrusted retrieved data becomes analogous to
 instructions is not represented anywhere in the model's input. They derive a
 taxonomy of resulting threats---information gathering, fraud, intrusion, malware
 (including prompts that propagate as worms), manipulated content, and
-availability attacks---and a taxonomy of delivery methods, distinguishing
+availability attacks, and a taxonomy of delivery methods, distinguishing
 \emph{passive} injection (planting content that retrieval will find),
 \emph{active} injection (sending content, e.g.\ by email, that the agent will
 process), \emph{user-driven} injection (tricking the user into pasting it), and
@@ -301,17 +302,17 @@ and is complementary but not injection-focused.
 \textbf{AgentHarm}~\citep{andriushchenko2025agentharm} deserves separate mention
 because it is easy to mistake for our setting. It comprises $110$ base explicitly
 malicious agent behaviours---$440$ including augmentations---across $11$ harm categories over
-a suite of synthetic tools, and it scores whether an agent both refuses \emph{and}
+a suite of synthetic tools, and it scores whether an agent both refuses and
 retains capability. Its threat model, however, is agent \emph{misuse}: the harmful request
 comes from the user directly. Ours is indirect injection, where the user is benign
-and the harm arrives through third-party content---a distinction the AgentHarm
+and the harm arrives through third-party content, a distinction the AgentHarm
 authors themselves draw when contrasting their benchmark with AgentDojo. The two
 are complementary and a complete guardrail needs both; we evaluate only the
 injection case, which Section~\ref{sec:limitations} records as a scope
 limitation.
 
 \citet{li2026taxonomy} survey the space and note substantial inconsistency in
-how safety benchmarks define and measure success---a concern our
+how safety benchmarks define and measure success, a concern our
 Sections~\ref{sec:polarity} and~\ref{sec:ceiling} substantiate concretely.
 
 \subsection{Defences: prevention}
@@ -329,8 +330,8 @@ delimiting them with explicit markers, \emph{datamarking} them by interleaving a
 reserved token throughout the untrusted text, or encoding them (e.g.\ base64) so
 that the model can still read them but their instruction-like surface form is
 disrupted. On GPT-family models this reduces attack success from above $50\%$ to
-below $2\%$ with little utility loss. The approach is attractively cheap---it is
-prompt engineering, requiring no training---but it relies on the model honouring
+below $2\%$ with little utility loss. The approach is attractively cheap, it is
+prompt engineering, requiring no training, but it relies on the model honouring
 the marking, which is a behavioural rather than an architectural guarantee.
 
 \paragraph{Changing the interface}
@@ -380,7 +381,7 @@ and cannot re-architect a vendor's agent loop. Notably, \citet{chen2025secalign}
 explicitly scope their contribution to prevention and set detection-based defences
 aside; the two lines of work are therefore complementary rather than competing.
 Prevention narrows the attack surface; monitoring supplies an independent tripwire
-where prevention is absent, partial, or itself circumvented---and, unlike
+where prevention is absent, partial, or itself circumvented, and, unlike
 prevention, it produces an auditable record of what happened, which is what
 incident response needs.
 
@@ -404,7 +405,7 @@ $\approx 2\times$ API cost).
 \textbf{AgentArmor}~\citep{wang2025agentarmor} is the strongest \emph{reported}
 trace-only detector and our reference point. It lifts the agent trace into a
 program representation---control-flow, data-flow and program-dependence
-graphs---and enforces typed security policies over it. Version~1 of the preprint
+graphs, and enforces typed security policies over it. Version~1 of the preprint
 reports $95.75\%$ true positives at a $3.66\%$ false-positive rate on AgentDojo
 with a GPT-4o agent; later versions withdraw that figure and report true-positive
 rates between $86\%$ and $97\%$ at false-positive rates between $2\%$ and $19\%$
@@ -444,16 +445,16 @@ a PAC-style thresholding correction, and
 betting and classical change-detection background.
 Several 2026 works apply anytime-valid ideas to LLM
 systems---\citet{xie2026sequential} sets out the case in an invited discussion
-and \citet{li2026whodrifted} attributes drift in evaluation pipelines---and to
+and \citet{li2026whodrifted} attributes drift in evaluation pipelines, and to
 strategic behaviour in multi-agent systems more
 generally~\citep{gauthier2026strategic}, with conformal ideas applied to agent
 error attribution~\citep{feng2026conformalattribution}.
 
 We retain conformal calibration, which does real work in our method, but
 Section~\ref{sec:longhorizon} reports that the sequential e-detector machinery
-did \emph{not} outperform a hand-picked threshold at the data scales we could
+did not outperform a hand-picked threshold at the data scales we could
 reach. We therefore present it as one calibration option rather than as the
-paper's contribution---a demotion the evidence forced.
+paper's contribution, a demotion the evidence forced.
 
 %======================================================================
 \section{Threat Model and Method}\label{sec:setup}
@@ -494,14 +495,15 @@ A trace is \emph{compromise-positive} if the agent actually accomplished the
 adversary's injection task.
 \end{definition}
 
-Both are legitimate targets. Attempt detection suits a guardrail that should
+Both are legitimate targets, but they suit different deployments. Attempt
+detection suits a guardrail that should
 escalate whenever untrusted instructions reach the context, since an agent that
 resisted today may not tomorrow. Compromise detection suits incident response and
 is the harder, more consequential question. The two differ sharply in practice:
 in our corpus a capable agent resists most attempts, so the attempt-positive
 class is several times larger than the compromise-positive class---$393$ against
 $90$ pooled, and $198$ against $18$ for the DeepSeek agent. Results
-for one must never be reported as results for the other---a confusion we made
+for one must never be reported as results for the other, a confusion we made
 ourselves, as Section~\ref{sec:polarity} describes.
 
 \subsection{Overview of SENTRY-Fuse}\label{sec:method}
@@ -561,7 +563,7 @@ V_{\mathrm{tool}(a_t)}|}{|\{\text{tokens of } \mathrm{args}(a_t)\}|} \in [0,1],
 \end{equation}
 where $V_{\mathrm{tool}}$ is the per-tool argument vocabulary of the reference
 split. Folding S1 and S2 into a single score as
-$s^{\mathrm{tr}}_t + 4\,s^{\mathrm{nov}}_t$---which is how this project began---adds
+$s^{\mathrm{tr}}_t + 4\,s^{\mathrm{nov}}_t$, which is how this project began---adds
 two raw quantities on incommensurable scales (nats and a fraction) with a weight
 chosen by hand. That
 is precisely the failure mode Section~\ref{sec:fusion} exists to remove.
@@ -576,7 +578,7 @@ sums the per-action signals with fixed coefficients $(1, 4, 4, 4)$. In each of
 those tables the weighting is held constant while one factor varies---the
 normalisation in Table~\ref{tab:normablation}, the agent or attack family in
 Table~\ref{tab:generalisation}, the combiner in
-Table~\ref{tab:longhorizon}---so the comparisons they support are unaffected.
+Table~\ref{tab:longhorizon}, so the comparisons they support are unaffected.
 Their absolute values, however, are those of the weighted composite and should not
 be read as single-signal performance.
 
@@ -590,8 +592,8 @@ Section~\ref{sec:ablation} compares them; the judge generalises better across
 attack templates, at the price of one cached model call per distinct observation.
 
 \paragraph{S4: action-justification audit}
-Given only the user request $u$, the tool name and its arguments---and
-\emph{never} the observations---an LLM judge rates how far the call fails to
+Given only the user request $u$, the tool name and its arguments, and
+never the observations, an LLM judge rates how far the call fails to
 serve $u$:
 \begin{equation}
 s^{\mathrm{aj}}_t = \mathrm{Unjustified}(u,\, a_t) \in [0,1].
@@ -616,7 +618,7 @@ a short structured record field. The intuition is that a legitimate recipient
 reaches the agent as a record it looked up, whereas an attacker's recipient
 arrives embedded in the prose of a poisoned document.
 
-\subsection{Why naive normalisation fails}\label{sec:clipping}
+\subsection{The failure of excess-over-maximum normalisation}\label{sec:clipping}
 
 The signals live on incompatible scales: $s^{\mathrm{tr}}$ is in nats and
 unbounded, $s^{\mathrm{il}}$ and $s^{\mathrm{aj}}$ lie in $[0,1]$,
@@ -627,7 +629,9 @@ subtract the largest value observed in benign training data,
 \phi_{\max}(x) = \max\{0,\ x - \beta\}, \qquad
 \beta = \max_{x' \in \Dcal_{\mathrm{train}}} x' ,
 \end{equation}
-so that anything within the benign range scores zero. This is a trap.
+so that anything within the benign range scores zero, a transformation that,
+as the rest of this subsection shows, can destroy the signal it is meant to
+standardise.
 
 Throughout, $\mathrm{AUROC}$ denotes the area under the receiver operating
 characteristic curve: the probability that a randomly drawn positive scores above
@@ -645,7 +649,7 @@ $q = \Prob_{X \sim \Bcal}(X > \beta)$ for the benign exceedance probability. The
 \end{equation}
 irrespective of how well $x$ itself separates the classes. In particular the
 transform is at best uninformative under this hypothesis, and strictly
-\emph{worse} than chance whenever some benign score exceeds $\beta$.
+worse than chance whenever some benign score exceeds $\beta$.
 \end{proposition}
 
 \begin{proof}
@@ -658,18 +662,19 @@ probability $q$. Counting ties as one half gives
 $\mathrm{AUROC} = \tfrac{1}{2}(1-q) + 0 \cdot q$, which is~\eqref{eq:clipauroc}.
 \end{proof}
 
-Two remarks. First, $q>0$ is the generic case rather than an edge case: if $\beta$
+Two remarks are in order. The first is that $q>0$ is the generic case rather than an edge case: if $\beta$
 is the maximum of $n$ exchangeable benign training scores from a continuous law,
 then a fresh benign score exceeds it with probability exactly $1/(n+1)$. Second,
 the hypothesis $\Prob_{\Ccal}(X \le \beta) = 1$ holds only approximately on real
-data---a few attack scores do exceed $\beta$---which is why the collapse measured
+data, a few attack scores do exceed $\beta$, which is why the collapse measured
 in Section~\ref{sec:ablation} lands just \emph{above} $1/2$ ($0.515$ to $0.531$)
 rather than at or below it. The proposition identifies the mechanism and its worst
 case; it does not predict the exact value.
 
-The premise is not hypothetical. In our data the lexicon instruction-likeness of
-benign observations is $\BenIlMedian$ at the median and $\BenIlMean$ on average,
-but its \emph{maximum} is $\BenIlMax$---a single outlier---while no InjecAgent
+The premise of that proposition is not hypothetical in this corpus. The lexicon
+instruction-likeness of benign observations is $\BenIlMedian$ at the median and
+$\BenIlMean$ on average,
+but its \emph{maximum} is $\BenIlMax$, a single outlier, while no InjecAgent
 observation exceeds $\InjIlMax$. Every InjecAgent score therefore fell below
 $\beta$, and under $\phi_{\max}$ the lexicon signal was driven to
 $\mathrm{AUROC} = \AblLexMaxInjAuroc$ against $\AblLexConfInjAuroc$ under the conformal
@@ -680,8 +685,8 @@ $\AblJudgeMaxInjAuroc$ against $\AblJudgeConfInjAuroc$ on InjecAgent and
 $\AblJudgeMaxImpAuroc$ against $\AblJudgeConfImpAuroc$ on
 \texttt{important\_instructions}, a loss of roughly a quarter of an AUROC on the
 better scorer. It would be natural to read that collapse as evidence that the
-attack is subtly phrased. That reading is wrong---the InjecAgent payloads are
-imperative and appear in the trace in every case---and the cause is the
+attack is subtly phrased. That reading is wrong, the InjecAgent payloads are
+imperative and appear in the trace in every case, and the cause is the
 normalisation, not the attack.
 
 The lesson is about \emph{resolution}, not merely about monotonicity. Both
@@ -689,7 +694,7 @@ $\phi_{\max}$ and the conformal transform below are many-to-one; the difference 
 that $\phi_{\max}$ can map an entire class to a single point, destroying all
 within-class ordering, whereas the conformal transform retains $n+1$ distinct
 levels. A component transform must therefore be chosen so that its quantisation
-is fine relative to the separation one hopes to exploit---a requirement we make
+is fine relative to the separation one hopes to exploit, a requirement we make
 precise in Proposition~\ref{prop:mono}.
 
 \subsection{Conformal surprisal fusion}\label{sec:fusion}
@@ -765,8 +770,8 @@ are $23$ and $47$). The loss is $O(1/n)$, which is why we prefer the largest
 calibration split the corpus allows.
 
 The contrast with Proposition~\ref{prop:clip} is accordingly quantitative rather
-than categorical. Both transforms are many-to-one. The difference is how coarse
-they are: $\phi_{\max}$ maps an entire class to a single point, leaving no
+than categorical: both transforms are many-to-one, and what separates them is how
+coarse they are. The map $\phi_{\max}$ sends an entire class to a single point, leaving no
 within-class ordering at all and forcing
 $\mathrm{AUROC} = \tfrac{1}{2}(1-q) \le \tfrac{1}{2}$, whereas $\psi$ retains
 $n+1$ ordered levels. What a fusion rule needs is not injectivity, and not
@@ -833,14 +838,14 @@ above by $K\log(n{+}1)$, so it cannot be exactly Gamma-distributed.
 
 Independence across our signals is not credible---S3 and S4 both respond to the
 presence of an injection, and in the judge variants both are computed by one
-model---so~\eqref{eq:fisherbound} does not apply and the union bound is what
-remains. That bound is loose. The natural question is whether some other
-combination rule does better, and the rest of this section answers it. The answer
-is not the one we expected: the obstruction is not looseness but
+model, so~\eqref{eq:fisherbound} does not apply and the union bound is what
+remains, and it is loose. Whether some other combination rule does better is
+the natural question, and the rest of this section answers it in a way we did not
+anticipate: the obstruction turns out not to be looseness but
 \emph{attainability}, and it disqualifies every dependence-robust rule at the
 calibration sizes this literature works with.
 
-\subsection{Which combination rule? Attainability, not looseness}
+\subsection{Attainability limits on the combination rule}
 \label{sec:attainability}
 
 Additive fusion is one point in a design space. Writing $p_{(1)} \le \dots \le
@@ -860,8 +865,8 @@ $\int_0^1 f = 1$; the standard family is
 f_\lambda(p) = \lambda\, p^{\lambda - 1}, \qquad \lambda \in (0,1).
 \end{equation}
 Averaging e-values is the one merging rule that stays valid under
-\emph{arbitrary} dependence---by linearity of expectation and Markov's
-inequality---and \citet{vovk2021evalues} show that essentially every symmetric
+\emph{arbitrary} dependence, by linearity of expectation and Markov's
+inequality, and \citet{vovk2021evalues} show that essentially every symmetric
 arbitrary-dependence e-merging function is dominated by that average. It is
 therefore the principled choice for signals whose dependence we cannot model.
 
@@ -879,8 +884,8 @@ Put $u = \log(n{+}1)$. Then over the family~\eqref{eq:calibrator},
 \end{equation}
 Consequently, for any $K$ and any calibrator in the family, the
 arbitrary-dependence test that rejects when
-$\overline{e} = K^{-1}\sum_k f(p_k) \ge 1/\alpha$ has an \emph{empty} rejection
-region---power exactly zero, for every possible data set---unless
+$\overline{e} = K^{-1}\sum_k f(p_k) \ge 1/\alpha$ has an empty rejection
+region---power exactly zero, for every possible data set, unless
 \begin{equation}\label{eq:attaincond}
 \frac{e^{\,u-1}}{u} \;\ge\; \frac{1}{\alpha}.
 \end{equation}
@@ -928,8 +933,8 @@ $\sum_k -\log p_k \le K\log(n{+}1)$, so the condition is $K\log(n{+}1) \ge
 K\log(K/\alpha)$, i.e.\ $n + 1 \ge K/\alpha$.
 \end{proof}
 
-Two consequences are worth separating. The first is a \emph{sample-size
-requirement}, and it is the practical one: a monitor that wants an
+Two consequences of these propositions are worth separating. The first, and the
+practical one, is a \emph{sample-size requirement}: a monitor that wants an
 \emph{a-priori} operating point under arbitrary signal dependence needs a benign
 calibration set of at least $\MinPTurnOn$ trajectories for the Bonferroni-style
 rules and at least $\NCalReq$ for the e-value average. Our pooled calibration
@@ -937,7 +942,7 @@ split supplies $\nCombCal$. No published prompt-injection corpus we are aware of
 supplies $\NCalReq$.
 
 The second is that the conditions in Proposition~\ref{prop:turnon} are necessary
-but far from sufficient. Bonferroni needs only \emph{one} p-value at the floor;
+but far from sufficient. Bonferroni needs only one p-value at the floor;
 sum-log and mean-$p$ need the evidence spread across all $K$. Which of those the
 data provides is an empirical question about where injection evidence
 concentrates, and Section~\ref{sec:combination} measures it.
@@ -975,9 +980,9 @@ signals is available in principle and out of reach at this corpus size.
 \end{algorithm}
 
 Because the fusion is additive over interpretable components, the dominant term
-$\arg\max_k \psi_k$ names \emph{why} the monitor fired---an injected instruction,
+$\arg\max_k \psi_k$ names why the monitor fired, an injected instruction,
 an unjustified action, an untrusted recipient, or an anomalous tool
-transition---which matters for triage.
+transition, which matters for triage.
 
 %======================================================================
 \section{Experimental Setup}\label{sec:experiments}
@@ -1011,7 +1016,7 @@ Agent & Attack family & Benign & Attacks & Comp. & Resist. \\
 DeepSeek & imp.\ instr. & 71 & 198 & 18 (9\%) & 180 \\
 DeepSeek & InjecAgent & --- & 42 & \textbf{0 (0\%)} & 42 \\
 GPT-4o-mini & imp.\ instr. & 70 & 153 & 72 (47\%) & 81 \\
-$\tau$-bench retail & none & 50 & --- & --- & --- \\
+$\tau$-bench retail & none & 50 &  ( & ) & --- \\
 \midrule
 \multicolumn{2}{@{}l}{\textbf{Total}} & \textbf{191} & \textbf{393} & \textbf{90} & \textbf{303} \\
 \bottomrule
@@ -1074,8 +1079,8 @@ pipeline produces by default.
 \subsection{Metrics}\label{sec:metrics}
 
 We report AUROC and the true-positive rate (TPR) at a benign false-positive rate
-(FPR). Comparing detectors at a common FPR is essential---they are otherwise
-trivially incomparable---but on samples of this size a \emph{nominal} FPR cannot
+(FPR). Comparing detectors at a common FPR is essential, they are otherwise
+trivially incomparable, but on samples of this size a \emph{nominal} FPR cannot
 generally be hit. With $n$ held-out negatives, thresholding a score yields only
 the rates $k/n$ for integer $k$, so the attainable grid has spacing $1/n$: $4.2\%$
 on the $\nGptNeg$ GPT-4o-mini negatives and $2.1\%$ on the $\nPoolNeg$ pooled ones. We
@@ -1084,16 +1089,16 @@ $k = \lfloor \alpha n \rfloor$ and then \emph{measure} the rate it realises, whi
 we report in every table alongside the target. We use $\alpha = 5\%$ as the target
 throughout.
 
-Two caveats about this number. First, it is generally strictly below $k/n$, because
+This number carries two caveats. It is generally strictly below $k/n$, because
 by Proposition~\ref{prop:mono}(iii) the fused statistic takes at most $n_k+1$
 values, so negatives tie at the saturated level and fewer than $k$ of them exceed
-the threshold---which is why the realised rates in Table~\ref{tab:fused} range from
+the threshold, which is why the realised rates in Table~\ref{tab:fused} range from
 $0.0\%$ to $4.0\%$ against a $5\%$ target rather than sitting at $k/n$. Second, we
 are reading a point off the empirical ROC curve of the held-out negatives, so the
 reported rate is descriptive of \emph{those} negatives and is not an out-of-sample
 false-alarm guarantee; a deployment would fix $\tau$ on a further split and accept
 the extra variability, and Proposition~\ref{prop:fusebound} is what supplies a
-distribution-free---if loose---a-priori bound.
+distribution-free (if loose)a-priori bound.
 
 This is worth being explicit about because interpolating an empirical quantile, as
 is conventional, silently produces a different rate: at a nominal $3.66\%$ on $35$
@@ -1103,9 +1108,9 @@ would then have been measured at over $5\%$.
 \paragraph{On comparison with published figures}
 AgentArmor~\citep{wang2025agentarmor} is the strongest reported trace-only
 detector, and version~1 of that preprint reports $95.75\%$ TPR at $3.66\%$ FPR on
-AgentDojo with a GPT-4o agent. We do \emph{not} present our numbers as beating it,
+AgentDojo with a GPT-4o agent. We do not present our numbers as beating it,
 for three reasons. The corpora differ (different agents, a different attack
-sample, and---as Section~\ref{sec:polarity} shows---a positive-class definition
+sample, and, as Section~\ref{sec:polarity} shows, a positive-class definition
 that is easy to get wrong); the operating points differ once the realised rate is
 accounted for; and the figure itself was removed in later versions of that
 preprint, which report TPR between $86\%$ and $97\%$ at FPR between $2\%$ and
@@ -1184,12 +1189,12 @@ goal, so an agent that is manipulated into moving money but fumbles a detail of 
 attacker's script is recorded as having resisted. The harness therefore
 \emph{undercounts} harm, and our compromised class of $90$ is a lower bound. We
 keep the harness definition---changing it would make our numbers incomparable with
-the literature's---but flag that a harm-based positive class would be the better
+the literature's, but flag that a harm-based positive class would be the better
 target, and that the $303$ ``resisted'' trajectories are not all benign.
 
 The consequences for us were severe and instructive. Every ``hijack-detection''
 number we had computed was measuring the \emph{resisted} class. Our effect-based
-signals---the action audit and sink provenance---had been graded against
+signals (the action audit and sink provenance)had been graded against
 trajectories in which, by construction, the agent had done nothing harmful; they
 appeared useless. Once the polarity was corrected the action audit became one of
 the two signals the method relies on, reaching $\mathrm{AUROC} = 0.900 \pm 0.039$
@@ -1198,7 +1203,7 @@ nearly discarded a working signal because of a boolean.
 
 \begin{remark}
 We report this at length because the failure mode is silent, the fix is trivial,
-and the affected quantity---which class counts as a successful attack---is the
+and the affected quantity, which class counts as a successful attack---is the
 foundation of every number in this literature. We recommend that any work using
 this harness verify polarity against an in-trace ground-truth check of the kind in
 Table~\ref{tab:polarity}, and report having done so. The same check is what
@@ -1229,7 +1234,7 @@ Section~\ref{sec:results} quantifies and is why it is not adopted.
 trajectories only. Each seed splits the benign set three ways: one third fits the
 reference, one third supplies the conformal calibration values, one third the
 held-out negatives. A nominal false-positive target is not attainable exactly---only
-multiples of $1/n$ are, and the fused statistic is discrete---so we report the
+multiples of $1/n$ are, and the fused statistic is discrete, so we report the
 \emph{realised} rate next to each target. Rows therefore sit at different operating
 points and the TPR columns are not like-for-like across rows, whereas AUROC is; the
 $3.66\%$ target in particular collapses to a realised $0.0\%$ on the two per-agent
@@ -1278,12 +1283,13 @@ S1 $+$ S2                         & $0.557 \pm 0.065$ & $0.038 \pm 0.048$ & $3.8
 \end{tabular}
 \end{table}
 
-Figure~\ref{fig:fusion} visualises the ablation. Four points deserve emphasis.
+Figure~\ref{fig:fusion} visualises the ablation, from which four points deserve
+emphasis.
 
 First, \textbf{action-side evidence is complementary}. Pooled, the instruction
 signal alone reaches $\mathrm{AUROC} = \PoolSthreeAuroc$; adding the action-side
 audit takes this to $\PoolFuseAuroc$. We quantify that difference by resampling
-\emph{trajectories}---positives and negatives---within each of the $\nSeeds$
+\emph{trajectories} (positives and negatives)within each of the $\nSeeds$
 splits, which gives $\BootGainAuroc$ with a $95\%$ interval of
 $[\BootGainAurocLo, \BootGainAurocHi]$ and $\Prob(\text{gain} \le 0) =
 \BootGainAurocP$. The recall gain is $\BootGainTpr$
@@ -1295,15 +1301,15 @@ independent resample inside each split and averaging would estimate the variance
 a mean of ten draws and shrink the corpus-sampling variance by about a factor of
 ten. An earlier version of this work did that, and it turned a borderline effect
 into an apparently decisive one. Corrected, the AUROC interval only marginally
-excludes no effect. We therefore do \emph{not} present the AUROC gain as
+excludes no effect. We therefore do not present the AUROC gain as
 established: $\nComp$ positives cannot resolve a difference of this size, and the
 claim we rest on is the one in the next paragraph.
 
 We report bootstrap intervals rather than a $t$-statistic over the ten splits, and
 the distinction matters. The splits permute one fixed benign sample and the
 $\nComp$ positives are byte-identical in every seed, so a paired $t$ across seeds
-describes how much the answer moves with the calibration draw---a real and
-important quantity, reported as the $\pm$ column of Table~\ref{tab:fused}---but not
+describes how much the answer moves with the calibration draw, a real and
+important quantity, reported as the $\pm$ column of Table~\ref{tab:fused}, but not
 the sampling error in the corpus, which is what a claim about the \emph{method}
 requires.
 
@@ -1316,17 +1322,17 @@ comparison does show is that a signal far weaker in ranking terms still contribu
 cases the observation signal misses.
 
 \paragraph{A third signal that did not earn inclusion} We also implemented
-sink provenance (S5), and it is \emph{not} part of SENTRY-Fuse, because the evidence
+sink provenance (S5), and it is not part of SENTRY-Fuse, because the evidence
 does not support including it. Adding it moves pooled AUROC by $\BootSfiveAuroc$
-$[\BootSfiveAurocLo, \BootSfiveAurocHi]$---an interval comfortably containing zero,
-$\Prob(\le 0) = \BootSfiveAurocP$---and recall by $\BootSfiveTpr$
+$[\BootSfiveAurocLo, \BootSfiveAurocHi]$, an interval comfortably containing zero,
+$\Prob(\le 0) = \BootSfiveAurocP$, and recall by $\BootSfiveTpr$
 $[\BootSfiveTprLo, \BootSfiveTprHi]$, likewise ($\Prob(\le 0) = \BootSfiveTprP$). In
 absolute terms it recovers fewer than two additional positives out of $\nComp$. On
-the DeepSeek corpus it makes AUROC \emph{worse} ($\DsFusePAuroc$ against
+the DeepSeek corpus it makes AUROC worse ($\DsFusePAuroc$ against
 $\DsFuseAuroc$). We report the ablation row in Table~\ref{tab:fused} so the reader
 can see it, and we decline to claim it.
 
-Second---and this is the claim we would defend hardest---\textbf{fusion removes a
+Second, and this is the claim we would defend hardest---\textbf{fusion removes a
 failure mode that makes the single signal undeployable}. The instruction signal's
 standard deviation of recall at a fixed budget is $\pm \GptSthreeTprSd$ on
 GPT-4o-mini and $\pm \PoolSthreeTprSd$ pooled, but that spread is not a spread: it
@@ -1336,9 +1342,9 @@ $\SthreeZeroSplits$ of $\nSeeds$ draws and about $0.91$ in the rest.
 The mechanism is on the negative side, not the calibration side, and it is
 instructive. With $k = \lfloor 0.05 \times \nPoolNeg \rfloor = 2$ negatives allowed
 above it, the threshold is set at the $(k+1)$-th largest held-out negative---the
-third---so that exactly $k$ of them strictly exceed it. The model judge saturates,
+third, so that exactly $k$ of them strictly exceed it. The model judge saturates,
 awarding exactly $1.0$ to some benign observations, so whenever three or more of
-the $\nPoolNeg$ held-out negatives sit at that ceiling the threshold \emph{is} the
+the $\nPoolNeg$ held-out negatives sit at that ceiling the threshold is the
 ceiling and no positive can strictly exceed it. Recall is then zero regardless of
 how well the signal separates the classes. This is a discrete-operating-point
 pathology of a saturating score, and adding a second signal with a different
@@ -1347,15 +1353,15 @@ $\pm \GptFuseTprSd$ and $\pm \PoolFuseTprSd$, and it never collapses. Unlike the
 mean gains above, this difference is far outside sampling noise.
 
 Third, \textbf{more signals is not monotonically better}. Going from the
-two-signal method to all five---adding the behavioural pair and provenance---lowers
+two-signal method to all five (adding the behavioural pair and provenance)lowers
 pooled AUROC from $\PoolFuseAuroc$ to $\PoolAllFiveAuroc$. Isolating the behavioural
 pair alone, by comparing the three-signal variant ($\PoolFusePAuroc$) with all five
 ($\PoolAllFiveAuroc$), gives the same direction. The effect is not uniform: on
-GPT-4o-mini all five reach a \emph{higher} recall than the method
+GPT-4o-mini all five reach a higher recall than the method
 ($\GptAllFiveTpr$ against $\GptFuseTpr$) while sitting at a looser realised
 false-alarm rate, which is why we compare on AUROC. Alone the pair is barely distinguishable
 from chance ($\GptBehavAuroc$, $\DsBehavAuroc$ and $\PoolBehavAuroc$ AUROC on the
-three corpora, the middle one \emph{below} chance). Because the fusion is an unweighted sum, a near-chance component
+three corpora, the middle one below chance). Because the fusion is an unweighted sum, a near-chance component
 injects variance without adding discrimination, and the honest conclusion is that
 these two signals do not belong in the monitor. They appear as an ablation row
 because they were this project's starting point, and their failure is the clearest
@@ -1388,7 +1394,7 @@ Table~\ref{tab:generalisation} varies one axis at a time. Attempt detection
 transfers across both axes: changing the agent leaves it intact
 ($\mathrm{AUROC}\,0.76 \to 0.82$), and changing the attack family costs
 relatively little once the normalisation of Section~\ref{sec:clipping} is fixed
-($0.76 \to 0.71$). Two caveats. First, the three rows sit at different realised
+($0.76 \to 0.71$). Two caveats attach to that reading. The three rows sit at different realised
 false-alarm rates (final column), so the detection-rate column is not a
 like-for-like comparison and we quote AUROC, which is threshold-free, for the
 transfer claims. Second, the DeepSeek/InjecAgent cell illustrates why the two
@@ -1400,7 +1406,7 @@ that family, so there is no positive class to score.
 \centering
 \caption{Generalisation across agent and attack family; ten seeds, corrected
 labels. The realised per-step false-alarm rate is given because it differs by row,
-so the detection rates are \emph{not} at a common operating point and should be
+so the detection rates are not at a common operating point and should be
 read against it.}
 \label{tab:generalisation}
 \small
@@ -1421,9 +1427,10 @@ GPT-4o-mini & imp.\ instr. & 72 & 81 & $0.74$ & $0.82$ & $4.3\%$ \\
 Table~\ref{tab:normablation} isolates the two design choices in the
 observation-side signal S3: how instruction-likeness is scored (fixed lexicon
 versus LLM judge) and how it is normalised (excess-over-maximum versus conformal).
-The interaction is the point. Under excess-over-maximum the \emph{better} scorer is
-the worse detector---the judge falls to $0.515$ AUROC on
-\texttt{important\_instructions} against the lexicon's $0.779$---because the
+It is the interaction between the two that matters, because under
+excess-over-maximum the \emph{better} scorer becomes the worse detector: the judge
+falls to $0.515$ AUROC on
+\texttt{important\_instructions} against the lexicon's $0.779$, because the
 judge's near-binary output places some benign observation at the ceiling, after
 which Proposition~\ref{prop:clip} applies and the class is collapsed to a point.
 Under the conformal transform the ordering reverses and the judge becomes the
@@ -1442,7 +1449,7 @@ normalisation varies between rows, so the comparison is controlled even though t
 absolute values are those of the composite. Excess-over-maximum realises a
 per-step false-alarm rate of $0.0182$ and the conformal transform $0.0270$ (judge)
 or $0.0335$ (lexicon), so the conformal rows are measured at a
-\emph{higher} false-alarm budget and their advantage is not an artefact of a looser
+higher false-alarm budget and their advantage is not an artefact of a looser
 threshold. The conformal transform is required for the semantic judge to be usable
 at all.}
 \label{tab:normablation}
@@ -1491,7 +1498,7 @@ attacker's IBAN---five actions after the monitor would have halted it.}
 \label{fig:casetrace}
 \end{figure}
 
-\subsection{Where evidence of compromise lives}\label{sec:ceiling}
+\subsection{The location of compromise evidence in a trace}\label{sec:ceiling}
 
 A trace-only monitor can only react to evidence present in the trace, so it is
 natural to ask how often that evidence is there at all. Evidence can arrive
@@ -1510,8 +1517,8 @@ injection cannot succeed unless the agent read that output.
 
 \begin{remark}[Why we do not turn this into a bound]\label{rem:noceiling}
 It is tempting to convert these fractions into an information-theoretic ceiling on
-any trace-only monitor---the fraction of compromises with neither channel would
-bound every such detector's true-positive rate---and an earlier version of this
+any trace-only monitor, the fraction of compromises with neither channel would
+bound every such detector's true-positive rate, and an earlier version of this
 work did exactly that. We no longer report such a bound, for two reasons that we
 think are worth stating rather than burying.
 
@@ -1527,7 +1534,7 @@ we do not believe any of them is canonical.
 
 Second, the bound such an argument yields is inside the resolution of this corpus.
 At the strictest criterion it is $\BoundFull$, against the $\PoolFuseTpr$ our method
-attains---a margin of under two points on $\nComp$ positives, which is smaller than
+attains, a margin of under two points on $\nComp$ positives, which is smaller than
 the spread we see across calibration draws. A bound that cannot be distinguished
 from the measurement it is supposed to constrain does no work.
 
@@ -1551,15 +1558,15 @@ The caution is about benchmark construction, and we think it is the more useful
 half. A corpus that delivers payloads through tool outputs cannot contain a
 compromise that is invisible to an observation-side monitor, so it cannot test how
 a monitor behaves when the evidence genuinely is absent. Real deployments admit
-such cases---an agent persuaded through a channel the monitor never sees, or one
-whose harmful action is indistinguishable from a legitimate one---and no benchmark
+such cases, an agent persuaded through a channel the monitor never sees, or one
+whose harmful action is indistinguishable from a legitimate one, and no benchmark
 we are aware of provides them. A defence validated only on corpora of this shape
 has not been tested against the hard case, and our own results should be read with
 that limitation in mind (Figure~\ref{fig:evidence}): the roughly one in ten
 compromises we miss are ones we failed to score, not ones that were hidden from
 us.
 
-\subsection{Which combination rule, and can it be calibrated?}
+\subsection{Combination rules and their calibration}
 \label{sec:combination}
 
 Section~\ref{sec:attainability} predicts that at $\nCombCal$ calibration
@@ -1633,11 +1640,11 @@ a genuine distribution-free guarantee behind it, which no other row in this pape
 can claim.
 
 \paragraph{Why Bonferroni fires and the others do not}
-The mechanism is measurable rather than conjectural. Across the pooled positives,
-both signals reach the p-value floor $1/(\nCombCal{+}1)$ in $\FloorBoth$ of
+The mechanism behind this is measurable rather than conjectural. Across the pooled
+positives, both signals reach the p-value floor $1/(\nCombCal{+}1)$ in $\FloorBoth$ of
 trajectories; exactly one reaches it in $\FloorOne$; neither does in
 $\FloorNeither$. Bonferroni needs one p-value at the floor and therefore fires on
-precisely that $\FloorOne$---its a-priori TPR equals the one-at-floor rate to
+precisely that $\FloorOne$, its a-priori TPR equals the one-at-floor rate to
 three decimals, which is not a coincidence but an identity. Sum-log and mean-$p$
 need the evidence spread across both signals, and the evidence is never spread
 that way: the both-at-floor rate is exactly zero.
@@ -1645,9 +1652,9 @@ that way: the both-at-floor rate is exactly zero.
 This resolves an apparent contradiction in the table. Additive fusion ranks better
 than Bonferroni, so both signals must contribute across the bulk of the
 distribution; yet only Bonferroni fires a priori, so in the extreme tail the
-evidence sits in one channel. Both are true. Injection evidence in these traces is
-\emph{dense in the bulk and sparse in the tail}, and the two facts select opposite
-combination rules.
+evidence sits in one channel. Both observations hold simultaneously, because
+injection evidence in these traces is \emph{dense in the bulk and sparse in the
+tail}, and those two properties select opposite combination rules.
 
 \paragraph{The usable a-priori thresholds are the unjustified ones}
 The largest a-priori true-positive rates in Table~\ref{tab:combination} belong to
@@ -1680,8 +1687,8 @@ turns on between $35$ and $\nCombCal$, as Proposition~\ref{prop:turnon} predicts
 Figure~\ref{fig:attainability} puts the two propositions and the measurements on
 one pair of axes. The left panel is exact arithmetic, not an estimate: the curve is
 $e^{u-1}/u$ and the crossing is where an entire class of methods becomes usable.
-The practical reading for corpus builders is a number---a benign calibration set of
-$\NCalReq$ trajectories at $\alpha = \CombAlpha$---and for monitor designers it is
+The practical reading for corpus builders is a number, a benign calibration set of
+$\NCalReq$ trajectories at $\alpha = \CombAlpha$, and for monitor designers it is
 that Bonferroni, usually dismissed as the conservative option, is the only
 dependence-robust rule available below that size.
 
@@ -1723,7 +1730,7 @@ improvements to it.
 \item Task Shield is a \emph{defence}: on detecting misalignment it injects
 feedback and blocks the call, changing the trajectory. We score fixed,
 already-collected traces, so we cannot intervene. We run its alignment check
-unchanged and read it as a detector---a trajectory is flagged when any of its
+unchanged and read it as a detector, a trajectory is flagged when any of its
 calls is misaligned. Its published attack-success-rate numbers measure prevention
 and are therefore not comparable with anything here.
 \item The paper's defender is GPT-4o. We use the model that also serves our judge
@@ -1738,7 +1745,7 @@ checker applies and one of its layers is absent.
 \end{enumerate}
 
 \paragraph{Result} Table~\ref{tab:baseline} gives the comparison. Task Shield's
-published decision rule---flag when any call is misaligned---is a fixed operating
+published decision rule (flag when any call is misaligned)is a fixed operating
 point rather than a tunable threshold, so we report it as a single (FPR, TPR) pair
 alongside its ROC.
 
@@ -1802,14 +1809,14 @@ about. That is a real limitation for monitoring use, but it is a limitation of
 resolution rather than of ranking, and reporting the $0.000$ without the
 explanation would misrepresent it.
 
-\paragraph{What the comparison supports} Two things, and not a third. As a ranker
-Task Shield reaches pooled $\mathrm{AUROC} = \TsPoolAuroc$ against SENTRY-Fuse's
+\paragraph{What the comparison supports} The comparison supports two conclusions
+and not a third. As a ranker, Task Shield reaches pooled $\mathrm{AUROC} = \TsPoolAuroc$ against SENTRY-Fuse's
 $\PoolFuseAuroc$, and the ordering holds on both corpora separately
 ($\TsGptAuroc$ against $\GptFuseAuroc$, $\TsDsAuroc$ against $\DsFuseAuroc$); on
 the evidence available to a trace monitor, graded conformal surprisal separates
 these trajectories better than a binary alignment verdict does. And the
 quantisation argument above is a genuine obstacle to using an alignment checker at
-a chosen false-alarm rate. What the comparison does \emph{not} support is any
+a chosen false-alarm rate. What the comparison does not support is any
 claim that our method is the better \emph{defence}: Task Shield blocks the call it
 flags, we only raise a flag, and the third of our deviations removes one of its two
 checking layers. A reader should treat these numbers as locating the two methods
@@ -1822,25 +1829,26 @@ published system.
 A monitor's credibility rests on knowing what it cannot do. We report every
 component we implemented and rejected.
 
-\subsubsection{Signals we implemented and dropped}
+\subsubsection{Rejected signals}
 
 \paragraph{S1, tool-transition surprise, and S2, argument novelty (near chance)}
 These two behavioural signals were the starting point of this project. Under the three-way split
 of Section~\ref{sec:protocol} they are near-chance: pooled AUROC
 $\PoolSoneAuroc$ and $\PoolStwoAuroc$ individually and $\PoolBehavAuroc$ together,
-and on DeepSeek the pair is \emph{below} chance at $\DsBehavAuroc$
+and on DeepSeek the pair is below chance at $\DsBehavAuroc$
 (Table~\ref{tab:fused}). Including them lowers pooled AUROC from $\PoolFuseAuroc$
 to $\PoolAllFiveAuroc$. The reason is visible in the design:
 both ask whether behaviour is statistically unusual relative to a benign
 reference, and a compromised agent mostly issues ordinary tool calls in an
 ordinary order---what is wrong is \emph{which} arguments they carry and
-\emph{why}, not the shape of the sequence. Two lessons we take from this. First,
-unusualness is not a proxy for misalignment. Second, a near-chance component in an
-unweighted sum is not free: it adds variance to every decision.
+why, not the shape of the sequence. We take two lessons from this: that
+statistical unusualness is not a proxy for misalignment, and that a near-chance
+component in an unweighted sum is not free, since it adds variance to every
+decision it participates in.
 
 \paragraph{Lexical data-flow taint ($\mathrm{AUROC}\,0.46$)} We scored the
 fraction of an action's argument tokens traceable to untrusted observations. It
-performs \emph{below} chance because benign agents legitimately act on
+performs below chance because benign agents legitimately act on
 tool-derived values constantly---reading a recipient from a transaction record and
 paying it is the normal case. Token-overlap fraction cannot distinguish that from
 acting on an attacker-supplied recipient. This failure motivated the conjunctive,
@@ -1849,7 +1857,7 @@ sink-restricted form of S5.
 \paragraph{Lexical goal-grounding ($\mathrm{AUROC}\,0.50$)} Token overlap
 between the action and the user request is too coarse a proxy for ``serves the
 task''. Its semantic replacement, S4, works ($\GptSfourAuroc$ on GPT-4o-mini,
-$\DsSfourAuroc$ on DeepSeek)---the idea was right, the implementation was lexical.
+$\DsSfourAuroc$ on DeepSeek), the idea was right, the implementation was lexical.
 
 \paragraph{Injection-conditioned interaction (no gain)} Gating behavioural
 surprise on a preceding injection produced results identical to the plain sum.
@@ -1863,7 +1871,7 @@ $[\BootSfiveTprLo, \BootSfiveTprHi]$ and AUROC by $\BootSfiveAuroc$
 $[\BootSfiveAurocLo, \BootSfiveAurocHi]$, both intervals containing zero, which is
 why it is not in the method.
 
-\subsubsection{The anytime-valid machinery did not earn its headline}
+\subsubsection{The anytime-valid detector}
 \label{sec:longhorizon}
 
 This work began as an application of e-detectors~\citep{shin2023edetectors} with
@@ -1899,7 +1907,7 @@ fixed threshold, $q=0.999$ & $10.2$ & $343$ & $0.524$ \\
 \end{tabular}
 \end{table}
 
-Two findings stand out, and the first is weaker than we first reported. The
+Two findings stand out, and the first is weaker than we first reported, since the
 e-detector is not simply dominated. At its loosest setting ($\alpha = 0.2$) it
 detects $0.612$ of attacks at $45.6$ false alarms per thousand actions, and a fixed
 threshold matched to roughly that alarm budget ($q = 0.95$: $60.9$ per thousand)
@@ -1914,7 +1922,7 @@ The second finding is the damaging one for the machinery: the e-detector's resul
 are \emph{identical} for $\alpha \in \{0.05, 0.01, 0.002\}$. The PAC threshold
 saturates at the order-statistic index our calibration set can supply, so the
 guarantee cannot be tightened below $\alpha = 0.2$, where it promises only
-$\mathrm{ARL} \ge 5$---a vacuous promise for a monitor. A cross-agent transfer test
+$\mathrm{ARL} \ge 5$, a vacuous promise for a monitor. A cross-agent transfer test
 showed no benefit either. The anytime-valid apparatus this project began from
 therefore did not earn its place, and we removed it from the method rather than
 keep it for the theory it advertises. What would change this is a calibration set
@@ -1927,12 +1935,13 @@ result for a community currently enthusiastic about anytime-valid monitoring.
 
 \paragraph{What the measurement changes} We set out expecting to find that
 trace-only detection is limited by the evidence available in the trace, and to
-report how close to that limit a good fusion rule gets. Neither half survived. The
-observation channel is close to saturated on AgentDojo, so the limit is not what
-constrains a detector here; and the limit itself turned out not to be identifiable
+report how close to that limit a good fusion rule gets, and neither half of that
+expectation survived contact with the data. The observation channel is close to
+saturated on AgentDojo, so the limit is not what constrains a detector here, and the
+limit itself turned out not to be identifiable
 from this corpus, which is why Remark~\ref{rem:noceiling} reports fractions rather
 than a bound. The framing that trace-only injection detection is a modelling
-problem is, on this corpus, the correct one---and our contribution is accordingly a
+problem is, on this corpus, the correct one, and our contribution is accordingly a
 modelling contribution, not an information-theoretic one. Where the evidence framing
 does bite is benchmark construction: a corpus that delivers payloads through tool
 outputs cannot tell us how a monitor behaves when the evidence really is absent.
@@ -1973,7 +1982,7 @@ $\alpha$ against a false-alarm budget.
 
 \emph{(i) Adaptive adversaries.} Our attacks are static templates. An adversary
 aware of SENTRY-Fuse would phrase injections to minimise instruction-likeness
-\emph{and} route effects through non-sink tools \emph{and} keep actions
+and route effects through non-sink tools and keep actions
 superficially task-plausible. Requiring simultaneous evasion of signals that fail
 on different inputs raises the bar, but we have not measured by how much, and
 \citet{nasr2025attackersecond} caution against assuming such bars hold.
@@ -2001,7 +2010,7 @@ is a candidate explanation for part of the gap between the two corpora.
 contains tool calls and tool outputs, not the agent's natural-language messages.
 A compromise that discloses information in prose without touching a tool would be
 invisible to both signals. Because this corpus delivers every payload through a
-tool output, almost no such case appears among our positives---which is a
+tool output, almost no such case appears among our positives, which is a
 limitation of the corpus rather than evidence that the case is rare.
 
 \emph{(v) Quantisation of the conformal transform.}
@@ -2010,7 +2019,7 @@ maximum, so with small calibration sets it can lose discrimination: at the $n=47
 used here we measure $1.000 \to \QuantNFortySeven$ on separable synthetic data, and
 $1.000 \to \QuantNFive$ at $n=5$. It can also, in adverse configurations, take an above-chance signal below
 chance. Larger calibration splits reduce the loss, at the cost of fewer held-out
-negatives and hence a coarser attainable FPR grid---a trade-off this corpus is too
+negatives and hence a coarser attainable FPR grid, a trade-off this corpus is too
 small to escape.
 
 \emph{(vi) No information-theoretic guarantee.} We report no bound on what a
@@ -2028,15 +2037,15 @@ Every compromise-detection number in this paper is therefore measured on
 \texttt{important\_instructions} attacks alone; the transfer evidence in
 Table~\ref{tab:generalisation} concerns \emph{attempt} detection, a different and
 easier objective. Closing this requires collecting InjecAgent attacks against an
-agent that actually succumbs to them---a data-collection task, not an analysis
-one---and until that is done a reader should assume our compromise-side results may
+agent that actually succumbs to them, a data-collection task, not an analysis
+one, and until that is done a reader should assume our compromise-side results may
 be specific to one attack template.
 
 \emph{(viii) A single benchmark family, and no $\tau$-bench in the compromise
 corpora.} The compromise-detection corpora are AgentDojo only. An earlier version
 pooled in $\tau$-bench retail trajectories as extra benign data; we removed them,
 because they mix tool vocabularies in a way that strains the exchangeability
-Proposition~\ref{prop:valid} assumes and---worse---they were loaded without their
+Proposition~\ref{prop:valid} assumes and (worse)they were loaded without their
 message list, so S5 was silently fixed at zero for all $50$ rather than measured.
 That inflated S5's apparent standalone recall from $\PoolSfiveTpr$ to $0.220$. $\tau$-bench
 is still used for attempt detection, where S5 plays no part. The cost of removing
@@ -2047,7 +2056,7 @@ attainable false-positive grid.
 
 \paragraph{Monitor the response channel} Extending the trace to the agent's
 natural-language messages would let the monitor catch information-disclosure
-compromises that never touch a tool---the case this corpus barely exhibits, since
+compromises that never touch a tool, the case this corpus barely exhibits, since
 its payloads arrive through tool outputs.
 
 \paragraph{Build a corpus with hidden compromises} The more useful consequence of
@@ -2082,7 +2091,7 @@ the evidence any e-value calibrator can express at $e^{u-1}/u$ for $u =
 \log(n{+}1)$. Because averaging is the only merging rule that survives arbitrary
 dependence between signals, and an average never exceeds its largest term, the
 dependence-robust level-$\alpha$ test is not merely underpowered below a certain
-calibration size---it is \emph{inert}, with an empty rejection region on every
+calibration size, it is \emph{inert}, with an empty rejection region on every
 conceivable data set. At $\alpha = \CombAlpha$ the crossing is $n = \NCalReq$
 trajectories. Bonferroni-style rules cross at $n \ge K/\alpha - 1$, which is
 $\MinPTurnOn$ here. Our pooled calibration split holds $\nCombCal$, and no
@@ -2090,7 +2099,7 @@ prompt-injection corpus we know of reaches $\NCalReq$. The consequence for anyon
 building such a corpus is a number rather than an exhortation.
 
 The measurements agree with the arithmetic and add something we did not anticipate.
-Eight combination rules rank almost identically---pooled AUROC within $0.010$---while
+Eight combination rules rank almost identically---pooled AUROC within $0.010$, while
 their a-priori true-positive rates run from $\CmbPoolEAvgTprA$ to
 $\CmbPoolStoufTprA$, so a paper reporting only AUROC cannot see the axis on which
 the rules actually differ. Bonferroni is the sole dependence-robust rule that
@@ -2107,12 +2116,12 @@ This also settles, from a single cause, a negative result we had reported withou
 explanation: the anytime-valid e-process detector this project began from was
 outperformed by a hand-picked benign quantile. Time-uniform guarantees and
 dependence-robust merging both buy safety with a multiplicative budget, and both
-need more calibration evidence than these corpora can express. The guarantees are
-sound. The corpora cannot pay for them.
+need more calibration evidence than these corpora can express. The guarantees
+themselves are sound; it is the corpora that cannot pay for them.
 
 On the monitor itself we proved that the natural alternative of subtracting the
 benign training maximum is many-to-one and, for any attack class lying below that
-maximum, drives AUROC to at most one half---as it did, measurably, at a cost of
+maximum, drives AUROC to at most one half, as it did, measurably, at a cost of
 $0.25$ AUROC, together with an explanation of the failure that was confidently
 wrong.
 
@@ -2126,7 +2135,7 @@ trajectories, the recall gain over the instruction signal alone is $\BootGainTpr
 $[\BootGainTprLo, \BootGainTprHi]$ and the AUROC gain $\BootGainAuroc$
 $[\BootGainAurocLo, \BootGainAurocHi]$; the latter interval only marginally excludes
 no effect, and $\nComp$ positives cannot settle it. The effect we would defend is
-different in kind: the single signal returns \emph{zero} recall in
+different in kind: the single signal returns zero recall in
 $\SthreeZeroSplits$ of $\nSeeds$ calibration draws, because a saturating judge and a
 discrete operating point conspire to put the threshold at the ceiling, and fusion
 removes that failure entirely. A detector that silently returns nothing on a fifth
@@ -2139,8 +2148,8 @@ re-implementation of Task Shield run on our own trajectories under our own
 protocol (Section~\ref{sec:baseline}).
 
 Our expectation going in was that an information limit would explain the residual
-error, and an earlier version of this work reported one. We withdraw it. The
-fraction of compromises leaving no trace evidence is not identified on this
+error, and an earlier version of this work reported one, which we now withdraw.
+The fraction of compromises leaving no trace evidence is not identified on this
 corpus---three defensible matching criteria give $0.000$, $0.044$ and $0.089$---and
 at the strictest of them the implied bound falls below the true-positive rate we
 measure, which means the bound is not usable rather than that we have beaten it. We
@@ -2218,7 +2227,7 @@ labelling can re-derive it.
 model: S3 scores each distinct observation and S4 audits each distinct tool call.
 Every such judgment is committed, keyed by a hash of its input. The evaluation
 therefore reproduces without an API key, without network access and without
-expenditure, and---because language-model sampling is not bit-reproducible---it
+expenditure, and, because language-model sampling is not bit-reproducible, it
 reproduces to the digit rather than approximately. The same holds for the Task
 Shield re-implementation of Section~\ref{sec:baseline}, whose alignment judgments
 are cached the same way.
@@ -2230,9 +2239,9 @@ verification pass re-derives each value independently and fails if any of them
 departs from the manuscript, which is how the numbers in this paper are checked.
 
 The repository also retains the components this paper reports as negative
-results---the two behavioural signals, the sink-provenance signal, the
+results, the two behavioural signals, the sink-provenance signal, the
 excess-over-maximum normalisation and the anytime-valid detector of
-Section~\ref{sec:negatives}---so that the rejections in Section~\ref{sec:negatives}
+Section~\ref{sec:negatives}, so that the rejections in Section~\ref{sec:negatives}
 can be reproduced alongside the adopted method. Superseded scripts are retained
 but marked as such, to prevent them being mistaken for the current method.
 
