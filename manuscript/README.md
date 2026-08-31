@@ -1,32 +1,38 @@
 # Manuscript
 
-Elsevier `elsarticle` manuscript for *Journal of Information Security and Applications*:
+Springer Nature `sn-jnl` (author-year, `sn-basic` style) manuscript:
 **"Conformal Surprisal Fusion for Detecting Prompt-Injection Compromise in LLM
-Agent Traces."**
+Agent Traces."** Prepared for *Machine Learning* and currently submitted to
+*Discover Computing* (same template family; both are Springer Nature venues).
 
 ## Build
 
 ```bash
-pdflatex sentry_jisa
-bibtex   sentry_jisa
-pdflatex sentry_jisa
-pdflatex sentry_jisa
+pdflatex sentry_ml
+bibtex   sentry_ml
+pdflatex sentry_ml
+pdflatex sentry_ml
 ```
 
-Requires a TeX Live installation with `elsarticle`, `algorithm`/`algpseudocode`,
-`booktabs`, `amsmath`, `amsthm` and `placeins` (all standard).
+Requires a TeX Live installation with the `sn-jnl` document class, `algorithm`/
+`algpseudocode`, `booktabs`, `amsmath`, `amsthm` and `placeins` (all standard).
+Competing interests, funding, data availability, and generative-AI-use
+declarations are embedded directly in `sentry_ml.tex` (Springer's required
+format), so there is no separate declarations file.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `sentry_jisa.tex` | manuscript source |
-| `sentry_jisa.pdf` | compiled output |
-| `references_jisa.bib` | bibliography |
-| `jisa_highlights.{tex,pdf,txt}` | Elsevier highlights (5 bullets) |
-| `jisa_cover_letter.{tex,pdf}` | cover letter |
-| `jisa_declarations.{tex,pdf}` | competing interests, funding, CRediT, data availability, ethics, generative-AI use |
-| `sentry_JISA_submission.zip` | everything above plus the included figures |
+| `sentry_ml.tex` | manuscript source |
+| `sentry_ml.pdf` | compiled output |
+| `references_ml.bib` | bibliography |
+| `ml_highlights.{tex,pdf,txt}` | highlights |
+| `ml_cover_letter.{tex,pdf}` | cover letter |
+| `ml_orcid.{tex,pdf}` | standalone ORCID information file |
+| `ml_title_page.{tex,pdf}` | title page |
+| `sentry_ML_submission.zip` | everything above plus the included figures |
+| `sn-*.bst` | Springer Nature bibliography styles shipped with the `sn-jnl` template (only `sn-basic.bst` is used) |
 | `figures/*.pdf` | figures |
 | `make_figures.py` | corpus-level figures, from the collected trajectories |
 | `make_paper_figures.py` | the pipeline diagram, the ablation and the evidence-channel figure, from committed JSON |
@@ -56,9 +62,10 @@ from later versions — a `note` field records this.
 
 ## A note on earlier versions
 
-Earlier drafts are retained in git history only. They
-report numbers computed with an **inverted** attack-success label (AgentDojo's
-`security` flag is the injection task's success, so `security=True` means the
-agent was compromised). Those numbers were therefore measured on the resisted
-class and should not be read as results; the current paper documents the error
-and its resolution.
+Earlier drafts, and the file sets prepared for IEEE TDSC, Computers & Security,
+JISA and ESWA before those submissions were retargeted, are retained in git
+history only. Some report numbers computed with an **inverted** attack-success
+label (AgentDojo's `security` flag is the injection task's success, so
+`security=True` means the agent was compromised). Those numbers were therefore
+measured on the resisted class and should not be read as results; the current
+paper documents the error and its resolution.
