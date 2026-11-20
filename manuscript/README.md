@@ -2,8 +2,9 @@
 
 Springer Nature `sn-jnl` (author-year, `sn-basic` style) manuscript:
 **"Conformal Surprisal Fusion for Detecting Prompt-Injection Compromise in LLM
-Agent Traces."** Prepared for *Machine Learning* and currently submitted to
-*Discover Computing* (same template family; both are Springer Nature venues).
+Agent Traces."** Prepared for *Discover Artificial Intelligence* (Springer Nature). An earlier
+submission to *Discover Computing* was withdrawn by that journal during
+editorial processing, before review.
 
 ## Build
 
