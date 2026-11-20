@@ -30,7 +30,7 @@ format), so there is no separate declarations file.
 | `references_ml.bib` | bibliography |
 | `ml_highlights.{tex,pdf,txt}` | highlights |
 | `ml_cover_letter.{tex,pdf}` | cover letter |
-| `ml_orcid.{tex,pdf}` | standalone ORCID information file |
+| `ml_orcid.{tex,pdf}` | standalone ORCID information file (all authors) |
 | `ml_title_page.{tex,pdf}` | title page |
 | `sentry_ML_submission.zip` | everything above plus the included figures |
 | `sn-*.bst` | Springer Nature bibliography styles shipped with the `sn-jnl` template (only `sn-basic.bst` is used) |
